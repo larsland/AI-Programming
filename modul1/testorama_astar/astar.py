@@ -2,7 +2,6 @@ from heapq import heappush, heappop
 from functools import wraps
 from random import randrange
 from pprint import pprint
-from pandas import *
 from math import sqrt, fabs
 import itertools
 
@@ -14,7 +13,6 @@ class Node:
 
         self.tile = tile
         # Reference to the board class
-        # self.board = board
 
         # Coordinates
         self.x = x
@@ -24,6 +22,8 @@ class Node:
         self.g = 0
         self.h = lambda x,y: sqrt((x-self.x)**2 + (x-self.y)**2)
         self.f = 0
+
+        self.siblings = []
 
     def path(self):
         # Return a list of nodes forming the path from the root to this node.
@@ -38,6 +38,9 @@ class Node:
 
     def __lt__(self, other):  # comparison method for priority queue
         return self.f + self.g < other.f + other.g
+
+    def __repr__(self):
+        return "<Node (%s, %s, %s)>" % (self.x, self.y, self.siblings)
 
     def __eq__(self, other):
         return isinstance(other, Node) and self.x == other.x and self.y == other.y
@@ -63,14 +66,18 @@ class Board:
         return fabs(self.goal.x - node.x) + fabs(self.goal.y - node.y)
 
     def add_board(self, rows):
-        x, y = 0, 0
+        self.width = len(rows)-1
+        self.height = len(rows[0])-1
+
+        x = -1
         for row in rows:
             line = []
             x += 1
+            y = -1
             for tile in row:
                 y += 1
                 if tile != '\n':
-                    node = Node(self, x, y, tile)
+                    node = Node(x, y, tile)
 
                     if tile == 'B':
                         # Goal node is set
@@ -89,16 +96,48 @@ class Board:
                     line.append(node)
             self.board_matrix.append(line)
 
-        self.width = x - 1
-        self.height = y - 1
-
-        print self.width, self.height
+        self.generate_all_siblings()
 
         # Define variables for the start Node
         if len(self.open) > 0:
             self.open[0].g = 0
             self.open[0].h = self.manhattan_distance(self.open[0])
             self.open[0].solution = True
+
+    def generate_all_siblings(self):
+        for line in self.board_matrix:
+            for node in line:
+                node.siblings = self.generate_siblings(node)
+
+    # Generates the valid siblings for Node within the board matrix
+    def generate_siblings(self, node):
+        # Init array for the parents
+        siblings = []
+
+        print(node)
+
+        # Remember that when using x and y as indexes, you must calculate with -1.
+        if node.y > 0:  # Up
+            print("UP", self.board_matrix[node.x][node.y+1])
+            siblings.append(self.board_matrix[node.x-1][node.y])
+        if node.y < self.height:  # Down
+            print("DOWN", self.board_matrix[node.x-1][node.y-2])
+            siblings.append(self.board_matrix[node.x-1][node.y-2])
+        if node.x > 0:  # Left
+            print("LEFT", self.board_matrix[node.y][node.x - 1])
+            siblings.append(self.board_matrix[node.y][node.x - 1])
+        if node.x < self.width:  # Right
+            print("RIGHT", self.board_matrix[node.y][node.x + 1])
+            siblings.append(self.board_matrix[node.y][node.x + 1])
+
+        # Return list of parents
+        return siblings
+
+    def create_board_matrix(self, data):
+        size = data.pop(0).split(',')
+        self.width = size[0]
+        self.height = size[0]
+        self.goal = data.pop(0)
 
 
     # Returns all parents for the current Node
@@ -129,26 +168,6 @@ class Board:
 inf = float('inf')
 
 
-def memo(func):
-    cache = {}
-
-    @wraps(func)
-    def wrap(*args):
-        if args not in cache:
-            cache[args] = func(*args)
-        return cache[args]
-
-    return wrap
-
-
-def heurestic(u, v):
-    @memo
-    def h(u, v):
-        return u + v
-
-    return h(u, v)
-
-
 def a_star(graph, s, t, h):
     P, Q = {}, [(h(s), None, s)]
     while Q:
@@ -167,23 +186,25 @@ def a_star(graph, s, t, h):
 if __name__ == '__main__':
     n = 10
 
-    G = """
-    ....................
-    ....................
-    .........######.....
-    ...........A..#..B..
-    .........######.....
-    ....................
-    ...................."""
+    G = [
+    '....................',
+    '....................',
+    '.........######.....',
+    '...........A..#..B..',
+    '.........######.....',
+    '....................',
+    '....................']
 
     b = Board()
     b.add_board(G)
-    print b.board_matrix
+    print(b.board_matrix)
+    print(len(b.board_matrix), b.width)
+    print(len(b.board_matrix[0]), b.height)
 
-    print "-------------------------------"
-    print G
-    print ""
-    print "-------------------------------"
+
+    b = Board()
+    b.add_board(open('boards/board-1-1.txt').readlines())
+    print(b.board_matrix)
 
     # pprint(a_star(graph=G, s=G[0][1], t=G[n - 1][n - 2], h=lambda v: 0))
 
@@ -227,4 +248,23 @@ map1 =
     [['A', _]]
 
 """
+
+def memo(func):
+    cache = {}
+
+    @wraps(func)
+    def wrap(*args):
+        if args not in cache:
+            cache[args] = func(*args)
+        return cache[args]
+
+    return wrap
+
+def heurestic(u, v):
+    @memo
+    def h(u, v):
+        return u + v
+
+    return h(u, v)
+
 
