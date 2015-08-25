@@ -43,8 +43,6 @@ class Astar_program(Frame):
 		fo = open(map, "rw+")
 		for line in fo.readlines():
 			for c in line:
-				#if c == '\n':
-				#	mapstring += 'n'
 				mapstring += c
 
 		x0_counter = 0
@@ -53,7 +51,7 @@ class Astar_program(Frame):
 		y1_counter = 50
 
 		for c in mapstring:
-			if c == '_':
+			if c == '.':
 				canvas.create_rectangle(x0_counter, y0_counter, x1_counter, y1_counter, fill="white")
 			elif c == '#':
 				canvas.create_rectangle(x0_counter, y0_counter, x1_counter, y1_counter, fill="black")
