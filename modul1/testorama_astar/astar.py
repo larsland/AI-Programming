@@ -106,8 +106,8 @@ class Board:
 
     def add_board(self, rows):
         self.input_rows = rows
-        self.width = len(rows)-1
-        self.height = len(rows[0])-1
+        self.height = len(rows)-1
+        self.width = len(max(rows, key=len))-1
 
         y = -1
         for row in rows:
@@ -131,109 +131,77 @@ class Board:
                         heappush(self.open, node)
                     elif tile == '#':
                         # Walls are closed
-                        heappush(self.closed, node)
+                        self.closed.append(node)
 
                     node_row.append(node)
             self.board_matrix.append(node_row)
 
-    def run(self):
+    def a_star(self):
+        inf = float('inf')
+
         path = []
         while self.open:
             node = heappop(self.open)
+            if node in self.closed:
+                continue
             path.append(node)
+            self.closed.append(node)
+            if node == self.goal:
+                return path, len(path), True
+
             for sibling in node.get_siblings():
-                if sibling == self.goal:
-                    print "Goal found!"
-                    print 'PATH:', path
-                    return path
-                if sibling not in self.closed:
-                    sibling.update_priority(self.goal)
-                    heappush(self.open, sibling)
+                sibling.update_priority(self.goal)
+                heappush(self.open, sibling)
 
-            heappush(self.closed, node)
-
-
-
-        #print self.open
-        #print self.closed
+        return path, len(path), False
 
     def add_path(self, path, node, i):
-        print node
         path_line = list(path[node.y])
-        # path_line = '......1..#...B..'
         path_line[node.x] = 'x'
-        #print 'path_line', path_line
-        # '......A..#...B..' = '......1..#...B..'
         path[node.y] = "".join(path_line)
 
+        print '-'*self.width + '-\n'
         for line in path:
             print str(line)
 
-
         return path
 
-    def write_solution(self):
+    def solve(self):
         path = self.input_rows
 
         i = 0
-        for node in self.run():
-            i += 1
-            path = self.add_path(path, node, i)
-
-        #for line in path:
-        #    print line
-
-
-    # Recursive reconstruct the path from goal to start
-    def reconstruct_path(self, current):
-        if current.navigated_from is not None:
-            current.on_path = True
-            self.reconstruct_path(current.navigated_from)
+        a_star_path, steps, found = self.a_star()
+        if found:
+            print "Solution found in %s steps" % steps
+            for node in a_star_path:
+                i += 1
+                path = self.add_path(path, node, i)
+        else:
+            print "No solution found in %s steps" % steps
+            for node in path:
+                i += 1
+                path = self.add_path(path, node, i)
 
 
-inf = float('inf')
 
 
-def a_star(graph, s, t, h):
-    P, Q = {}, [(h(s), None, s)]
-    while Q:
-        d, p, u = heappop(Q)
-        if u in P:
-            continue
-        P[u] = p
-        if u == t:
-            return d - h(t), P
-        for v in graph[u]:
-            w = graph[u][v] - h(u) + h(v)
-            heappush(Q, (d + w, u, v))
-    return inf, None
+
 
 
 if __name__ == '__main__':
-    n = 10
-
     G = [
     '....................',
-    '....................',
+    '..............#.....',
     '.........######.....',
     '...........A..#..B..',
     '.........######.....',
-    '....................',
-    '....................']
-
-    # b = Board()
-    # b.add_board(G)
-    # print(b.board_matrix)
-    # print(len(b.board_matrix), b.width)
-    # print(len(b.board_matrix[0]), b.height)
+    '..............#.....',
+    '..............#.....']
 
 
     b = Board()
-    b.add_board(open('boards/board-1-1.txt').readlines())
-    b.write_solution()
-    # print(b.board_matrix)
-
-    # pprint(a_star(graph=G, s=G[0][1], t=G[n - 1][n - 2], h=lambda v: 0))
+    b.add_board(G)
+    b.solve()
 
 """
 class GraphProblem(Problem):
@@ -293,5 +261,21 @@ def heurestic(u, v):
         return u + v
 
     return h(u, v)
+
+
+def a_star(self, graph, s, t, h):
+    inf = float('inf')
+    P, Q = {}, [(h(s), None, s)]
+    while Q:
+        d, p, u = heappop(Q)
+        if u in P:
+            continue
+        P[u] = p
+        if u == t:
+            return d - h(t), P
+        for v in graph[u]:
+            w = graph[u][v] - h(u) + h(v)
+            heappush(Q, (d + w, u, v))
+    return inf, None
 
 
