@@ -7,20 +7,22 @@ import itertools
 
 counter = itertools.count()  # unique sequence count
 
+
 class Node:
     # Constructor
-    def __init__(self, x, y, tile):
-
-        self.tile = tile
-        # Reference to the board class
-
+    def __init__(self, x, y, tile, board):
         # Coordinates
         self.x = x
         self.y = y
 
+        self.tile = tile
+        # Reference to the board class
+        self.board = board
+
         # g and f scores
         self.g = 0
-        self.h = lambda x,y: sqrt((x-self.x)**2 + (x-self.y)**2)
+        self.h = lambda x, y: sqrt((self.x-x)**2 + (self.y-y)**2)
+        # self.h = lambda x, y: fabs(x-self.x) + fabs(y-self.y)
         self.f = 0
 
         self.siblings = []
@@ -33,15 +35,51 @@ class Node:
             node = node.parent
         return list(reversed(path_back))
 
-    def update_priority(self, x, y):
-        self.f = self.g + self.h(x, y) * 10  # A*
+    # Generates the valid siblings for the Node within the board matrix
+    def get_siblings(self):
+        # Init array for the parents
+        siblings = []
+
+        b_matrix = self.board.board_matrix
+        height = len(b_matrix)-1
+        width = len(b_matrix[0])-1
+
+        try:
+            # Remember that when using x and y as indexes, you must calculate with -1.
+            if self.y > 0:
+                # Up
+                # print("UP", b_matrix[self.y-1][self.x])
+                siblings.append(b_matrix[self.y-1][self.x])
+            if self.y < height:
+                # Down
+                # print("DOWN", b_matrix[self.y+1][self.x])
+                siblings.append(b_matrix[self.y+1][self.x])
+            if self.x > 0:
+                # Left
+                # print("LEFT", b_matrix[self.y][self.x-1])
+                siblings.append(b_matrix[self.y][self.x-1])
+            if self.x < width:
+                # Right
+                # print("RIGHT", b_matrix[self.y][self.x+1])
+                siblings.append(b_matrix[self.y][self.x+1])
+        except IndexError as e:
+            print e
+            print self
+            print height
+
+        # Return list of siblings
+        return siblings
+
+    def update_priority(self, goal):
+        self.f = self.g + self.h(goal.x, goal.y) * 10  # A*
 
     def __lt__(self, other):  # comparison method for priority queue
-        return self.f + self.g < other.f + other.g
+        return self.f < other.f
 
     def __repr__(self):
-        return "<Node (%s, %s, %s)>" % (self.x, self.y, self.siblings)
+        return "<Node (%s, %s, %s)>" % (self.x, self.y, self.f)
 
+    # May not need these
     def __eq__(self, other):
         return isinstance(other, Node) and self.x == other.x and self.y == other.y
 
@@ -51,6 +89,7 @@ class Node:
 
 class Board:
     def __init__(self):
+        self.input_rows = [] # Contains the input to add board
         self.board_matrix = []  # Contains the entire board
         self.open = []  # List of open Nodes
         self.closed = []  # List of closed Nodes
@@ -62,22 +101,23 @@ class Board:
         self.height = 0
 
     # Calculate manhattan score for a given Node
-    def manhattan_distance(self, node):
-        return fabs(self.goal.x - node.x) + fabs(self.goal.y - node.y)
+    # def manhattan_distance(self, node):
+    #    return fabs(self.goal.x - node.x) + fabs(self.goal.y - node.y)
 
     def add_board(self, rows):
+        self.input_rows = rows
         self.width = len(rows)-1
         self.height = len(rows[0])-1
 
-        x = -1
+        y = -1
         for row in rows:
-            line = []
-            x += 1
-            y = -1
+            node_row = []
+            y += 1
+            x = -1
             for tile in row:
-                y += 1
+                x += 1
                 if tile != '\n':
-                    node = Node(x, y, tile)
+                    node = Node(x, y, tile, self)
 
                     if tile == 'B':
                         # Goal node is set
@@ -93,70 +133,56 @@ class Board:
                         # Walls are closed
                         heappush(self.closed, node)
 
-                    line.append(node)
-            self.board_matrix.append(line)
+                    node_row.append(node)
+            self.board_matrix.append(node_row)
 
-        self.generate_all_siblings()
+    def run(self):
+        path = []
+        while self.open:
+            node = heappop(self.open)
+            path.append(node)
+            for sibling in node.get_siblings():
+                if sibling == self.goal:
+                    print "Goal found!"
+                    print 'PATH:', path
+                    return path
+                if sibling not in self.closed:
+                    sibling.update_priority(self.goal)
+                    heappush(self.open, sibling)
 
-        # Define variables for the start Node
-        if len(self.open) > 0:
-            self.open[0].g = 0
-            self.open[0].h = self.manhattan_distance(self.open[0])
-            self.open[0].solution = True
-
-    def generate_all_siblings(self):
-        for line in self.board_matrix:
-            for node in line:
-                node.siblings = self.generate_siblings(node)
-
-    # Generates the valid siblings for Node within the board matrix
-    def generate_siblings(self, node):
-        # Init array for the parents
-        siblings = []
-
-        print(node)
-
-        # Remember that when using x and y as indexes, you must calculate with -1.
-        if node.y > 0:  # Up
-            print("UP", self.board_matrix[node.x][node.y+1])
-            siblings.append(self.board_matrix[node.x-1][node.y])
-        if node.y < self.height:  # Down
-            print("DOWN", self.board_matrix[node.x-1][node.y-2])
-            siblings.append(self.board_matrix[node.x-1][node.y-2])
-        if node.x > 0:  # Left
-            print("LEFT", self.board_matrix[node.y][node.x - 1])
-            siblings.append(self.board_matrix[node.y][node.x - 1])
-        if node.x < self.width:  # Right
-            print("RIGHT", self.board_matrix[node.y][node.x + 1])
-            siblings.append(self.board_matrix[node.y][node.x + 1])
-
-        # Return list of parents
-        return siblings
-
-    def create_board_matrix(self, data):
-        size = data.pop(0).split(',')
-        self.width = size[0]
-        self.height = size[0]
-        self.goal = data.pop(0)
+            heappush(self.closed, node)
 
 
-    # Returns all parents for the current Node
-    def get_parents(self, node):
-        # Init array for the parents
-        parents = []
 
-        # Get valid parents that are in the map
-        if node.y > 0:  # Up
-            parents.append(self.board_matrix[node.y - 1][node.x])
-        if node.y < self.height:  # Down
-            parents.append(self.board_matrix[node.y + 1][node.x])
-        if node.x > 0:  # Left
-            parents.append(self.board_matrix[node.y][node.x - 1])
-        if node.x < self.width:  # Right
-            parents.append(self.board_matrix[node.y][node.x + 1])
+        #print self.open
+        #print self.closed
 
-        # Return list of parents
-        return parents
+    def add_path(self, path, node, i):
+        print node
+        path_line = list(path[node.y])
+        # path_line = '......1..#...B..'
+        path_line[node.x] = 'x'
+        #print 'path_line', path_line
+        # '......A..#...B..' = '......1..#...B..'
+        path[node.y] = "".join(path_line)
+
+        for line in path:
+            print str(line)
+
+
+        return path
+
+    def write_solution(self):
+        path = self.input_rows
+
+        i = 0
+        for node in self.run():
+            i += 1
+            path = self.add_path(path, node, i)
+
+        #for line in path:
+        #    print line
+
 
     # Recursive reconstruct the path from goal to start
     def reconstruct_path(self, current):
@@ -195,16 +221,17 @@ if __name__ == '__main__':
     '....................',
     '....................']
 
-    b = Board()
-    b.add_board(G)
-    print(b.board_matrix)
-    print(len(b.board_matrix), b.width)
-    print(len(b.board_matrix[0]), b.height)
+    # b = Board()
+    # b.add_board(G)
+    # print(b.board_matrix)
+    # print(len(b.board_matrix), b.width)
+    # print(len(b.board_matrix[0]), b.height)
 
 
     b = Board()
     b.add_board(open('boards/board-1-1.txt').readlines())
-    print(b.board_matrix)
+    b.write_solution()
+    # print(b.board_matrix)
 
     # pprint(a_star(graph=G, s=G[0][1], t=G[n - 1][n - 2], h=lambda v: 0))
 
