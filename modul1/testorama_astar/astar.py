@@ -3,9 +3,7 @@ from functools import wraps
 from random import randrange
 from pprint import pprint
 from math import sqrt, fabs
-import itertools
-
-counter = itertools.count()  # unique sequence count
+from itertools import count
 
 
 class Node:
@@ -74,13 +72,14 @@ class Node:
         return siblings
 
     def update_priority(self, goal, c):
+        self.c = c
         self.f = self.g + self.h(goal.x, goal.y) * 10  # A*
 
     def __lt__(self, other):  # comparison method for priority queue
         return self.f + self.c < other.f + self.c
 
     def __repr__(self):
-        return "<Node (%s, %s, %s)>" % (self.x, self.y, self.f)
+        return "<Node (x:%s, y:%s, f:%s, c:%s)>" % (self.x, self.y, self.f, self.c)
 
     # May not need these
     def __eq__(self, other):
@@ -91,25 +90,45 @@ class Node:
 
 
 class Board:
-    def __init__(self):
-        self.input_rows = []  # Contains the input to add board
-        self.board_matrix = []  # Contains the entire board
+    def __init__(self, board):
+        self.board = board  # Holds the input board for reference
+
+        self.board_matrix = []  # Matrix of board Nodes
         self.open = []  # List of open Nodes
         self.closed = []  # List of closed Nodes
+        self.solution_path = []  # List of nodes that make up the solution path
         self.goal = None  # The goal Node
-        self.start = None
+        self.initial = None  # The initial Node
+
+        self.counter = count()  # Unique sequence count for correct priority queue implementation
 
         # Sizes defining the board
         self.width = 0
         self.height = 0
 
-    def add_board(self, rows):
-        self.input_rows = rows
-        self.height = len(rows)-1
-        self.width = len(max(rows, key=len))-1
+        self.generate_matrix()
+
+    def __repr__(self):
+        representation = '<Board ([\n'
+        for line in self.board[:-2]:
+            representation += line+'\n'
+        representation += self.board[-1] + '\n], \n'
+
+        representation += 'initial node:  ' + str(self.initial) + '\n'
+        representation += 'goal node:     ' + str(self.goal) + '\n)'
+        representation += 'open:          ' + str(self.open) + '\n'
+        representation += 'closed:        ' + str(self.closed) + '\n'
+        representation += 'counter:       ' + str(next(self.counter)) + '\n'
+        representation += 'solution path: ' + str(self.solution_path) + '\n'
+
+        return representation
+
+    def generate_matrix(self):
+        self.height = len(self.board)-1
+        self.width = max(map(len, self.board))-1
 
         y = -1
-        for row in rows:
+        for row in self.board:
             node_row = []
             y += 1
             x = -1
@@ -123,7 +142,7 @@ class Board:
                         self.goal = node
                     elif tile == 'A':
                         # Start node is opened
-                        self.start = node
+                        self.initial = node
                         heappush(self.open, node)
                     elif tile == '_':
                         # Normal nodes are added to open queue
@@ -147,7 +166,9 @@ class Board:
                 return path, len(path), True
 
             for sibling in node.get_siblings():
-                sibling.update_priority(self.goal, next(counter))
+                if sibling in self.closed:
+                    continue
+                sibling.update_priority(self.goal, next(self.counter))
                 heappush(self.open, sibling)
 
         return path, len(path), False
@@ -188,25 +209,25 @@ class Board:
         path_line[node.x] = 'x'
         path[node.y] = "".join(path_line)
 
-        print('-'*self.width + '-\n')
-        for line in path:
-            print(str(line))
+        # print('-'*self.width + '-\n')
+        # for line in path:
+        #    print(str(line))
 
         return path
 
     def solve(self):
-        path = self.input_rows
+        path = self.board
 
         i = 0
-        a_star_path, steps, found = self.breadth_first_search()
-        print(a_star_path, steps, found)
+        a_star_path, steps, found = self.a_star()
+        # print(a_star_path, steps, found)
         if found:
-            print("Solution found in %s steps" % steps)
+            # print("Solution found in %s steps" % steps)
             for node in a_star_path:
                 i += 1
                 path = self.add_path(path, node, i)
         else:
-            print("No solution found in %s steps" % steps)
+            # print("No solution found in %s steps" % steps)
             for node in a_star_path:
                 i += 1
                 path = self.add_path(path, node, i)
@@ -233,8 +254,9 @@ class Astar:
                 return path, len(path), True
 
             for sibling in node.get_siblings():
-                sibling.update_priority(self.goal, next(counter))
-                heappush(self.open, sibling)
+                if sibling not in self.closed:
+                    sibling.update_priority(self.goal, next(self.counter))
+                    heappush(self.open, sibling)
 
         return path, len(path), False
 
@@ -310,9 +332,10 @@ if __name__ == '__main__':
     '..............#.....',
     '....................']
 
-    b = Board()
-    b.add_board(G)
-    b.solve()
+
+    for i in range(1000):
+        b = Board(list(G))
+        b.solve()
     #astar = Astar(b)
     #astar.solve(astar.best_first_search)
 
