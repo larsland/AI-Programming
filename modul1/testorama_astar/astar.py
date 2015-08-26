@@ -152,6 +152,37 @@ class Board:
 
         return path, len(path), False
 
+    def breadth_first_search(self):
+        path = []
+        while self.open:
+            node = self.open.pop(0)
+            if node in self.closed:
+                continue
+            path.append(node)
+            self.closed.append(node)
+            if node == self.goal:
+                return path, len(path), True
+
+            for sibling in node.get_siblings():
+                self.open.append(sibling)
+        return path, len(path), False
+
+    def depth_first_search(self):
+        path = []
+        while self.open:
+            node = self.open.pop()
+            if node in self.closed:
+                continue
+            path.append(node)
+            self.closed.append(node)
+            if node == self.goal:
+                return path, len(path), True
+
+            for sibling in node.get_siblings():
+                self.open.insert(0, sibling)
+
+        return path, len(path), False
+
     def add_path(self, path, node, i):
         path_line = list(path[node.y])
         path_line[node.x] = 'x'
@@ -167,7 +198,8 @@ class Board:
         path = self.input_rows
 
         i = 0
-        a_star_path, steps, found = self.a_star()
+        a_star_path, steps, found = self.breadth_first_search()
+        print(a_star_path, steps, found)
         if found:
             print("Solution found in %s steps" % steps)
             for node in a_star_path:
@@ -175,9 +207,10 @@ class Board:
                 path = self.add_path(path, node, i)
         else:
             print("No solution found in %s steps" % steps)
-            for node in path:
+            for node in a_star_path:
                 i += 1
                 path = self.add_path(path, node, i)
+        return path
 
 
 class Astar:
@@ -217,38 +250,51 @@ class Astar:
                 return path, len(path), True
 
             for sibling in node.get_siblings():
-                sibling.update_priority(self.goal, next(counter))
-                heappush(self.open, sibling)
-
+                self.open.append(sibling)
         return path, len(path), False
 
+    def depth_first_search(self):
+        path = []
+        for node in self.open:
+            if node in self.closed:
+                continue
+            path.append(node)
+            self.closed.append(node)
+            if node == self.goal:
+                return path, len(path), True
+
+            for sibling in node.get_siblings():
+                self.open.insert(0, sibling)
+
+        return path, len(path), False
 
     def add_path(self, path, node, i):
         path_line = list(path[node.y])
         path_line[node.x] = 'x'
         path[node.y] = "".join(path_line)
 
-        print('-'*self.width + '-\n')
+        print('-'*self.problem.width + '-\n')
         for line in path:
             print(str(line))
 
         return path
 
-    def solve(self):
-        path = self.input_rows
+    def solve(self, search):
+        path = self.problem.input_rows
 
         i = 0
-        a_star_path, steps, found = self.best_first_search()
+        node_path, steps, found = search()
         if found:
             print("Solution found in %s steps" % steps)
-            for node in a_star_path:
+            for node in node_path:
                 i += 1
                 path = self.add_path(path, node, i)
         else:
             print("No solution found in %s steps" % steps)
-            for node in path:
+            for node in node_path:
                 i += 1
                 path = self.add_path(path, node, i)
+        return path
 
 
 
@@ -264,10 +310,11 @@ if __name__ == '__main__':
     '..............#.....',
     '....................']
 
-
     b = Board()
     b.add_board(G)
     b.solve()
+    #astar = Astar(b)
+    #astar.solve(astar.best_first_search)
 
 """
 class GraphProblem(Problem):
@@ -344,6 +391,3 @@ def a_star(self, graph, s, t, h):
             w = graph[u][v] - h(u) + h(v)
             heappush(Q, (d + w, u, v))
     return inf, None
-
-
-
