@@ -25,6 +25,9 @@ class Node:
         # self.h = lambda x, y: fabs(x-self.x) + fabs(y-self.y)
         self.f = 0
 
+        # Priority Queue counter in case equal priority
+        self.c = 0
+
         self.siblings = []
 
     def path(self):
@@ -63,18 +66,18 @@ class Node:
                 # print("RIGHT", b_matrix[self.y][self.x+1])
                 siblings.append(b_matrix[self.y][self.x+1])
         except IndexError as e:
-            print e
-            print self
-            print height
+            print(e)
+            print(self)
+            print(height)
 
         # Return list of siblings
         return siblings
 
-    def update_priority(self, goal):
+    def update_priority(self, goal, c):
         self.f = self.g + self.h(goal.x, goal.y) * 10  # A*
 
     def __lt__(self, other):  # comparison method for priority queue
-        return self.f < other.f
+        return self.f + self.c < other.f + self.c
 
     def __repr__(self):
         return "<Node (%s, %s, %s)>" % (self.x, self.y, self.f)
@@ -89,7 +92,7 @@ class Node:
 
 class Board:
     def __init__(self):
-        self.input_rows = [] # Contains the input to add board
+        self.input_rows = []  # Contains the input to add board
         self.board_matrix = []  # Contains the entire board
         self.open = []  # List of open Nodes
         self.closed = []  # List of closed Nodes
@@ -99,10 +102,6 @@ class Board:
         # Sizes defining the board
         self.width = 0
         self.height = 0
-
-    # Calculate manhattan score for a given Node
-    # def manhattan_distance(self, node):
-    #    return fabs(self.goal.x - node.x) + fabs(self.goal.y - node.y)
 
     def add_board(self, rows):
         self.input_rows = rows
@@ -137,8 +136,6 @@ class Board:
             self.board_matrix.append(node_row)
 
     def a_star(self):
-        inf = float('inf')
-
         path = []
         while self.open:
             node = heappop(self.open)
@@ -150,7 +147,7 @@ class Board:
                 return path, len(path), True
 
             for sibling in node.get_siblings():
-                sibling.update_priority(self.goal)
+                sibling.update_priority(self.goal, next(counter))
                 heappush(self.open, sibling)
 
         return path, len(path), False
@@ -160,9 +157,9 @@ class Board:
         path_line[node.x] = 'x'
         path[node.y] = "".join(path_line)
 
-        print '-'*self.width + '-\n'
+        print('-'*self.width + '-\n')
         for line in path:
-            print str(line)
+            print(str(line))
 
         return path
 
@@ -172,12 +169,83 @@ class Board:
         i = 0
         a_star_path, steps, found = self.a_star()
         if found:
-            print "Solution found in %s steps" % steps
+            print("Solution found in %s steps" % steps)
             for node in a_star_path:
                 i += 1
                 path = self.add_path(path, node, i)
         else:
-            print "No solution found in %s steps" % steps
+            print("No solution found in %s steps" % steps)
+            for node in path:
+                i += 1
+                path = self.add_path(path, node, i)
+
+
+class Astar:
+    def __init__(self, problem):
+        self.problem = problem
+        self.open = []  # List of open Nodes
+        self.closed = []  # List of closed Nodes
+        self.goal = None  # The goal Node
+        self.start = None  # The start Node
+
+    def best_first_search(self):
+        path = []
+        while self.open:
+            node = heappop(self.open)
+            if node in self.closed:
+                continue
+            path.append(node)
+            self.closed.append(node)
+            if node == self.goal:
+                return path, len(path), True
+
+            for sibling in node.get_siblings():
+                sibling.update_priority(self.goal, next(counter))
+                heappush(self.open, sibling)
+
+        return path, len(path), False
+
+    def breadth_first_search(self):
+        path = []
+        while self.open:
+            node = self.open.pop()
+            if node in self.closed:
+                continue
+            path.append(node)
+            self.closed.append(node)
+            if node == self.goal:
+                return path, len(path), True
+
+            for sibling in node.get_siblings():
+                sibling.update_priority(self.goal, next(counter))
+                heappush(self.open, sibling)
+
+        return path, len(path), False
+
+
+    def add_path(self, path, node, i):
+        path_line = list(path[node.y])
+        path_line[node.x] = 'x'
+        path[node.y] = "".join(path_line)
+
+        print('-'*self.width + '-\n')
+        for line in path:
+            print(str(line))
+
+        return path
+
+    def solve(self):
+        path = self.input_rows
+
+        i = 0
+        a_star_path, steps, found = self.best_first_search()
+        if found:
+            print("Solution found in %s steps" % steps)
+            for node in a_star_path:
+                i += 1
+                path = self.add_path(path, node, i)
+        else:
+            print("No solution found in %s steps" % steps)
             for node in path:
                 i += 1
                 path = self.add_path(path, node, i)
@@ -186,17 +254,15 @@ class Board:
 
 
 
-
-
 if __name__ == '__main__':
     G = [
-    '....................',
+    '..............#.....',
     '..............#.....',
     '.........######.....',
     '...........A..#..B..',
     '.........######.....',
     '..............#.....',
-    '..............#.....']
+    '....................']
 
 
     b = Board()
@@ -244,6 +310,7 @@ map1 =
 
 """
 
+
 def memo(func):
     cache = {}
 
@@ -277,5 +344,6 @@ def a_star(self, graph, s, t, h):
             w = graph[u][v] - h(u) + h(v)
             heappush(Q, (d + w, u, v))
     return inf, None
+
 
 
