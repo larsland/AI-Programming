@@ -225,7 +225,7 @@ class Board:
             if node == self.goal:
                 return path, len(path), True
 
-            for sibling in node.get_siblings():
+            for sibling in node.actions():
                 sibling.update_priority(self.goal)
                 heappush(self.open, sibling)
 
