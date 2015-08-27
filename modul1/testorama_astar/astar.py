@@ -20,17 +20,9 @@ class Node:
     def __hash__(self):
         return hash("" + self.state)
 
-    def path(self):
-        # Return a list of nodes forming the path from the root to this node.
-        node, path_back = self, []
-        while node:
-            path_back.append(node)
-            node = node.parent
-        return list(reversed(path_back))
-
 
 class Problem():
-    def __init__(self, state, initial, goal=None):
+    def __init__(self, state, initial, goal=None, ):
         """The constructor specifies the initial state, and possibly a goal
         state, if there is a unique goal.  Your subclass's constructor can add
         other arguments."""
@@ -50,6 +42,12 @@ class Problem():
 
     def solve(self, algorithm):
         """Solve the problem with the given algorithm"""
+        pass
+
+    def goal_test(self, other):
+        return self.goal == other
+
+    def save_state(self):
         pass
 
 
@@ -75,8 +73,6 @@ class PriorityNode(Node):
         # Priority Queue counter in case equal priority (f)
         self.c = 0
 
-        self.siblings = []
-
         self.closed = False
 
         Node.__init__(self, (x, y), board)
@@ -89,17 +85,17 @@ class PriorityNode(Node):
         return self.f + self.c < other.f + self.c
 
     def __repr__(self):
-        return "<Node (x:%s, y:%s, f:%s, c:%s)>" % (self.x, self.y, self.f, self.c)
+        return "<Node (x:%s, y:%s, f:%s, c:%s, t:%s)>" % (self.x, self.y, self.f, self.c, self.tile)
 
 
 class Board(Problem):
     def __init__(self, board):
         self.board = board  # Holds the input board for reference
 
-        self.board_matrix = []  # Matrix of board Nodes
+        self.state = []  # Matrix of board Nodes
         self.open = []  # List of open Nodes
         self.closed = []  # List of closed Nodes
-        self.solution_path = []  # List of nodes that make up the solution path
+
         self.goal = None  # The goal Node
         self.initial = None  # The initial Node
 
@@ -109,9 +105,12 @@ class Board(Problem):
         self.width = 0
         self.height = 0
 
-        self.init_state()
+        # Holds several solution related data instances
+        self.solution = {'path': [], 'length': 0, 'found': False, 'steps': 0, 'states': []}
 
-        Problem.__init__(self, self.board_matrix, self.initial, self.goal)
+        self.init_state()  # Initialize state
+
+        Problem.__init__(self, self.state, self.initial, self.goal)
 
     def __repr__(self):
         representation = '<Board ([\n'
@@ -127,13 +126,6 @@ class Board(Problem):
         representation += 'solution path: ' + str(self.solution_path) + '\n'
 
         return representation
-
-    def goal_test(self, node):
-        return self.goal == node
-
-    def reset(self):
-        self.init_state()
-        Problem.__init__(self, self.board_matrix, self.initial, self.goal)
 
     def init_state(self):
         self.height = len(self.board)-1
@@ -156,63 +148,84 @@ class Board(Problem):
                         # Start node is opened
                         self.initial = node
                         self.open.append(node)
-                    elif tile == '_':
-                        # Normal nodes are added to open queue
-                        self.open.append(node)
                     elif tile == '#':
                         # Walls are closed
                         node.closed = True
                         # self.closed.append(node)
 
                     node_row.append(node)
-            self.board_matrix.append(node_row)
+            self.state.append(node_row)
 
     # In our problem, actions are all nodes reachable from current Node within the board matrix
     def actions(self, node):
         try:
             if node.y > 0:  # UP
-                yield self.board_matrix[node.y-1][node.x]
+                child = self.state[node.y-1][node.x]
+                if not child.closed:
+                    yield child
             if node.y < self.height:  # DOWN
-                yield self.board_matrix[node.y+1][node.x]
+                child = self.state[node.y+1][node.x]
+                if not child.closed:
+                    yield child
             if node.x > 0:  # LEFT
-                yield self.board_matrix[node.y][node.x-1]
+                child = self.state[node.y][node.x-1]
+                if not child.closed:
+                    yield child
             if node.x < self.width:  # RIGHT
-                yield self.board_matrix[node.y][node.x+1]
+                child = self.state[node.y][node.x+1]
+                if not child.closed:
+                    yield child
         except IndexError as e:
             print(e)
 
-    def add_path(self, path, node, i):
+    def save_state(self):
+        self.solution['states'].append(self.state)
+
+    def add_path(self, path, node):
         path_line = list(path[node.y])
         path_line[node.x] = 'x'
         path[node.y] = "".join(path_line)
 
-        #print('-'*self.width + '-\n')
-        #for line in path:
-        #    print(str(line))
         return path
 
     def solve(self, algorithm):
         path = list(self.board)
 
-        i = 0
-        self.solution_path, steps, found = algorithm(self)
-        if found:
-            response = "Solution found in %s steps" % steps
+        solution_path, steps, found = algorithm(self)
+
+        for node in solution_path:
+            path = self.add_path(path, node)
+
+        self.solution['path'] = path
+        self.solution['length'] = len(solution_path)
+        self.solution['steps'] = steps
+        self.solution['found'] = path
+
+    def solution_states_generator(self):
+        for state in self.solution['states']:
+            yield state
+
+    def pretty_print(self):
+        if self.solution['found']:
+            print("Solution found in %s steps, solution length is %s" % (self.solution['steps'], self.solution['length']))
         else:
-            response = "No solution found in %s steps" % steps
+            print("No solution found in %s steps, solution length is %s" % (self.solution['steps'], float('inf')))
 
-        for node in self.solution_path:
-            i += 1
-            path = self.add_path(path, node, i)
-        return path, response
+        print('_'*len(self.board[0]))
+        for solution_line in self.solution['path']:
+            print(solution_line)
+        print('_'*len(self.board[0]))
+        print('')
 
 
-class PriorityQueue():
-    def push(self, problem, item):
+class PriorityQueue:
+    def __init__(self):
+        pass
+
+    def add(self, problem, item):
         # Simulated memoization of f(n) = g(n) + h(n)
         if item.f:
             return
-
         item.update_priority(problem.goal, next(problem.counter))
         heappush(problem.open, item)
 
@@ -220,16 +233,22 @@ class PriorityQueue():
         return heappop(queue)
 
 
-class Stack():
-    def push(self, problem, item):
+class Stack:
+    def __init__(self):
+        pass
+
+    def add(self, problem, item):
         problem.open.append(item)
 
-    def pop(self, queue):
-        return queue.pop()
+    def pop(self, stack):
+        return stack.pop()
 
 
-class FIFOQueue():
-    def push(self, problem, item):
+class FIFOQueue:
+    def __init__(self):
+        pass
+
+    def add(self, problem, item):
         problem.open.append(item)
 
     def pop(self, queue):
@@ -237,24 +256,32 @@ class FIFOQueue():
 
 
 def graph_search(problem, frontier):
-    path = []
+    path, steps = [], 0
     while problem.open:
         node = frontier.pop(problem.open)
+        steps += 1
+
         if node.closed:
             continue
-        path.append(node)
 
-        # Close node
+        path.append(node)
+        problem.save_state()
+
+        if problem.goal_test(node):
+            return path, steps, True
+
+        for child_node in problem.actions(node):
+            if child_node.closed:
+                continue
+
+            child_node.parent = node
+            frontier.add(problem, child_node)
+
+        # We have explored all the child nodes of this node, so we close it.
         node.closed = True
         # self.closed.append(node)
 
-        if problem.goal_test(node):
-            return path, len(path), True
-
-        for child_node in problem.actions(node):
-            frontier.push(problem, child_node)
-
-    return path, len(path), False
+    return path, steps, False
 
 
 def a_star(problem):
@@ -279,29 +306,19 @@ if __name__ == '__main__':
     '..............#.....',
     '....................']
 
+    
+    b = Board(list(G))
+    b.solve(a_star)
+    # b.pretty_print()
 
     b = Board(list(G))
-    print("A*")
-    solution, message = b.solve(a_star)
-    for line in solution:
-        print(line)
-    print(message + '\n')
-
-
-    b = Board(list(G))
-    print("Depth first")
-    solution, message = b.solve(depth_first_search)
-    for line in solution:
-        print(line)
-    print(message + '\n')
+    b.solve(depth_first_search)
+    # b.pretty_print()
 
 
     b = Board(list(G))
-    print("Breadth first")
-    solution, message = b.solve(breadth_first_search)
-    for line in solution:
-        print(line)
-    print(message + '\n')
+    b.solve(breadth_first_search)
+    # b.pretty_print()
 
 
 
