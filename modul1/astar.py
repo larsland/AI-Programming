@@ -1,6 +1,6 @@
 from tkinter import *
 from heapq import heappush, heappop
-from heapq import heappush, heappop
+from collections import deque
 from math import sqrt, fabs
 from itertools import count
 
@@ -94,11 +94,6 @@ class Astar_program(Frame):
         '''
 
 
-
-
-
-
-
 class Node:
     def __init__(self, state, problem, parent=None, action=None, path_cost=0):
         self.state = state
@@ -114,7 +109,78 @@ class Node:
         return hash("" + self.state)
 
 
+class Problem():
+    def __init__(self, state, initial, goal=None, ):
+        """The constructor specifies the initial state, and possibly a goal
+        state, if there is a unique goal.  Your subclass's constructor can add
+        other arguments."""
+        self.state = state
+        self.initial = initial
+        self.goal = goal
+
+    def init_state(self):
+        """Initialization method for the state of the problem,
+        can be a list, matrix, tree or any other data structure that fits the problem"""
+        pass
+
+    def actions(self, state):
+        """Returns all actions that can be performed from current state,
+        either as a data structure or a generator"""
+        pass
+
+    def solve(self, algorithm):
+        """Solve the problem with the given algorithm"""
+        pass
+
+    def goal_test(self, other):
+        """General goal test to see if goal has been achieved"""
+        return self.goal == other
+
+    def save_state(self):
+        """Useful when you want to review the states your algorithm created"""
+        pass
+
+
+class PriorityNode(Node):
+    """This node is specialized to be used in the context of a priority heap (or queue).
+    The order of nodes is derived from the comparison method __lt__, based on priority, as seen below.
+    For the purpose of this task the priority is calculated from f(n) = g(n) + h(n).
+    """
+    def __init__(self, x, y, board, tile):
+        # Coordinates
+        self.x = x
+        self.y = y
+
+        self.tile = tile  # A, B, . or #
+        self.board = board  # Reference to the board class
+
+        # g and f scores
+        self.g = 0
+        self.f = 0
+
+        # Heuristic function with euclidean distance.
+        self.h = lambda x, y: sqrt((self.x-x)**2 + (self.y-y)**2)
+        # Heuristic function with manhattan distance.
+        # self.h = lambda x, y: fabs(x-self.x) + fabs(y-self.y)
+
+        self.c = 0  # Priority Queue counter in case equal priority (f)
+        self.closed = False  # Use this to check if the node has been traversed.
+
+        Node.__init__(self, (x, y), board)
+
+    def update_priority(self, goal, c):
+        self.c = c
+        self.f = self.g + self.h(goal.x, goal.y) * 10  # A*
+
+    def __lt__(self, other):  # comparison method for priority queue
+        return self.f + self.c < other.f + self.c
+
+    def __repr__(self):  # representation method for printing a Node
+        return "<Node (x:%s, y:%s, f:%s, c:%s, t:%s)>" % (self.x, self.y, self.f, self.c, self.tile)
+
+
 class Board(Problem):
+    """The problem in this task can be viewed as a """
     def __init__(self, board):
         self.board = board  # Holds the input board for reference
 
@@ -244,75 +310,6 @@ class Board(Problem):
         print('')
 
 
-class Problem():
-    def __init__(self, state, initial, goal=None, ):
-        """The constructor specifies the initial state, and possibly a goal
-        state, if there is a unique goal.  Your subclass's constructor can add
-        other arguments."""
-        self.state = state
-        self.initial = initial
-        self.goal = goal
-
-    def init_state(self):
-        """Initialization method for the state of the problem,
-        can be a list, matrix, tree or any other data structure that fits the problem"""
-        pass
-
-    def actions(self, state):
-        """Returns all actions that can be performed from current state,
-        either as a data structure or a generator"""
-        pass
-
-    def solve(self, algorithm):
-        """Solve the problem with the given algorithm"""
-        pass
-
-    def goal_test(self, other):
-        return self.goal == other
-
-    def save_state(self):
-        pass
-
-
-class PriorityNode(Node):
-    # Constructor
-    def __init__(self, x, y, board, tile):
-        # Coordinates
-        self.x = x
-        self.y = y
-
-        self.tile = tile
-        # Reference to the board class
-        self.board = board
-
-        # g and f scores
-        self.g = 0
-        self.f = 0
-
-        # Heuristic function
-        self.h = lambda x, y: sqrt((self.x-x)**2 + (self.y-y)**2)
-        # self.h = lambda x, y: fabs(x-self.x) + fabs(y-self.y)
-
-        # Priority Queue counter in case equal priority (f)
-        self.c = 0
-
-        self.closed = False
-
-        Node.__init__(self, (x, y), board)
-
-    def update_priority(self, goal, c):
-        self.c = c
-        self.f = self.g + self.h(goal.x, goal.y) * 10  # A*
-
-    def __lt__(self, other):  # comparison method for priority queue
-        return self.f + self.c < other.f + self.c
-
-    def __repr__(self):
-        return "<Node (x:%s, y:%s, f:%s, c:%s, t:%s)>" % (self.x, self.y, self.f, self.c, self.tile)
-
-
-
-
 class PriorityQueue:
     def __init__(self):
         pass
@@ -335,8 +332,8 @@ class Stack:
     def add(self, problem, item):
         problem.open.append(item)
 
-    def pop(self, stack):
-        return stack.pop()
+    def pop(self, queue):
+        return queue.pop()
 
 
 class FIFOQueue:
@@ -347,7 +344,7 @@ class FIFOQueue:
         problem.open.append(item)
 
     def pop(self, queue):
-        return queue.pop(0)
+        return queue.popleft()
 
 
 def graph_search(problem, frontier):
@@ -384,10 +381,12 @@ def a_star(problem):
 
 
 def depth_first_search(problem):
+    problem.open = deque()
     return graph_search(problem, Stack())
 
 
 def breadth_first_search(problem):
+    problem.open = deque()
     return graph_search(problem, FIFOQueue())
 
 
