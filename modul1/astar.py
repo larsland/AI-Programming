@@ -5,84 +5,100 @@ from random import randrange
 from pprint import pprint
 from math import sqrt, fabs
 import itertools
+import time
 
 
 class Astar_program(Frame):
 
-	def __init__(self, master = None):
-		Frame.__init__(self, master)
-		self.master.title("A* Search")
-		self.pack()
-		self.create_gui()
+    def __init__(self, master = None):
+        Frame.__init__(self, master)
+        self.master.title("A* Search")
+        self.pack()
+
+        self.board = Board()
+        self.selected_map = "map1.txt"
+
+        # Creating the canvas where the grid is drawn
+        self.canvas = Canvas(self, width=500, height=500)
+        self.create_gui()
+
+    def create_gui(self):
+
+        # Variable for the current mode, and setting a default
+        selected_mode = StringVar(self)
+        selected_mode.set("Best-first mode")
+
+        # Variable for the current map, and setting a default
+        self.selected_map = StringVar(self)
+        self.selected_map.set('map1.txt')
+
+        # Creating the menus and buttons
+        mode_menu = OptionMenu(self, selected_mode, "Best-first mode", "Depth-first mode", "Breadth-first mode",
+                               command=lambda mode:print(mode))
+        map_menu = OptionMenu(self, self.selected_map, "map1.txt", "map2.txt", "map3.txt", "map4.txt", "map5.txt",
+                              "map6.txt", command=self.create_grid)
+        start_btn = Button(self, text="Start", fg="green", command=self.start_program)
+        exit_btn = Button(self, text="Exit", fg="red", command=self.quit)
+
+        # Placing components in a grid
+        mode_menu.grid(row = 0, column = 0)
+        map_menu.grid(row = 0, column = 1)
+        start_btn.grid(row = 0, column = 2)
+        exit_btn.grid(row = 0, column = 3)
+        self.canvas.grid(row = 1, column = 0, columnspan = 4)
+
+        # Sending the default map to the method which created the graphical map
+        #self.create_grid()
+
+    def create_grid(self, board_map=None):
+        map_string = ""
+        board_matrix = open(board_map).readlines()
+
+        for line in board_matrix:
+            for c in line:
+                map_string += c
+
+        print(map_string)
+
+        x0_counter = 0
+        y0_counter = 0
+        x1_counter = 50
+        y1_counter = 50
+
+        for c in map_string:
+            if c == '.':
+                self.canvas.create_rectangle(x0_counter, y0_counter, x1_counter, y1_counter, fill="white")
+            elif c == '#':
+                self.canvas.create_rectangle(x0_counter, y0_counter, x1_counter, y1_counter, fill="black")
+            elif c == 'A':
+                self.canvas.create_rectangle(x0_counter, y0_counter, x1_counter, y1_counter, fill="green")
+            elif c == 'B':
+                self.canvas.create_rectangle(x0_counter, y0_counter, x1_counter, y1_counter, fill="red")
+            elif c == 'x':
+                self.canvas.create_rectangle(x0_counter, y0_counter, x1_counter, y1_counter, fill="yellow")
+
+            x0_counter += 50
+            x1_counter += 50
+
+            if c == '\n':
+                x0_counter = 0
+                y0_counter += 50
+                x1_counter = 50
+                y1_counter += 50
+
+    # Method for starting the application with the chosen algorithm
+    def start_program(self):
+        print("Running A-Star...")
+        board_matrix = (open(self.selected_map.get()).readlines())
+
+        self.board = Board()
+        self.board.add_board(board_matrix)
+
+        for line in self.board.solve():
+            self.create_grid(line)
 
 
-	def create_gui(self):
-		# Creating the canvas where the grid is drawn
-		canvas = Canvas(self, width=500, height=500)
-		self.create_grid(canvas, "map1.txt")
-
-		# Variable for the current mode, and setting a default
-		selected_mode = StringVar(self)
-		selected_mode.set("Best-first mode")
-
-		# Variable for the current map, and setting a default
-		selected_map = StringVar(self)
-		selected_map.set("map1.txt")
-		
-		# Creating the menus and buttons
-		mode_menu = OptionMenu(self, selected_mode, "Best-first mode", "Depth-first mode", "Breadth-first mode", command = lambda mode:print(mode))
-		map_menu = OptionMenu(self, selected_map, "map1.txt", "map2.txt", "map3.txt", "map4.txt", "map5.txt", "map6.txt", command = lambda map:self.create_grid(canvas, map))
-		start_btn = Button(self, text="Start", fg="green", command = self.start_program)
-		exit_btn = Button(self, text="Exit", fg="red", command = self.quit)
-		
-		# Placing components in a grid
-		mode_menu.grid(row = 0, column = 0)
-		map_menu.grid(row = 0, column = 1)
-		start_btn.grid(row = 0, column = 2)
-		exit_btn.grid(row = 0, column = 3)
-		canvas.grid(row = 1, column = 0, columnspan = 4)
-
-	def create_grid(self, canvas, map):
-
-		mapstring = ""
-		fo = open(map, "r")
-		for line in fo.readlines():
-			for c in line:
-				mapstring += c
-
-		x0_counter = 0
-		y0_counter = 0
-		x1_counter = 50
-		y1_counter = 50
-
-		for c in mapstring:
-			if c == '.':
-				canvas.create_rectangle(x0_counter, y0_counter, x1_counter, y1_counter, fill="white")
-			elif c == '#':
-				canvas.create_rectangle(x0_counter, y0_counter, x1_counter, y1_counter, fill="black")
-			elif c == 'A':
-				canvas.create_rectangle(x0_counter, y0_counter, x1_counter, y1_counter, fill="green")
-			elif c == 'B':
-				canvas.create_rectangle(x0_counter, y0_counter, x1_counter, y1_counter, fill="red")
-
-			x0_counter += 50
-			x1_counter += 50
-
-			if c == '\n':
-				x0_counter = 0
-				y0_counter += 50
-				x1_counter = 50
-				y1_counter += 50
-
-	# Method for starting the application with the chosen algorithm
-	def start_program(self):
-		print ("START")
-
-
-
-
-
-
+            
 
 class Node:
     # Constructor
@@ -236,7 +252,7 @@ class Board:
         path_line[node.x] = 'x'
         path[node.y] = "".join(path_line)
 
-        print ('-'*self.width + '-\n')
+        print('-'*self.width + '-\n')
         for line in path:
             print (str(line))
 
@@ -249,21 +265,18 @@ class Board:
         a_star_path, steps, found = self.a_star()
         if found:
             print("Solution found in %s steps" % steps)
-            for node in a_star_path:
-                i += 1
-                path = self.add_path(path, node, i)
         else:
             print("No solution found in %s steps" % steps)
-            for node in path:
-                i += 1
-                path = self.add_path(path, node, i)
+
+        for node in a_star_path:
+            i += 1
+            yield self.add_path(path, node, i)
 
 
 def main():
-	root = Tk()
-	app = Astar_program(master=root)
-	app.mainloop()
-	root.destroy
+    root = Tk()
+    app = Astar_program(master=root)
+    app.mainloop()
 
 main()
 
