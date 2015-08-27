@@ -11,22 +11,22 @@ class Astar_program(Frame):
         Frame.__init__(self, master)
         self.master.title("A* Search")
         self.pack()
-        self.canvas = Canvas(self, width=500, height=500)
+        self.canvas = Canvas(self, width=200, height=0)
         self.create_gui()
 
     def create_gui(self):
 
         # Variable for the current mode, and setting a default
-        selected_mode = StringVar(self)
-        selected_mode.set("Best-first mode")
+        self.selected_mode = StringVar(self)
+        self.selected_mode.set("Best-first mode")
 
         # Variable for the current map, and setting a default
         self.selected_map = StringVar(self)
         self.selected_map.set("map1.txt")
 
         # Creating the menus and buttons
-        mode_menu = OptionMenu(self, selected_mode, "Best-first mode", "Depth-first mode", "Breadth-first mode", command = lambda mode:print(mode))
-        map_menu = OptionMenu(self, self.selected_map, "map1.txt", "map2.txt", "map3.txt", "map4.txt", "map5.txt", "map6.txt", command = lambda map:self.create_grid(map))
+        mode_menu = OptionMenu(self, self.selected_mode, "Best-first mode", "Breadth-first mode", "Depth-first mode", command = lambda mode:print(mode))
+        map_menu = OptionMenu(self, self.selected_map, "map1.txt", "map2.txt", "map3.txt", "map4.txt", "map5.txt", command = lambda map:self.create_grid(map))
         start_btn = Button(self, text="Start", fg="green", command = self.start_program)
         exit_btn = Button(self, text="Exit", fg="red", command = self.quit)
 
@@ -41,17 +41,27 @@ class Astar_program(Frame):
 
     def create_grid(self, board_matrix):
         map_string = ""
+        y_counter = 0
 
+        # Checking if the board comes from a file, or as a path
         if ".txt" in board_matrix:
             fo = open(board_matrix, "r")
             for line in fo.readlines():
+                y_counter += 1
                 for c in line:
                     map_string += c
+        else:
+            for c in board_matrix:
+                y_counter+= 1
+                map_string += c
+
+        # Changing the size of the canvas according to the current map dimensions
+        self.canvas.config(width=y_counter*30, height=y_counter*30)
 
         x0_counter = 0
         y0_counter = 0
-        x1_counter = 50
-        y1_counter = 50
+        x1_counter = 30
+        y1_counter = 30
 
         for c in map_string:
             if c == '.':
@@ -66,38 +76,32 @@ class Astar_program(Frame):
                 self.canvas.create_rectangle(x0_counter, y0_counter, x1_counter, y1_counter, fill="yellow")
 
 
-            x0_counter += 50
-            x1_counter += 50
+            x0_counter += 30
+            x1_counter += 30
 
             if c == '\n':
                 x0_counter = 0
-                y0_counter += 50
-                x1_counter = 50
-                y1_counter += 50
+                y0_counter += 30
+                x1_counter = 30
+                y1_counter += 30
 
     # Method for starting the application with the chosen algorithm
     def start_program(self):
-        print ("START")
+        b = Board(list(open(self.selected_map.get()).readlines()))
 
-        '''
-        b = Board(list(G))
-        b.solve(a_star)
-        # b.pretty_print()
+        if self.selected_mode.get() == "Best-first mode":
+            b.solve(a_star)
+        elif self.selected_mode.get() == "Breadth-first mode":
+            b.solve(breadth_first_search)
+        elif self.selected_mode.get() == "Depth-first mode":
+            b.solve(depth_first_search)
 
-        b = Board(list(G))
-        b.solve(depth_first_search)
-        # b.pretty_print()
+        b.pretty_print()
 
-        b = Board(list(G))
-        b.solve(breadth_first_search)
-        # b.pretty_print()
-        '''
+        self.create_grid(b.solution["path"])
 
-
-
-
-
-
+        #for state in b.solution_states_generator():
+        #    print(state)
 
 class Node:
     def __init__(self, state, problem, parent=None, action=None, path_cost=0):
@@ -113,6 +117,34 @@ class Node:
     def __hash__(self):
         return hash("" + self.state)
 
+class Problem():
+    def __init__(self, state, initial, goal=None, ):
+        """The constructor specifies the initial state, and possibly a goal
+        state, if there is a unique goal.  Your subclass's constructor can add
+        other arguments."""
+        self.state = state
+        self.initial = initial
+        self.goal = goal
+
+    def init_state(self):
+        """Initialization method for the state of the problem,
+        can be a list, matrix, tree or any other data structure that fits the problem"""
+        pass
+
+    def actions(self, state):
+        """Returns all actions that can be performed from current state,
+        either as a data structure or a generator"""
+        pass
+
+    def solve(self, algorithm):
+        """Solve the problem with the given algorithm"""
+        pass
+
+    def goal_test(self, other):
+        return self.goal == other
+
+    def save_state(self):
+        pass
 
 class Board(Problem):
     def __init__(self, board):
@@ -215,6 +247,9 @@ class Board(Problem):
         return path
 
     def solve(self, algorithm):
+
+        print("SOLVING")
+        print("THIS MAP", self.board)
         path = list(self.board)
 
         solution_path, steps, found = algorithm(self)
@@ -242,36 +277,6 @@ class Board(Problem):
             print(solution_line)
         print('_'*len(self.board[0]))
         print('')
-
-
-class Problem():
-    def __init__(self, state, initial, goal=None, ):
-        """The constructor specifies the initial state, and possibly a goal
-        state, if there is a unique goal.  Your subclass's constructor can add
-        other arguments."""
-        self.state = state
-        self.initial = initial
-        self.goal = goal
-
-    def init_state(self):
-        """Initialization method for the state of the problem,
-        can be a list, matrix, tree or any other data structure that fits the problem"""
-        pass
-
-    def actions(self, state):
-        """Returns all actions that can be performed from current state,
-        either as a data structure or a generator"""
-        pass
-
-    def solve(self, algorithm):
-        """Solve the problem with the given algorithm"""
-        pass
-
-    def goal_test(self, other):
-        return self.goal == other
-
-    def save_state(self):
-        pass
 
 
 class PriorityNode(Node):
