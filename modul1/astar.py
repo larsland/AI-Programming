@@ -87,7 +87,6 @@ class Astar_program(Frame):
 
     # Method for starting the application with the chosen algorithm
     def start_program(self):
-<<<<<<< HEAD
         b = Board(list(open(self.selected_map.get()).readlines()))
 
         if self.selected_mode.get() == "Best-first mode":
