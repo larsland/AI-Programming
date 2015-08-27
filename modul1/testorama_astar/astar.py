@@ -1,7 +1,4 @@
 from heapq import heappush, heappop
-from functools import wraps
-from random import randrange
-from pprint import pprint
 from math import sqrt, fabs
 from itertools import count
 
@@ -306,7 +303,6 @@ if __name__ == '__main__':
     '..............#.....',
     '....................']
 
-    
     b = Board(list(G))
     b.solve(a_star)
     # b.pretty_print()
@@ -314,7 +310,6 @@ if __name__ == '__main__':
     b = Board(list(G))
     b.solve(depth_first_search)
     # b.pretty_print()
-
 
     b = Board(list(G))
     b.solve(breadth_first_search)
@@ -363,6 +358,7 @@ def astar_search(problem, h=None):
 
 MAGNUS LIE HETLAND:
 
+from functools import wraps
 def memo(func):
     cache = {}
 
