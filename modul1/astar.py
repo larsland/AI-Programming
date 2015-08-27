@@ -13,24 +13,22 @@ class Astar_program(Frame):
         Frame.__init__(self, master)
         self.master.title("A* Search")
         self.pack()
+        self.canvas = Canvas(self, width=500, height=500)
         self.create_gui()
 
     def create_gui(self):
-        # Creating the canvas where the grid is drawn
-        canvas = Canvas(self, width=500, height=500)
-        self.create_grid(canvas, "map1.txt")
 
         # Variable for the current mode, and setting a default
         selected_mode = StringVar(self)
         selected_mode.set("Best-first mode")
 
         # Variable for the current map, and setting a default
-        selected_map = StringVar(self)
-        selected_map.set("map1.txt")
+        self.selected_map = StringVar(self)
+        self.selected_map.set("map1.txt")
 
         # Creating the menus and buttons
         mode_menu = OptionMenu(self, selected_mode, "Best-first mode", "Depth-first mode", "Breadth-first mode", command = lambda mode:print(mode))
-        map_menu = OptionMenu(self, selected_map, "map1.txt", "map2.txt", "map3.txt", "map4.txt", "map5.txt", "map6.txt", command = lambda map:self.create_grid(canvas, map))
+        map_menu = OptionMenu(self, self.selected_map, "map1.txt", "map2.txt", "map3.txt", "map4.txt", "map5.txt", "map6.txt", command = lambda map:self.create_grid(map))
         start_btn = Button(self, text="Start", fg="green", command = self.start_program)
         exit_btn = Button(self, text="Exit", fg="red", command = self.quit)
 
@@ -39,30 +37,36 @@ class Astar_program(Frame):
         map_menu.grid(row = 0, column = 1)
         start_btn.grid(row = 0, column = 2)
         exit_btn.grid(row = 0, column = 3)
-        canvas.grid(row = 1, column = 0, columnspan = 4)
+        self.canvas.grid(row = 1, column = 0, columnspan = 4)
 
-    def create_grid(self, canvas, map):
+        self.create_grid(self.selected_map.get())
 
-        mapstring = ""
-        fo = open(map, "r")
-        for line in fo.readlines():
-            for c in line:
-                mapstring += c
+    def create_grid(self, board_matrix):
+        map_string = ""
+
+        if ".txt" in board_matrix:
+            fo = open(board_matrix, "r")
+            for line in fo.readlines():
+                for c in line:
+                    map_string += c
 
         x0_counter = 0
         y0_counter = 0
         x1_counter = 50
         y1_counter = 50
 
-        for c in mapstring:
+        for c in map_string:
             if c == '.':
-                canvas.create_rectangle(x0_counter, y0_counter, x1_counter, y1_counter, fill="white")
+                self.canvas.create_rectangle(x0_counter, y0_counter, x1_counter, y1_counter, fill="white")
             elif c == '#':
-                canvas.create_rectangle(x0_counter, y0_counter, x1_counter, y1_counter, fill="black")
+                self.canvas.create_rectangle(x0_counter, y0_counter, x1_counter, y1_counter, fill="black")
             elif c == 'A':
-                canvas.create_rectangle(x0_counter, y0_counter, x1_counter, y1_counter, fill="green")
+                self.canvas.create_rectangle(x0_counter, y0_counter, x1_counter, y1_counter, fill="green")
             elif c == 'B':
-                canvas.create_rectangle(x0_counter, y0_counter, x1_counter, y1_counter, fill="red")
+                self.canvas.create_rectangle(x0_counter, y0_counter, x1_counter, y1_counter, fill="red")
+            elif c == 'x':
+                self.canvas.create_rectangle(x0_counter, y0_counter, x1_counter, y1_counter, fill="yellow")
+
 
             x0_counter += 50
             x1_counter += 50
@@ -76,6 +80,9 @@ class Astar_program(Frame):
     # Method for starting the application with the chosen algorithm
     def start_program(self):
         print ("START")
+        self.board = Board()
+        self.board.add_board(open(self.selected_map.get()).readlines())
+        self.board.solve()
 
 
 
@@ -262,7 +269,6 @@ def main():
     root = Tk()
     app = Astar_program(master=root)
     app.mainloop()
-    root.destroy
 
 main()
 
