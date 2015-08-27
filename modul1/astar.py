@@ -1,10 +1,8 @@
 from tkinter import *
 from heapq import heappush, heappop
-from functools import wraps
-from random import randrange
-from pprint import pprint
+from heapq import heappush, heappop
 from math import sqrt, fabs
-import itertools
+from itertools import count
 
 
 class Astar_program(Frame):
@@ -13,24 +11,22 @@ class Astar_program(Frame):
         Frame.__init__(self, master)
         self.master.title("A* Search")
         self.pack()
+        self.canvas = Canvas(self, width=500, height=500)
         self.create_gui()
 
     def create_gui(self):
-        # Creating the canvas where the grid is drawn
-        canvas = Canvas(self, width=500, height=500)
-        self.create_grid(canvas, "map1.txt")
 
         # Variable for the current mode, and setting a default
         selected_mode = StringVar(self)
         selected_mode.set("Best-first mode")
 
         # Variable for the current map, and setting a default
-        selected_map = StringVar(self)
-        selected_map.set("map1.txt")
+        self.selected_map = StringVar(self)
+        self.selected_map.set("map1.txt")
 
         # Creating the menus and buttons
         mode_menu = OptionMenu(self, selected_mode, "Best-first mode", "Depth-first mode", "Breadth-first mode", command = lambda mode:print(mode))
-        map_menu = OptionMenu(self, selected_map, "map1.txt", "map2.txt", "map3.txt", "map4.txt", "map5.txt", "map6.txt", command = lambda map:self.create_grid(canvas, map))
+        map_menu = OptionMenu(self, self.selected_map, "map1.txt", "map2.txt", "map3.txt", "map4.txt", "map5.txt", "map6.txt", command = lambda map:self.create_grid(map))
         start_btn = Button(self, text="Start", fg="green", command = self.start_program)
         exit_btn = Button(self, text="Exit", fg="red", command = self.quit)
 
@@ -39,30 +35,36 @@ class Astar_program(Frame):
         map_menu.grid(row = 0, column = 1)
         start_btn.grid(row = 0, column = 2)
         exit_btn.grid(row = 0, column = 3)
-        canvas.grid(row = 1, column = 0, columnspan = 4)
+        self.canvas.grid(row = 1, column = 0, columnspan = 4)
 
-    def create_grid(self, canvas, map):
+        self.create_grid(self.selected_map.get())
 
-        mapstring = ""
-        fo = open(map, "r")
-        for line in fo.readlines():
-            for c in line:
-                mapstring += c
+    def create_grid(self, board_matrix):
+        map_string = ""
+
+        if ".txt" in board_matrix:
+            fo = open(board_matrix, "r")
+            for line in fo.readlines():
+                for c in line:
+                    map_string += c
 
         x0_counter = 0
         y0_counter = 0
         x1_counter = 50
         y1_counter = 50
 
-        for c in mapstring:
+        for c in map_string:
             if c == '.':
-                canvas.create_rectangle(x0_counter, y0_counter, x1_counter, y1_counter, fill="white")
+                self.canvas.create_rectangle(x0_counter, y0_counter, x1_counter, y1_counter, fill="white")
             elif c == '#':
-                canvas.create_rectangle(x0_counter, y0_counter, x1_counter, y1_counter, fill="black")
+                self.canvas.create_rectangle(x0_counter, y0_counter, x1_counter, y1_counter, fill="black")
             elif c == 'A':
-                canvas.create_rectangle(x0_counter, y0_counter, x1_counter, y1_counter, fill="green")
+                self.canvas.create_rectangle(x0_counter, y0_counter, x1_counter, y1_counter, fill="green")
             elif c == 'B':
-                canvas.create_rectangle(x0_counter, y0_counter, x1_counter, y1_counter, fill="red")
+                self.canvas.create_rectangle(x0_counter, y0_counter, x1_counter, y1_counter, fill="red")
+            elif c == 'x':
+                self.canvas.create_rectangle(x0_counter, y0_counter, x1_counter, y1_counter, fill="yellow")
+
 
             x0_counter += 50
             x1_counter += 50
@@ -77,6 +79,20 @@ class Astar_program(Frame):
     def start_program(self):
         print ("START")
 
+        '''
+        b = Board(list(G))
+        b.solve(a_star)
+        # b.pretty_print()
+
+        b = Board(list(G))
+        b.solve(depth_first_search)
+        # b.pretty_print()
+
+        b = Board(list(G))
+        b.solve(breadth_first_search)
+        # b.pretty_print()
+        '''
+
 
 
 
@@ -84,8 +100,183 @@ class Astar_program(Frame):
 
 
 class Node:
+    def __init__(self, state, problem, parent=None, action=None, path_cost=0):
+        self.state = state
+        self.problem = problem
+        self.parent = parent
+        self.action = action
+        self.path_cost = path_cost
+
+    def __eq__(self, other):
+        return isinstance(other, Node) and self.state == other.state
+
+    def __hash__(self):
+        return hash("" + self.state)
+
+
+class Board(Problem):
+    def __init__(self, board):
+        self.board = board  # Holds the input board for reference
+
+        self.state = []  # Matrix of board Nodes
+        self.open = []  # List of open Nodes
+        self.closed = []  # List of closed Nodes
+
+        self.goal = None  # The goal Node
+        self.initial = None  # The initial Node
+
+        self.counter = count()  # Unique sequence count for correct priority queue implementation
+
+        # Sizes defining the board
+        self.width = 0
+        self.height = 0
+
+        # Holds several solution related data instances
+        self.solution = {'path': [], 'length': 0, 'found': False, 'steps': 0, 'states': []}
+
+        self.init_state()  # Initialize state
+
+        Problem.__init__(self, self.state, self.initial, self.goal)
+
+    def __repr__(self):
+        representation = '<Board ([\n'
+        for line in list(self.board):
+            representation += line+'\n'
+        representation += '], \n'
+
+        representation += 'initial node:  ' + str(self.initial) + '\n'
+        representation += 'goal node:     ' + str(self.goal) + '\n)'
+        representation += 'open:          ' + str(self.open) + '\n'
+        representation += 'closed:        ' + str(self.closed) + '\n'
+        representation += 'counter:       ' + str(next(self.counter)) + '\n'
+        representation += 'solution path: ' + str(self.solution_path) + '\n'
+
+        return representation
+
+    def init_state(self):
+        self.height = len(self.board)-1
+        self.width = max(map(len, self.board))-1
+
+        y = -1
+        for row in list(self.board):
+            node_row = []
+            y += 1
+            x = -1
+            for tile in row:
+                x += 1
+                if tile != '\n':
+                    node = PriorityNode(x, y, self, tile)
+
+                    if tile == 'B':
+                        # Goal node is set
+                        self.goal = node
+                    elif tile == 'A':
+                        # Start node is opened
+                        self.initial = node
+                        self.open.append(node)
+                    elif tile == '#':
+                        # Walls are closed
+                        node.closed = True
+                        # self.closed.append(node)
+
+                    node_row.append(node)
+            self.state.append(node_row)
+
+    # In our problem, actions are all nodes reachable from current Node within the board matrix
+    def actions(self, node):
+        try:
+            if node.y > 0:  # UP
+                child = self.state[node.y-1][node.x]
+                if not child.closed:
+                    yield child
+            if node.y < self.height:  # DOWN
+                child = self.state[node.y+1][node.x]
+                if not child.closed:
+                    yield child
+            if node.x > 0:  # LEFT
+                child = self.state[node.y][node.x-1]
+                if not child.closed:
+                    yield child
+            if node.x < self.width:  # RIGHT
+                child = self.state[node.y][node.x+1]
+                if not child.closed:
+                    yield child
+        except IndexError as e:
+            print(e)
+
+    def save_state(self):
+        self.solution['states'].append(self.state)
+
+    def add_path(self, path, node):
+        path_line = list(path[node.y])
+        path_line[node.x] = 'x'
+        path[node.y] = "".join(path_line)
+
+        return path
+
+    def solve(self, algorithm):
+        path = list(self.board)
+
+        solution_path, steps, found = algorithm(self)
+
+        for node in solution_path:
+            path = self.add_path(path, node)
+
+        self.solution['path'] = path
+        self.solution['length'] = len(solution_path)
+        self.solution['steps'] = steps
+        self.solution['found'] = path
+
+    def solution_states_generator(self):
+        for state in self.solution['states']:
+            yield state
+
+    def pretty_print(self):
+        if self.solution['found']:
+            print("Solution found in %s steps, solution length is %s" % (self.solution['steps'], self.solution['length']))
+        else:
+            print("No solution found in %s steps, solution length is %s" % (self.solution['steps'], float('inf')))
+
+        print('_'*len(self.board[0]))
+        for solution_line in self.solution['path']:
+            print(solution_line)
+        print('_'*len(self.board[0]))
+        print('')
+
+
+class Problem():
+    def __init__(self, state, initial, goal=None, ):
+        """The constructor specifies the initial state, and possibly a goal
+        state, if there is a unique goal.  Your subclass's constructor can add
+        other arguments."""
+        self.state = state
+        self.initial = initial
+        self.goal = goal
+
+    def init_state(self):
+        """Initialization method for the state of the problem,
+        can be a list, matrix, tree or any other data structure that fits the problem"""
+        pass
+
+    def actions(self, state):
+        """Returns all actions that can be performed from current state,
+        either as a data structure or a generator"""
+        pass
+
+    def solve(self, algorithm):
+        """Solve the problem with the given algorithm"""
+        pass
+
+    def goal_test(self, other):
+        return self.goal == other
+
+    def save_state(self):
+        pass
+
+
+class PriorityNode(Node):
     # Constructor
-    def __init__(self, x, y, tile, board):
+    def __init__(self, x, y, board, tile):
         # Coordinates
         self.x = x
         self.y = y
@@ -96,179 +287,116 @@ class Node:
 
         # g and f scores
         self.g = 0
-        self.h = lambda x, y: sqrt((self.x-x)**2 + (self.y-y)**2)
-        # self.h = lambda x, y: fabs(x-self.x) + fabs(y-self.y)
         self.f = 0
 
-        self.siblings = []
+        # Heuristic function
+        self.h = lambda x, y: sqrt((self.x-x)**2 + (self.y-y)**2)
+        # self.h = lambda x, y: fabs(x-self.x) + fabs(y-self.y)
 
-    def path(self):
-        # Return a list of nodes forming the path from the root to this node.
-        node, path_back = self, []
-        while node:
-            path_back.append(node)
-            node = node.parent
-        return list(reversed(path_back))
+        # Priority Queue counter in case equal priority (f)
+        self.c = 0
 
-    # Generates the valid siblings for the Node within the board matrix
-    def get_siblings(self):
-        # Init array for the parents
-        siblings = []
+        self.closed = False
 
-        b_matrix = self.board.board_matrix
-        height = len(b_matrix)-1
-        width = len(b_matrix[0])-1
+        Node.__init__(self, (x, y), board)
 
-        try:
-            # Remember that when using x and y as indexes, you must calculate with -1.
-            if self.y > 0:
-                # Up
-                # print("UP", b_matrix[self.y-1][self.x])
-                siblings.append(b_matrix[self.y-1][self.x])
-            if self.y < height:
-                # Down
-                # print("DOWN", b_matrix[self.y+1][self.x])
-                siblings.append(b_matrix[self.y+1][self.x])
-            if self.x > 0:
-                # Left
-                # print("LEFT", b_matrix[self.y][self.x-1])
-                siblings.append(b_matrix[self.y][self.x-1])
-            if self.x < width:
-                # Right
-                # print("RIGHT", b_matrix[self.y][self.x+1])
-                siblings.append(b_matrix[self.y][self.x+1])
-        except IndexError as e:
-            print (e)
-            print (self)
-            print (height)
-
-        # Return list of siblings
-        return siblings
-
-    def update_priority(self, goal):
+    def update_priority(self, goal, c):
+        self.c = c
         self.f = self.g + self.h(goal.x, goal.y) * 10  # A*
 
     def __lt__(self, other):  # comparison method for priority queue
-        return self.f < other.f
+        return self.f + self.c < other.f + self.c
 
     def __repr__(self):
-        return "<Node (%s, %s, %s)>" % (self.x, self.y, self.f)
-
-    # May not need these
-    def __eq__(self, other):
-        return isinstance(other, Node) and self.x == other.x and self.y == other.y
-
-    def __hash__(self):
-        return hash("" + self.x + self.y)
+        return "<Node (x:%s, y:%s, f:%s, c:%s, t:%s)>" % (self.x, self.y, self.f, self.c, self.tile)
 
 
-class Board:
+
+
+class PriorityQueue:
     def __init__(self):
-        self.input_rows = [] # Contains the input to add board
-        self.board_matrix = []  # Contains the entire board
-        self.open = []  # List of open Nodes
-        self.closed = []  # List of closed Nodes
-        self.goal = None  # The goal Node
-        self.start = None
+        pass
 
-        # Sizes defining the board
-        self.width = 0
-        self.height = 0
+    def add(self, problem, item):
+        # Simulated memoization of f(n) = g(n) + h(n)
+        if item.f:
+            return
+        item.update_priority(problem.goal, next(problem.counter))
+        heappush(problem.open, item)
 
-    # Calculate manhattan score for a given Node
-    # def manhattan_distance(self, node):
-    #    return fabs(self.goal.x - node.x) + fabs(self.goal.y - node.y)
+    def pop(self, queue):
+        return heappop(queue)
 
-    def add_board(self, rows):
-        self.input_rows = rows
-        self.height = len(rows)-1
-        self.width = len(max(rows, key=len))-1
 
-        y = -1
-        for row in rows:
-            node_row = []
-            y += 1
-            x = -1
-            for tile in row:
-                x += 1
-                if tile != '\n':
-                    node = Node(x, y, tile, self)
+class Stack:
+    def __init__(self):
+        pass
 
-                    if tile == 'B':
-                        # Goal node is set
-                        self.goal = node
-                    elif tile == 'A':
-                        # Start node is opened
-                        self.start = node
-                        heappush(self.open, node)
-                    elif tile == '_':
-                        # Normal nodes are added to open queue
-                        heappush(self.open, node)
-                    elif tile == '#':
-                        # Walls are closed
-                        self.closed.append(node)
+    def add(self, problem, item):
+        problem.open.append(item)
 
-                    node_row.append(node)
-            self.board_matrix.append(node_row)
+    def pop(self, stack):
+        return stack.pop()
 
-    def a_star(self):
-        inf = float('inf')
 
-        path = []
-        while self.open:
-            node = heappop(self.open)
-            if node in self.closed:
+class FIFOQueue:
+    def __init__(self):
+        pass
+
+    def add(self, problem, item):
+        problem.open.append(item)
+
+    def pop(self, queue):
+        return queue.pop(0)
+
+
+def graph_search(problem, frontier):
+    path, steps = [], 0
+    while problem.open:
+        node = frontier.pop(problem.open)
+        steps += 1
+
+        if node.closed:
+            continue
+
+        path.append(node)
+        problem.save_state()
+
+        if problem.goal_test(node):
+            return path, steps, True
+
+        for child_node in problem.actions(node):
+            if child_node.closed:
                 continue
-            path.append(node)
-            self.closed.append(node)
-            if node == self.goal:
-                return path, len(path), True
 
-            for sibling in node.actions():
-                sibling.update_priority(self.goal)
-                heappush(self.open, sibling)
+            child_node.parent = node
+            frontier.add(problem, child_node)
 
-        return path, len(path), False
+        # We have explored all the child nodes of this node, so we close it.
+        node.closed = True
+        # self.closed.append(node)
 
-    def add_path(self, path, node, i):
-        path_line = list(path[node.y])
-        path_line[node.x] = 'x'
-        path[node.y] = "".join(path_line)
+    return path, steps, False
 
-        print ('-'*self.width + '-\n')
-        for line in path:
-            print (str(line))
 
-        return path
+def a_star(problem):
+    return graph_search(problem, PriorityQueue())
 
-    def solve(self):
-        path = self.input_rows
 
-        i = 0
-        a_star_path, steps, found = self.a_star()
-        if found:
-            print("Solution found in %s steps" % steps)
-            for node in a_star_path:
-                i += 1
-                path = self.add_path(path, node, i)
-        else:
-            print("No solution found in %s steps" % steps)
-            for node in path:
-                i += 1
-                path = self.add_path(path, node, i)
+def depth_first_search(problem):
+    return graph_search(problem, Stack())
+
+
+def breadth_first_search(problem):
+    return graph_search(problem, FIFOQueue())
 
 
 def main():
     root = Tk()
     app = Astar_program(master=root)
     app.mainloop()
-    root.destroy
 
 main()
-
-
-
-
 
 
 
