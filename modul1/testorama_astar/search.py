@@ -531,7 +531,7 @@ class GraphProblem(Problem):
         return action
 
     def path_cost(self, cost_so_far, A, action, B):
-        return cost_so_far + (self.graph.get(A,B) or infinity)
+        return cost_so_far + (self.graph.get(A, B) or infinity)
 
     def h(self, node):
         "h function is straight-line distance from a node's state to goal."

@@ -48,7 +48,7 @@ class Problem():
         either as a data structure or a generator"""
         pass
 
-    def solve(self):
+    def solve(self, algorithm):
         """Solve the problem with the given algorithm"""
         pass
 
@@ -115,7 +115,7 @@ class Board(Problem):
 
     def __repr__(self):
         representation = '<Board ([\n'
-        for line in self.board:
+        for line in list(self.board):
             representation += line+'\n'
         representation += '], \n'
 
@@ -128,19 +128,26 @@ class Board(Problem):
 
         return representation
 
+    def goal_test(self, node):
+        return self.goal == node
+
+    def reset(self):
+        self.init_state()
+        Problem.__init__(self, self.board_matrix, self.initial, self.goal)
+
     def init_state(self):
         self.height = len(self.board)-1
         self.width = max(map(len, self.board))-1
 
         y = -1
-        for row in self.board:
+        for row in list(self.board):
             node_row = []
             y += 1
             x = -1
             for tile in row:
                 x += 1
                 if tile != '\n':
-                    node = PriorityNode(x, y, tile, self)
+                    node = PriorityNode(x, y, self, tile)
 
                     if tile == 'B':
                         # Goal node is set
@@ -148,10 +155,10 @@ class Board(Problem):
                     elif tile == 'A':
                         # Start node is opened
                         self.initial = node
-                        heappush(self.open, node)
+                        self.open.append(node)
                     elif tile == '_':
                         # Normal nodes are added to open queue
-                        heappush(self.open, node)
+                        self.open.append(node)
                     elif tile == '#':
                         # Walls are closed
                         node.closed = True
@@ -174,185 +181,92 @@ class Board(Problem):
         except IndexError as e:
             print(e)
 
-    def a_star(self):
-        path = []
-        while self.open:
-            node = heappop(self.open)
-            if node.closed:
-                continue
-            path.append(node)
-
-            # Close node
-            node.closed = True
-            # self.closed.append(node)
-
-            if node == self.goal:
-                return path, len(path), True
-
-            for sibling in self.actions(node):
-                # Simulated memoization of f(n) = g(n) + h(n)
-                if sibling.f:
-                    continue
-                
-                sibling.update_priority(self.goal, next(self.counter))
-                heappush(self.open, sibling)
-
-        return path, len(path), False
-
-    def breadth_first_search(self):
-        path = []
-        while self.open:
-            node = self.open.pop(0)
-            if node.closed:
-                continue
-            path.append(node)
-
-            # Close node
-            node.closed = True
-            # self.closed.append(node)
-
-            if node == self.goal:
-                return path, len(path), True
-
-            for sibling in self.actions(node):
-                self.open.append(sibling)
-
-        return path, len(path), False
-
-    def depth_first_search(self):
-        path = []
-        while self.open:
-            node = self.open.pop()
-            if node.closed:
-                continue
-            path.append(node)
-
-            # Close node
-            node.closed = True
-            # self.closed.append(node)
-
-            if node == self.goal:
-                return path, len(path), True
-
-            for sibling in self.actions(node):
-                self.open.insert(0, sibling)
-
-        return path, len(path), False
-
     def add_path(self, path, node, i):
         path_line = list(path[node.y])
         path_line[node.x] = 'x'
         path[node.y] = "".join(path_line)
 
-        print('-'*self.width + '-\n')
-        for line in path:
-            print(str(line))
+        #print('-'*self.width + '-\n')
+        #for line in path:
+        #    print(str(line))
         return path
 
-    def solve(self):
-        path = self.board
+    def solve(self, algorithm):
+        path = list(self.board)
 
         i = 0
-        a_star_path, steps, found = self.a_star()
+        self.solution_path, steps, found = algorithm(self)
         if found:
-            # print("Solution found in %s steps" % steps)
-            for node in a_star_path:
-                i += 1
-                path = self.add_path(path, node, i)
+            response = "Solution found in %s steps" % steps
         else:
-            # print("No solution found in %s steps" % steps)
-            for node in a_star_path:
-                i += 1
-                path = self.add_path(path, node, i)
-        return path
+            response = "No solution found in %s steps" % steps
+
+        for node in self.solution_path:
+            i += 1
+            path = self.add_path(path, node, i)
+        return path, response
 
 
-class Astar:
-    def __init__(self, problem):
-        self.problem = problem
-        self.open = []  # List of open Nodes
-        self.closed = []  # List of closed Nodes
-        self.goal = None  # The goal Node
-        self.start = None  # The start Node
+class PriorityQueue():
+    def push(self, problem, item):
+        # Simulated memoization of f(n) = g(n) + h(n)
+        if item.f:
+            return
 
-    def best_first_search(self):
-        path = []
-        while self.open:
-            node = heappop(self.open)
-            if node in self.closed:
-                continue
-            path.append(node)
-            self.closed.append(node)
-            if node == self.goal:
-                return path, len(path), True
+        item.update_priority(problem.goal, next(problem.counter))
+        heappush(problem.open, item)
 
-            for sibling in node.actions():
-                if sibling not in self.closed:
-                    sibling.update_priority(self.goal, next(self.counter))
-                    heappush(self.open, sibling)
-
-        return path, len(path), False
-
-    def breadth_first_search(self):
-        path = []
-        while self.open:
-            node = self.open.pop()
-            if node in self.closed:
-                continue
-            path.append(node)
-            self.closed.append(node)
-            if node == self.goal:
-                return path, len(path), True
-
-            for sibling in node.actions():
-                self.open.append(sibling)
-        return path, len(path), False
-
-    def depth_first_search(self):
-        path = []
-        for node in self.open:
-            if node in self.closed:
-                continue
-            path.append(node)
-            self.closed.append(node)
-            if node == self.goal:
-                return path, len(path), True
-
-            for sibling in node.actions():
-                self.open.insert(0, sibling)
-
-        return path, len(path), False
-
-    def add_path(self, path, node, i):
-        path_line = list(path[node.y])
-        path_line[node.x] = 'x'
-        path[node.y] = "".join(path_line)
-
-        print('-'*self.problem.width + '-\n')
-        for line in path:
-            print(str(line))
-
-        return path
-
-    def solve(self, search):
-        path = self.problem.input_rows
-
-        i = 0
-        node_path, steps, found = search()
-        if found:
-            # print("Solution found in %s steps" % steps)
-            for node in node_path:
-                i += 1
-                path = self.add_path(path, node, i)
-        else:
-            # print("No solution found in %s steps" % steps)
-            for node in node_path:
-                i += 1
-                path = self.add_path(path, node, i)
-        return path
+    def pop(self, queue):
+        return heappop(queue)
 
 
+class Stack():
+    def push(self, problem, item):
+        problem.open.append(item)
 
+    def pop(self, queue):
+        return queue.pop()
+
+
+class FIFOQueue():
+    def push(self, problem, item):
+        problem.open.append(item)
+
+    def pop(self, queue):
+        return queue.pop(0)
+
+
+def graph_search(problem, frontier):
+    path = []
+    while problem.open:
+        node = frontier.pop(problem.open)
+        if node.closed:
+            continue
+        path.append(node)
+
+        # Close node
+        node.closed = True
+        # self.closed.append(node)
+
+        if problem.goal_test(node):
+            return path, len(path), True
+
+        for child_node in problem.actions(node):
+            frontier.push(problem, child_node)
+
+    return path, len(path), False
+
+
+def a_star(problem):
+    return graph_search(problem, PriorityQueue())
+
+
+def depth_first_search(problem):
+    return graph_search(problem, Stack())
+
+
+def breadth_first_search(problem):
+    return graph_search(problem, FIFOQueue())
 
 
 if __name__ == '__main__':
@@ -365,13 +279,36 @@ if __name__ == '__main__':
     '..............#.....',
     '....................']
 
-    for i in range(1):
-        b = Board(list(G))
-        b.solve()
-    #astar = Astar(b)
-    #astar.solve(astar.best_first_search)
+
+    b = Board(list(G))
+    print("A*")
+    solution, message = b.solve(a_star)
+    for line in solution:
+        print(line)
+    print(message + '\n')
+
+
+    b = Board(list(G))
+    print("Depth first")
+    solution, message = b.solve(depth_first_search)
+    for line in solution:
+        print(line)
+    print(message + '\n')
+
+
+    b = Board(list(G))
+    print("Breadth first")
+    solution, message = b.solve(breadth_first_search)
+    for line in solution:
+        print(line)
+    print(message + '\n')
+
+
 
 """
+
+PETER NORVIG:
+
 class GraphProblem(Problem):
     # The problem of searching a graph from one node to another.
     def __init__(self, initial, goal, graph):
@@ -407,11 +344,7 @@ def astar_search(problem, h=None):
     return best_first_graph_search(problem, lambda n: n.path_cost + h(n))
 
 
-map1 =
-    [['A', _]]
-
-"""
-
+MAGNUS LIE HETLAND:
 
 def memo(func):
     cache = {}
@@ -423,6 +356,7 @@ def memo(func):
         return cache[args]
 
     return wrap
+
 
 def heurestic(u, v):
     @memo
@@ -446,3 +380,4 @@ def a_star(self, graph, s, t, h):
             w = graph[u][v] - h(u) + h(v)
             heappush(Q, (d + w, u, v))
     return inf, None
+"""
