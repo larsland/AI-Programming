@@ -33,12 +33,13 @@ class Astar_program(Frame):
         cancel_animation_id = None
 
     def create_gui(self):
+        # Initiating string variables to bind to various GUI components
         self.selected_mode = StringVar(self)
         self.selected_map = StringVar(self)
-        # Variable for the current mode, and setting a default
-        self.selected_mode.set("A*")
+        self.map_data = StringVar(self)
 
-        # Variable for the current map, and setting a default
+        # Setting default values
+        self.selected_mode.set("A*")
         self.selected_map.set("map1.txt")
 
         # Creating the menus and buttons
@@ -50,6 +51,8 @@ class Astar_program(Frame):
         exit_btn = Button(self, text="Exit", fg="red", command=self.quit)
         next_step_btn = Button(self, text="Next", fg="green", command=self.next_solution_grid)
         prev_step_btn = Button(self, text="Back", fg="red", command=self.prev_solution_grid)
+        self.custom_map_field = Text(self, width = 20, height = 10)
+        load_custom_map_btn = Button(self, text="Check map info", command = self.load_custom_map)
 
         # Placing components in a grid
         mode_menu.grid(row=0, column=0)
@@ -59,7 +62,10 @@ class Astar_program(Frame):
         next_step_btn.grid(row=0, column=4)
         exit_btn.grid(row=0, column=5)
         self.canvas.grid(row=1, column=0, columnspan=6)
+        load_custom_map_btn.grid(row=0, column=6)
+        self.custom_map_field.grid(row=1, column=6)
 
+        # Calls the method which creates the GUI grid based on the default map
         self.create_grid(self.selected_map.get())
 
     def create_grid(self, board_matrix):
@@ -107,6 +113,28 @@ class Astar_program(Frame):
                 y0_counter += 30
                 x1_counter = 30
                 y1_counter += 30
+
+    def load_custom_map(self):
+        input = self.custom_map_field.get("1.0", 'end-1c').split('\n')
+
+        data = {'size':input[0], 'start':input[1], 'goal':input[2], 'blockade':input[3::]}
+
+        size_x = int(data['size'][0:data['size'].index(',')])
+        size_y = int(data['size'][data['size'].index(',')+1::])
+
+        start_x = int(data['start'][0:data['start'].index(',')])
+        start_y = int(data['start'][data['start'].index(',')+1::])
+
+        goal_x = int(data['goal'][0:data['goal'].index(',')])
+        goal_y = int(data['goal'][data['goal'].index(',')+1::])
+
+        matrix = [['.' for ni in range(size_x)] for mi in range(size_y)]
+        matrix[start_x][start_y] = 'A'
+        matrix[goal_x][goal_y] = 'B'
+
+        for line in reversed(matrix):
+            print(line)
+
 
     def next_solution_grid(self):
         self.step += 1
