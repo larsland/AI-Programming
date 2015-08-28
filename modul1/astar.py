@@ -1,12 +1,6 @@
-from algorithm import PriorityNode, Board, a_star, breadth_first_search, depth_first_search
+from algorithm import Bunch, Board, a_star, breadth_first_search, depth_first_search
 from tkinter import *
 import math
-
-
-class Bunch(dict):
-    def __init__(self, *args, **kwargs):
-        super(Bunch, self).__init__(*args, **kwargs)
-        self.__dict__ = self
 
 
 class Astar_program(Frame):
@@ -14,7 +8,7 @@ class Astar_program(Frame):
         self.custom_map_field = None
         self.selected_mode = None
         self.selected_map = None
-        self.solutions = None
+        self.solutions = []
         self.map_data = None
         self.board = None
         self.step = 0
@@ -75,6 +69,7 @@ class Astar_program(Frame):
         self.create_grid(self.selected_map.get())
 
     def create_grid(self, matrix):
+
         if '.txt' in matrix:
             matrix = list(open(matrix).readlines())
 
@@ -103,7 +98,7 @@ class Astar_program(Frame):
     def load_custom_map(self):
         input = self.custom_map_field.get("1.0", 'end-1c').split('\n')
 
-        data = {'size':input[0], 'start':input[1], 'goal':input[2], 'blockade': input[3::]}
+        data = {'size': input[0], 'start': input[1], 'goal': input[2], 'blockade': input[3::]}
 
         size_x = int(data['size'][0:data['size'].index(',')])
         size_y = int(data['size'][data['size'].index(',')+1::])
@@ -114,7 +109,7 @@ class Astar_program(Frame):
         goal_x = int(data['goal'][0:data['goal'].index(',')])
         goal_y = int(data['goal'][data['goal'].index(',')+1::])
 
-        matrix = [['.' for ni in range(size_x)] for mi in range(size_y)]
+        matrix = [['.' for _ in range(size_x)] for _ in range(size_y)]
         matrix[start_x][start_y] = 'A'
         matrix[goal_x][goal_y] = 'B'
 
@@ -122,12 +117,18 @@ class Astar_program(Frame):
             print(line)
 
     def next_solution_grid(self):
-        self.step += 1
-        self.create_solution_grid(self.solutions[self.step])
+        print(self.step)
+        if self.step < len(self.solutions):
+            self.step += 1
+            self.create_solution_grid(self.solutions[self.step-1])
+        elif self.step == 0:
+            self.start_program()
 
     def prev_solution_grid(self):
-        self.step += 1
-        self.create_solution_grid(self.solutions[self.step])
+        print(self.step)
+        if self.step > 0:
+            self.step -= 1
+            self.create_solution_grid(self.solutions[self.step-1])
 
     def create_solution_grid(self, solution):
         if type(solution) == str:
@@ -169,21 +170,19 @@ class Astar_program(Frame):
 
     def update_solution_animation(self, label, ani_step, ms_delay, frame_num):
         global cancel_animation_id
-        if frame_num == len(ani_step) - 1:
+        if frame_num == len(ani_step):
             self.cancel_animation()
             return
 
         self.create_solution_grid(ani_step[frame_num])
         frame_num = (frame_num + 1) % len(ani_step)
-        print("update_solution_animation", (frame_num + 1, len(ani_step)))
         cancel_animation_id = self.after(
             ms_delay, self.update_solution_animation, label, ani_step, ms_delay, frame_num)
 
     def begin_solution_animation(self):
-        print("begin_solution")
         global cancel_animation_id
         self.reset_grid()
-        ms_delay = math.floor(1000 / float(len(self.solutions)))
+        ms_delay = math.floor(200 / float(len(self.solutions)))
         print(ms_delay)
         cancel_animation_id = self.after(
             ms_delay, self.update_solution_animation, None, self.solutions, ms_delay, 0)
@@ -197,7 +196,6 @@ class Astar_program(Frame):
 
     def reset_grid(self, matrix=None):
         self.cancel_animation()
-        print(matrix)
         self.create_solution_grid(matrix or self.selected_map.get())
 
     # Method for starting the application with the chosen algorithm
@@ -214,7 +212,7 @@ class Astar_program(Frame):
         board.pretty_print()
 
         self.solutions = board.solution['states']
-
+        self.step = board.solution['steps']
         self.begin_solution_animation()
 
 

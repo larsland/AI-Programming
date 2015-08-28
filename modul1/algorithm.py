@@ -192,6 +192,7 @@ class Board(Problem):
 
         self.solution['path'] = path
         self.solution['length'] = len(solution_path)
+        print(steps)
         self.solution['steps'] = steps
         self.solution['found'] = path
 
@@ -211,9 +212,11 @@ class Board(Problem):
 
     def solution_states_generator(self):
         """Generator for all the solution states"""
-        solutions = self.solution['states']
-        for state in solutions:
+        for state in self.solution['states']:
             yield state
+
+    def get_solution_states(self):
+        return self.solution['states']
 
     def pretty_print(self):
         """Helper method for beautiful printing of the problem solution"""
@@ -324,3 +327,10 @@ def breadth_first_search(problem):
     where the open nodes are on a First In first Out queue (LIFO)"""
     problem.open = deque()
     return graph_search(problem, FIFOQueue())
+
+
+class Bunch(dict):
+    """Simple class for prototyping and other handy stuff"""
+    def __init__(self, *args, **kwargs):
+        super(Bunch, self).__init__(*args, **kwargs)
+        self.__dict__ = self
