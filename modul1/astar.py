@@ -1,7 +1,7 @@
 from tkinter import *
 from heapq import heappush, heappop
 from collections import deque
-from math import sqrt, fabs
+from math import sqrt, fabs, floor, ceil
 from itertools import count
 import time
 
@@ -19,6 +19,19 @@ class Astar_program(Frame):
         self.canvas = Canvas(self, width=200, height=0)
         self.create_gui()
 
+        # 64 length green to yellow to red gradient
+        self.heat_gradient = ['#79FE48', '#7EFE47', '#83FE47', '#88FE46', '#8DFE46', '#92FE45', '#96FE45', '#9BFE44',
+                              '#A0FE44', '#A5FE43', '#AAFE43', '#AFFE42', '#B4FE42', '#BAFE41', '#BFFE41', '#C4FE40',
+                              '#C9FE40', '#CEFE3F', '#D3FE3F', '#D9FE3E', '#DEFE3E', '#E3FE3D', '#E9FE3D', '#EEFE3C',
+                              '#F3FE3C', '#F9FE3B', '#FEFD3B', '#FEF83A', '#FEF33A', '#FEED39', '#FEE739', '#FEE238',
+                              '#FEDC38', '#FED737', '#FED137', '#FECB36', '#FEC636', '#FEC035', '#FEBA35', '#FEB434',
+                              '#FEAE34', '#FEA933', '#FEA333', '#FE9D32', '#FE9732', '#FE9131', '#FE8B31', '#FE8530',
+                              '#FE7F30', '#FE792F', '#FE732F', '#FE6C2E', '#FE662E', '#FE602D', '#FE5A2D', '#FE542C',
+                              '#FE4D2C', '#FE472B', '#FE412B', '#FE3A2A', '#FE342A', '#FE2D29', '#FE292B', '#FF2830']
+
+        global cancel_animation_id
+        cancel_animation_id = None
+
     def create_gui(self):
         self.selected_mode = StringVar(self)
         self.selected_map = StringVar(self)
@@ -30,10 +43,10 @@ class Astar_program(Frame):
 
         # Creating the menus and buttons
         mode_menu = OptionMenu(self, self.selected_mode, "A*", "Breadth-first", "Depth-first",
-                               command=lambda mode: mode)
+                               command=lambda: self.reset_grid())
         map_menu = OptionMenu(self, self.selected_map, "map1.txt", "map2.txt", "map3.txt", "map4.txt", "map5.txt",
-                              command=lambda matrix: self.create_grid(matrix))
-        start_btn = Button(self, text="Start", fg="green", command=self.start_program)
+                              command=lambda matrix: self.reset_grid(matrix))
+        start_btn = Button(self, text="Solve", fg="green", command=self.start_program)
         exit_btn = Button(self, text="Exit", fg="red", command=self.quit)
         next_step_btn = Button(self, text="Next", fg="green", command=self.next_solution_grid)
         prev_step_btn = Button(self, text="Back", fg="red", command=self.prev_solution_grid)
@@ -66,7 +79,8 @@ class Astar_program(Frame):
                 map_string += c
 
         # Changing the size of the canvas according to the current map dimensions
-        self.canvas.config(width=y_counter*30, height=y_counter*30)
+        print(len(map_string))
+        self.canvas.config(width=len(map_string), height=len(map_string))
 
         x0_counter = 0
         y0_counter = 0
@@ -77,7 +91,7 @@ class Astar_program(Frame):
             if c == '.':
                 self.canvas.create_rectangle(x0_counter, y0_counter, x1_counter, y1_counter, fill="white")
             elif c == '#':
-                self.canvas.create_rectangle(x0_counter, y0_counter, x1_counter, y1_counter, fill="black")
+                self.canvas.create_rectangle(x0_counter, y0_counter, x1_counter, y1_counter, fill="#121f1f")
             elif c == 'A':
                 self.canvas.create_rectangle(x0_counter, y0_counter, x1_counter, y1_counter, fill="green")
             elif c == 'B':
@@ -102,26 +116,66 @@ class Astar_program(Frame):
         self.step += 1
         self.create_solution_grid(self.solutions[self.step])
 
-    def create_solution_grid(self, matrix):
-        #matrix = next(self.solutions)
+    def create_solution_grid(self, solution):
+        matrix = solution['state']
+        #    max_f = max(node_list, key=lambda n: n.f)
+        min_f = min([min(node_list, key=lambda n: n.f) for node_list in matrix], key=lambda n: n.f).f or 0
+        max_f = max([max(node_list, key=lambda n: n.f) for node_list in matrix], key=lambda n: n.f).f or 1
+        max_f -= min_f
+
+        open_nodes = solution['open']
         self.canvas.config(width=len(matrix)*30, height=len(matrix[0])*30)
         for node_list in matrix:
             for node in node_list:
-                print(node)
                 if node.tile == '#':
-                    self.canvas.create_rectangle(node.x*30, node.y*30, (node.x+1)*30, (node.y+1)*30, fill="black")
+                    self.canvas.create_rectangle(node.x*30, node.y*30, (node.x+1)*30, (node.y+1)*30, fill="#121f1f")
                 elif node.tile == 'B':
                     self.canvas.create_rectangle(node.x*30, node.y*30, (node.x+1)*30, (node.y+1)*30, fill="red")
                 elif node.tile == 'A':
                     self.canvas.create_rectangle(node.x*30, node.y*30, (node.x+1)*30, (node.y+1)*30, fill="green")
                 elif node.closed:
-                    self.canvas.create_rectangle(node.x*30, node.y*30, (node.x+1)*30, (node.y+1)*30, fill="yellow")
-                elif not node.closed:
-                    self.canvas.create_rectangle(node.x*30, node.y*30, (node.x+1)*30, (node.y+1)*30, fill="white")
-        return
+                    weight = float(node.f)
+                    heat_length = float(len(self.heat_gradient))
+                    if weight == 0 or weight is None:
+                        pos = 0
+                    else:
+                        pos = floor(heat_length - ((heat_length / max_f) * weight))
+                    color = self.heat_gradient[pos]
+                    self.canvas.create_rectangle(node.x*30, node.y*30, (node.x+1)*30, (node.y+1)*30, fill=color)
+                elif node in open_nodes:
+                    self.canvas.create_rectangle(node.x*30, node.y*30, (node.x+1)*30, (node.y+1)*30, fill="#add8e6")
 
-    def print_wat(self, x):
-        print("wat", x)
+    def update_solution_animation(self, label, ani_step, ms_delay, frame_num):
+        global cancel_animation_id
+        if frame_num == len(ani_step) - 1:
+            self.cancel_animation()
+            return
+
+        self.create_solution_grid(ani_step[frame_num])
+        frame_num = (frame_num + 1) % len(ani_step)
+        print("update_solution_animation", (frame_num + 1, len(ani_step)))
+        cancel_animation_id = self.after(
+            ms_delay, self.update_solution_animation, label, ani_step, ms_delay, frame_num)
+
+    def begin_solution_animation(self):
+        print("begin_solution")
+        global cancel_animation_id
+        self.cancel_animation()
+        self.reset_grid()
+        ms_delay = floor(1000 / float(len(self.solutions)))
+        print(ms_delay)
+        cancel_animation_id = self.after(
+            ms_delay, self.update_solution_animation, None, self.solutions, ms_delay, 0)
+
+    def cancel_animation(self):
+        global cancel_animation_id
+        if cancel_animation_id is not None:
+            self.after_cancel(cancel_animation_id)
+            cancel_animation_id = None
+
+    def reset_grid(self, matrix=None):
+        self.canvas.delete("all")
+        self.create_grid(matrix or self.selected_map.get())
 
     # Method for starting the application with the chosen algorithm
     def start_program(self):
@@ -138,7 +192,7 @@ class Astar_program(Frame):
 
         self.solutions = b.solution['states']
 
-        # self.after(1000, self.create_solution_grid(next(self.solutions)))
+        self.begin_solution_animation()
 
 
 class Node:
@@ -333,11 +387,9 @@ class Board(Problem):
 
     def save_state(self):
         """For storing states as the algorithm traverses the problem"""
-        state = []
-        for state_list in list(self.state):
-            state.append(list(state_list))
 
-        self.solution['states'].append(list(state))
+        state = {'state': list(self.state), 'open': list(self.open), 'path': list(self.board)}
+        self.solution['states'].append(state)
 
     def solution_states_generator(self):
         """Generator for all the solution states"""
