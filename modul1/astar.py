@@ -52,7 +52,7 @@ class Astar_program(Frame):
         next_step_btn = Button(self, text="Next", fg="green", command=self.next_solution_grid)
         prev_step_btn = Button(self, text="Back", fg="red", command=self.prev_solution_grid)
         self.custom_map_field = Text(self, width = 20, height = 10)
-        load_custom_map_btn = Button(self, text="Check map info", command = self.load_custom_map)
+        load_custom_map_btn = Button(self, text="Check map info", command=self.load_custom_map)
 
         # Placing components in a grid
         mode_menu.grid(row=0, column=0)
@@ -196,7 +196,7 @@ class Astar_program(Frame):
 
     def reset_grid(self, matrix=None):
         self.cancel_animation()
-        self.create_solution_grid(matrix or self.selected_map.get())
+        self.create_grid(matrix or self.selected_map.get())
 
     # Method for starting the application with the chosen algorithm
     def start_program(self):
