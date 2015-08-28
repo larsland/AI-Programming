@@ -287,14 +287,17 @@ class Board(Problem):
 
     def actions(self, node):
         """In our problem, actions are all nodes reachable from current Node within the board matrix"""
-        if node.y > 0:
-            yield self.state[node.y - 1][node.x]    # Up
-        if node.y < self.height:
-            yield self.state[node.y + 1][node.x]    # Down
-        if node.x > 0:
-            yield self.state[node.y][node.x - 1]    # Left
-        if node.x < self.width:
-            yield self.state[node.y][node.x + 1]    # Right
+        try:
+            if node.y > 0:
+                yield self.state[node.y - 1][node.x]    # Up
+            if node.y < self.height:
+                yield self.state[node.y + 1][node.x]    # Down
+            if node.x > 0:
+                yield self.state[node.y][node.x - 1]    # Left
+            if node.x < self.width:
+                yield self.state[node.y][node.x + 1]    # Right
+        except IndexError as e:
+            pass
 
     def add_path(self, path, node):
         path_line = list(path[node.y])
