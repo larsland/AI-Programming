@@ -43,7 +43,7 @@ class Astar_program(Frame):
 
         # Creating the menus and buttons
         mode_menu = OptionMenu(self, self.selected_mode, "A*", "Breadth-first", "Depth-first",
-                               command=lambda: self.reset_grid())
+                               command=self.reset_grid)
         map_menu = OptionMenu(self, self.selected_map, "map1.txt", "map2.txt", "map3.txt", "map4.txt", "map5.txt",
                               command=lambda matrix: self.reset_grid(matrix))
         start_btn = Button(self, text="Solve", fg="green", command=self.start_program)
@@ -160,7 +160,6 @@ class Astar_program(Frame):
     def begin_solution_animation(self):
         print("begin_solution")
         global cancel_animation_id
-        self.cancel_animation()
         self.reset_grid()
         ms_delay = floor(1000 / float(len(self.solutions)))
         print(ms_delay)
@@ -172,8 +171,10 @@ class Astar_program(Frame):
         if cancel_animation_id is not None:
             self.after_cancel(cancel_animation_id)
             cancel_animation_id = None
+            return
 
     def reset_grid(self, matrix=None):
+        self.cancel_animation()
         self.canvas.delete("all")
         self.create_grid(matrix or self.selected_map.get())
 
@@ -193,6 +194,12 @@ class Astar_program(Frame):
         self.solutions = b.solution['states']
 
         self.begin_solution_animation()
+
+
+class Bunch(dict):
+    def __init__(self, *args, **kwargs):
+        super(Bunch, self).__init__(*args, **kwargs)
+        self.__dict__ = self
 
 
 class Node:
