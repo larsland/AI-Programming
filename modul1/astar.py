@@ -3,11 +3,16 @@ from heapq import heappush, heappop
 from collections import deque
 from math import sqrt, fabs
 from itertools import count
+import time
 
 
 class Astar_program(Frame):
 
-    def __init__(self, master = None):
+    def __init__(self, master=None):
+        self.selected_mode = None
+        self.selected_map = None
+        self.solutions = None
+        self.step = 0
         Frame.__init__(self, master)
         self.master.title("A* Search")
         self.pack()
@@ -15,27 +20,32 @@ class Astar_program(Frame):
         self.create_gui()
 
     def create_gui(self):
-
-        # Variable for the current mode, and setting a default
         self.selected_mode = StringVar(self)
-        self.selected_mode.set("Best-first mode")
+        self.selected_map = StringVar(self)
+        # Variable for the current mode, and setting a default
+        self.selected_mode.set("A*")
 
         # Variable for the current map, and setting a default
-        self.selected_map = StringVar(self)
         self.selected_map.set("map1.txt")
 
         # Creating the menus and buttons
-        mode_menu = OptionMenu(self, self.selected_mode, "Best-first mode", "Breadth-first mode", "Depth-first mode", command = lambda mode:print(mode))
-        map_menu = OptionMenu(self, self.selected_map, "map1.txt", "map2.txt", "map3.txt", "map4.txt", "map5.txt", command = lambda map:self.create_grid(map))
-        start_btn = Button(self, text="Start", fg="green", command = self.start_program)
-        exit_btn = Button(self, text="Exit", fg="red", command = self.quit)
+        mode_menu = OptionMenu(self, self.selected_mode, "A*", "Breadth-first", "Depth-first",
+                               command=lambda mode: mode)
+        map_menu = OptionMenu(self, self.selected_map, "map1.txt", "map2.txt", "map3.txt", "map4.txt", "map5.txt",
+                              command=lambda matrix: self.create_grid(matrix))
+        start_btn = Button(self, text="Start", fg="green", command=self.start_program)
+        exit_btn = Button(self, text="Exit", fg="red", command=self.quit)
+        next_step_btn = Button(self, text="Next", fg="green", command=self.next_solution_grid)
+        prev_step_btn = Button(self, text="Back", fg="red", command=self.prev_solution_grid)
 
         # Placing components in a grid
-        mode_menu.grid(row = 0, column = 0)
-        map_menu.grid(row = 0, column = 1)
-        start_btn.grid(row = 0, column = 2)
-        exit_btn.grid(row = 0, column = 3)
-        self.canvas.grid(row = 1, column = 0, columnspan = 4)
+        mode_menu.grid(row=0, column=0)
+        map_menu.grid(row=0, column=1)
+        start_btn.grid(row=0, column=2)
+        prev_step_btn.grid(row=0, column=3)
+        next_step_btn.grid(row=0, column=4)
+        exit_btn.grid(row=0, column=5)
+        self.canvas.grid(row=1, column=0, columnspan=6)
 
         self.create_grid(self.selected_map.get())
 
@@ -52,7 +62,7 @@ class Astar_program(Frame):
                     map_string += c
         else:
             for c in board_matrix:
-                y_counter+= 1
+                y_counter += 1
                 map_string += c
 
         # Changing the size of the canvas according to the current map dimensions
@@ -75,7 +85,6 @@ class Astar_program(Frame):
             elif c == 'x':
                 self.canvas.create_rectangle(x0_counter, y0_counter, x1_counter, y1_counter, fill="yellow")
 
-
             x0_counter += 30
             x1_counter += 30
 
@@ -85,23 +94,51 @@ class Astar_program(Frame):
                 x1_counter = 30
                 y1_counter += 30
 
+    def next_solution_grid(self):
+        self.step += 1
+        self.create_solution_grid(self.solutions[self.step])
+
+    def prev_solution_grid(self):
+        self.step += 1
+        self.create_solution_grid(self.solutions[self.step])
+
+    def create_solution_grid(self, matrix):
+        #matrix = next(self.solutions)
+        self.canvas.config(width=len(matrix)*30, height=len(matrix[0])*30)
+        for node_list in matrix:
+            for node in node_list:
+                print(node)
+                if node.tile == '#':
+                    self.canvas.create_rectangle(node.x*30, node.y*30, (node.x+1)*30, (node.y+1)*30, fill="black")
+                elif node.tile == 'B':
+                    self.canvas.create_rectangle(node.x*30, node.y*30, (node.x+1)*30, (node.y+1)*30, fill="red")
+                elif node.tile == 'A':
+                    self.canvas.create_rectangle(node.x*30, node.y*30, (node.x+1)*30, (node.y+1)*30, fill="green")
+                elif node.closed:
+                    self.canvas.create_rectangle(node.x*30, node.y*30, (node.x+1)*30, (node.y+1)*30, fill="yellow")
+                elif not node.closed:
+                    self.canvas.create_rectangle(node.x*30, node.y*30, (node.x+1)*30, (node.y+1)*30, fill="white")
+        return
+
+    def print_wat(self, x):
+        print("wat", x)
+
     # Method for starting the application with the chosen algorithm
     def start_program(self):
         b = Board(list(open(self.selected_map.get()).readlines()))
 
-        if self.selected_mode.get() == "Best-first mode":
+        if self.selected_mode.get() == "A*":
             b.solve(a_star)
-        elif self.selected_mode.get() == "Breadth-first mode":
+        elif self.selected_mode.get() == "Breadth-first":
             b.solve(breadth_first_search)
-        elif self.selected_mode.get() == "Depth-first mode":
+        elif self.selected_mode.get() == "Depth-first":
             b.solve(depth_first_search)
 
         b.pretty_print()
 
-        self.create_grid(b.solution["path"])
+        self.solutions = b.solution['states']
 
-        #for state in b.solution_states_generator():
-        #    print(state)
+        # self.after(1000, self.create_solution_grid(next(self.solutions)))
 
 
 class Node:
@@ -118,37 +155,9 @@ class Node:
     def __hash__(self):
         return hash("" + self.state)
 
-class Problem():
-    def __init__(self, state, initial, goal=None, ):
-        """The constructor specifies the initial state, and possibly a goal
-        state, if there is a unique goal.  Your subclass's constructor can add
-        other arguments."""
-        self.state = state
-        self.initial = initial
-        self.goal = goal
-
-    def init_state(self):
-        """Initialization method for the state of the problem,
-        can be a list, matrix, tree or any other data structure that fits the problem"""
-        pass
-
-    def actions(self, state):
-        """Returns all actions that can be performed from current state,
-        either as a data structure or a generator"""
-        pass
-
-    def solve(self, algorithm):
-        """Solve the problem with the given algorithm"""
-        pass
-
-    def goal_test(self, other):
-        return self.goal == other
-
-    def save_state(self):
-        pass
 
 class Problem():
-    def __init__(self, state, initial, goal=None, ):
+    def __init__(self, state, initial, goal=None):
         """The constructor specifies the initial state, and possibly a goal
         state, if there is a unique goal.  Your subclass's constructor can add
         other arguments."""
@@ -185,10 +194,10 @@ class PriorityNode(Node):
     For the purpose of this task the priority is calculated from f(n) = g(n) + h(n).
     """
 
-    def __init__(self, x, y, board, tile):
+    def __init__(self, node_x, node_y, board, tile):
         # Coordinates
-        self.x = x
-        self.y = y
+        self.x = node_x
+        self.y = node_y
 
         self.tile = tile    # 'A', 'B', '.' or '#'
         self.board = board  # Reference to the board class
@@ -205,7 +214,7 @@ class PriorityNode(Node):
         self.c = 0              # Priority Queue counter in case equal priority (f)
         self.closed = False     # Use this to check if the node has been traversed.
 
-        Node.__init__(self, (x, y), board)
+        Node.__init__(self, (node_x, node_y), board)
 
     def update_priority(self, goal, c):
         self.c = c
@@ -296,7 +305,7 @@ class Board(Problem):
                 yield self.state[node.y][node.x - 1]    # Left
             if node.x < self.width:
                 yield self.state[node.y][node.x + 1]    # Right
-        except IndexError as e:
+        except IndexError:
             pass
 
     def add_path(self, path, node):
@@ -324,11 +333,16 @@ class Board(Problem):
 
     def save_state(self):
         """For storing states as the algorithm traverses the problem"""
-        self.solution['states'].append(self.state)
+        state = []
+        for state_list in list(self.state):
+            state.append(list(state_list))
+
+        self.solution['states'].append(list(state))
 
     def solution_states_generator(self):
         """Generator for all the solution states"""
-        for state in self.solution['states']:
+        solutions = self.solution['states']
+        for state in solutions:
             yield state
 
     def pretty_print(self):
@@ -344,43 +358,6 @@ class Board(Problem):
             print(solution_line)
         print('_' * len(self.board[0]))
         print('')
-
-class PriorityNode(Node):
-    # Constructor
-    def __init__(self, x, y, board, tile):
-        # Coordinates
-        self.x = x
-        self.y = y
-
-        self.tile = tile
-        # Reference to the board class
-        self.board = board
-
-        # g and f scores
-        self.g = 0
-        self.f = 0
-
-        # Heuristic function
-        self.h = lambda x, y: sqrt((self.x-x)**2 + (self.y-y)**2)
-        # self.h = lambda x, y: fabs(x-self.x) + fabs(y-self.y)
-
-        # Priority Queue counter in case equal priority (f)
-        self.c = 0
-
-        self.closed = False
-
-        Node.__init__(self, (x, y), board)
-
-    def update_priority(self, goal, c):
-        self.c = c
-        self.f = self.g + self.h(goal.x, goal.y) * 10  # A*
-
-    def __lt__(self, other):  # comparison method for priority queue
-        return self.f + self.c < other.f + self.c
-
-    def __repr__(self):
-        return "<Node (x:%s, y:%s, f:%s, c:%s, t:%s)>" % (self.x, self.y, self.f, self.c, self.tile)
-
 
 
 class PriorityQueue:
