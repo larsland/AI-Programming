@@ -142,42 +142,34 @@ class Astar_program(Frame):
         max_f -= min_f
 
         open_nodes = solution['open']
-        self.canvas.config(width=len(matrix)*30, height=len(matrix[0])*30)
+        self.canvas.config(width=len(matrix)*30, height=(len(matrix[0])-1)*30)
         for node_list in matrix:
             for node in node_list:
-                if node.tile == '#':
-                    self.canvas.itemconfig(self.cells[node.x][node.y], fill='#121f1f')
-                    # self.canvas.create_rectangle(node.x*30, node.y*30, (node.x+1)*30, (node.y+1)*30, fill="#121f1f")
-                elif node.tile == 'B':
-                    self.canvas.itemconfig(self.cells[node.x][node.y], fill='red')
-                    # self.canvas.create_rectangle(node.x*30, node.y*30, (node.x+1)*30, (node.y+1)*30, fill="red")
-                elif node.tile == 'A':
-                    self.canvas.itemconfig(self.cells[node.x][node.y], fill='green')
-                    # self.canvas.create_rectangle(node.x*30, node.y*30, (node.x+1)*30, (node.y+1)*30, fill="green")
-                elif node.closed:
-                    weight = float(node.f)
-                    heat_length = float(len(self.heat_gradient))
-                    if weight == 0 or weight is None:
-                        pos = 0
-                    else:
-                        pos = math.floor(heat_length - ((heat_length / max_f) * weight))
-                    color = self.heat_gradient[pos]
-                    self.canvas.itemconfig(self.cells[node.x][node.y], fill=color)
-                    # self.canvas.create_rectangle(node.x*30, node.y*30, (node.x+1)*30, (node.y+1)*30, fill=color)
-                elif node in open_nodes:
-                    self.canvas.itemconfig(self.cells[node.x][node.y], fill='#add8e6')
-                    # self.canvas.create_rectangle(node.x*30, node.y*30, (node.x+1)*30, (node.y+1)*30, fill="#add8e6")
+                self.update_rectangle(node, open_nodes, max_f)
 
-    def update_solution_animation(self, label, ani_step, ms_delay, frame_num):
-        global cancel_animation_id
-        if frame_num == len(ani_step):
-            self.cancel_animation()
-            return
+    def update_rectangle(self, node, open_nodes, max_f):
+        if node.tile == '#':
+            self.canvas.itemconfig(self.cells[node.x][node.y], fill='#121f1f')
+        elif node.tile == 'B':
+            self.canvas.itemconfig(self.cells[node.x][node.y], fill='red')
+        elif node.tile == 'A':
+            self.canvas.itemconfig(self.cells[node.x][node.y], fill='green')
+        elif node.closed:
+            # self.canvas.itemconfig(self.cells[node.x][node.y], fill='#add8e6')
+            self.canvas.itemconfig(self.cells[node.x][node.y], fill=self.get_heat_color(node, max_f))
+        elif node in open_nodes or node.closed:
+            self.cells[node.x][node.y] = self.canvas.create_oval(node.x, node.y, node.x+30,node.y+30, fill=self.get_heat_color(node, max_f))
+            #self.canvas.itemconfig(self.cells[node.x][node.y], fill=self.get_heat_color(node, max_f), outline='blue')
 
-        self.create_solution_grid(ani_step[frame_num])
-        frame_num = (frame_num + 1) % len(ani_step)
-        cancel_animation_id = self.after(
-            ms_delay, self.update_solution_animation, label, ani_step, ms_delay, frame_num)
+    def get_heat_color(self, node, max_f):
+        weight = float(node.f)
+        heat_length = float(len(self.heat_gradient))
+        if weight == 0 or weight is None:
+            pos = 0
+        else:
+            pos = math.floor(heat_length - ((heat_length / max_f) * weight))
+        color = self.heat_gradient[pos]
+        return color
 
     def begin_solution_animation(self):
         global cancel_animation_id
@@ -186,6 +178,18 @@ class Astar_program(Frame):
         print(ms_delay)
         cancel_animation_id = self.after(
             ms_delay, self.update_solution_animation, None, self.solutions, ms_delay, 0)
+
+    def update_solution_animation(self, label, ani_step, ms_delay, frame_num):
+        global cancel_animation_id
+        if frame_num == len(ani_step):
+            self.outline_solution()
+            self.cancel_animation()
+            return
+
+        self.create_solution_grid(ani_step[frame_num])
+        frame_num = (frame_num + 1) % len(ani_step)
+        cancel_animation_id = self.after(
+            ms_delay, self.update_solution_animation, label, ani_step, ms_delay, frame_num)
 
     def cancel_animation(self):
         global cancel_animation_id

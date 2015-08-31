@@ -195,17 +195,16 @@ class Board(Problem):
         print(steps)
         self.solution['steps'] = steps
         self.solution['found'] = path
+        return self.solution
 
     def save_state(self):
         """For storing states as the algorithm traverses the problem"""
-
         temp_state = []
         temp_line = []
         for line in self.state:
             for node in line:
                 temp_line.append(copy.copy(node))
             temp_state.append(temp_line)
-
 
         state = {'state': temp_state, 'open': list(self.open), 'path': list(self.board)}
         self.solution['states'].append(state)
@@ -253,7 +252,7 @@ class PriorityQueue:
         return heappop(queue)
 
 
-class LIFOQueue:
+class LIFOStack:
     # Also known as a Stack
     def __init__(self):
         pass
@@ -319,7 +318,7 @@ def depth_first_search(problem):
     where the open nodes are on a Last In First Out queue (LIFO),
     also known as a Stack"""
     problem.open = deque()
-    return graph_search(problem, LIFOQueue())
+    return graph_search(problem, LIFOStack())
 
 
 def breadth_first_search(problem):
