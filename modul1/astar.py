@@ -69,6 +69,9 @@ class Astar_program(Frame):
         self.create_grid(self.selected_map.get())
 
     def create_grid(self, matrix):
+        for cell_row in self.cells:
+            for cell in cell_row:
+                self.canvas.delete(cell)
 
         if '.txt' in matrix:
             matrix = list(open(matrix).readlines())
@@ -87,13 +90,17 @@ class Astar_program(Frame):
                 if type(item) is not str:
                     item, x, y = item.tile, item.x, item.y
                 if item == '#':
-                    self.cells[x][y] = self.canvas.create_rectangle(x*30, y*30, (x+1)*30, (y+1)*30, fill="#121f1f")
+                    self.cells[x][y] = self.canvas.create_rectangle(x*30, y*30, (x+1)*30, (y+1)*30, fill="#121f1f",
+                                                                    tags=('rectangle',))
                 elif item == '.':
-                    self.cells[x][y] = self.canvas.create_rectangle(x*30, y*30, (x+1)*30, (y+1)*30, fill="white")
+                    self.cells[x][y] = self.canvas.create_rectangle(x*30, y*30, (x+1)*30, (y+1)*30, fill="white",
+                                                                    tags=('rectangle',))
                 elif item == 'B':
-                    self.cells[x][y] = self.canvas.create_rectangle(x*30, y*30, (x+1)*30, (y+1)*30, fill="red")
+                    self.cells[x][y] = self.canvas.create_rectangle(x*30, y*30, (x+1)*30, (y+1)*30, fill="red",
+                                                                    tags=('rectangle',))
                 elif item == 'A':
-                    self.cells[x][y] = self.canvas.create_rectangle(x*30, y*30, (x+1)*30, (y+1)*30, fill="green")
+                    self.cells[x][y] = self.canvas.create_rectangle(x*30, y*30, (x+1)*30, (y+1)*30, fill="green",
+                                                                    tags=('rectangle',))
 
     def load_custom_map(self):
         input = self.custom_map_field.get("1.0", 'end-1c').split('\n')
@@ -156,10 +163,12 @@ class Astar_program(Frame):
             self.canvas.itemconfig(self.cells[node.x][node.y], fill='green')
         elif node.closed:
             # self.canvas.itemconfig(self.cells[node.x][node.y], fill='#add8e6')
-            self.canvas.itemconfig(self.cells[node.x][node.y], fill=self.get_heat_color(node, max_f))
+            # self.canvas.itemconfig(self.cells[node.x][node.y], fill=self.get_heat_color(node, max_f))
+            print("poop")
         elif node in open_nodes or node.closed:
-            self.cells[node.x][node.y] = self.canvas.create_oval(node.x*30, node.y*30, (node.x+1)*30, (node.y+1)*30,
-                                                                 fill=self.get_heat_color(node, max_f))
+            if 'oval' not in self.canvas.gettags(self.cells[node.x][node.y]):
+                self.cells[node.x][node.y] = self.canvas.create_oval(node.x*30, node.y*30, (node.x+1)*30, (node.y+1)*30,
+                                                                 fill=self.get_heat_color(node, max_f), tags=('oval',))
             #self.canvas.itemconfig(self.cells[node.x][node.y], fill=self.get_heat_color(node, max_f), outline='blue')
 
     def get_heat_color(self, node, max_f):
@@ -181,14 +190,15 @@ class Astar_program(Frame):
             ms_delay, self.update_solution_animation, None, self.solutions, ms_delay, 0)
 
     def update_solution_animation(self, label, ani_step, ms_delay, frame_num):
+        print("Updating animation! with frame_num: %s and len(ani_step): %s" % (frame_num, len(ani_step)))
         global cancel_animation_id
         if frame_num == len(ani_step):
-            self.outline_solution()
             self.cancel_animation()
+            print("canceled!")
             return
 
         self.create_solution_grid(ani_step[frame_num])
-        frame_num = (frame_num + 1) % len(ani_step)
+        frame_num = (frame_num + 1) % (len(ani_step) + 1)
         cancel_animation_id = self.after(
             ms_delay, self.update_solution_animation, label, ani_step, ms_delay, frame_num)
 

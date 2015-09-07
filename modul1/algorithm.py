@@ -232,7 +232,8 @@ class Board(Problem):
         print('')
 
 
-class PriorityQueue:
+class Agenda:
+    """ Also known as a priority queue """
     def __init__(self):
         pass
 
@@ -252,8 +253,8 @@ class PriorityQueue:
         return heappop(queue)
 
 
-class LIFOStack:
-    # Also known as a Stack
+class LIFO:
+    """ Also known as a stack """
     def __init__(self):
         pass
 
@@ -264,7 +265,8 @@ class LIFOStack:
         return queue.popleft()  # Last out
 
 
-class FIFOQueue:
+class FIFO:
+    """ Also known as a queue """
     def __init__(self):
         pass
 
@@ -310,7 +312,7 @@ def a_star(problem):
     In our implementation we use our Priority Nodes
     with their heuristic as well as a PriorityQueue
     to implement the A* algorithm."""
-    return graph_search(problem, PriorityQueue())
+    return graph_search(problem, Agenda())
 
 
 def depth_first_search(problem):
@@ -318,14 +320,14 @@ def depth_first_search(problem):
     where the open nodes are on a Last In First Out queue (LIFO),
     also known as a Stack"""
     problem.open = deque()
-    return graph_search(problem, LIFOStack())
+    return graph_search(problem, LIFO())
 
 
 def breadth_first_search(problem):
     """Depth first search is a graph search
     where the open nodes are on a First In first Out queue (LIFO)"""
     problem.open = deque()
-    return graph_search(problem, FIFOQueue())
+    return graph_search(problem, FIFO())
 
 
 class Bunch(dict):
