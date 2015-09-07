@@ -17,7 +17,7 @@ class Node:
         return isinstance(other, Node) and self.state == other.state
 
     def __hash__(self):
-        return hash("" + self.state)
+        return hash(str(self.state))
 
 
 class Problem():
@@ -160,17 +160,20 @@ class Board(Problem):
 
     def actions(self, node):
         """In our problem, actions are all nodes reachable from current Node within the board matrix"""
+        actions = []
         try:
             if node.y > 0:
-                yield self.state[node.y - 1][node.x]    # Up
+                actions.append(self.state[node.y - 1][node.x])    # Up
             if node.y < self.height:
-                yield self.state[node.y + 1][node.x]    # Down
+                actions.append(self.state[node.y + 1][node.x])    # Down
             if node.x > 0:
-                yield self.state[node.y][node.x - 1]    # Left
+                actions.append(self.state[node.y][node.x - 1])    # Left
             if node.x < self.width:
-                yield self.state[node.y][node.x + 1]    # Right
+                actions.append(self.state[node.y][node.x + 1])    # Right
         except IndexError:
             pass
+
+        return actions
 
     def add_path(self, path, node):
         path_line = list(path[node.y])
@@ -180,9 +183,8 @@ class Board(Problem):
         return path
 
     def solve(self, algorithm):
-
-        """Problem solver that takes in a selected algorithm and
-        formats the response in a handy way via our solution dictionary"""
+        """Solve the problem with the selected algorithm and
+        formats the solution with a dictionary"""
         path = list(self.board)
 
         solution_path, steps, found = algorithm(self)
@@ -198,15 +200,22 @@ class Board(Problem):
         return self.solution
 
     def save_state(self):
-        """For storing states as the algorithm traverses the problem"""
-        temp_state = []
-        temp_line = []
+        """For storing states as the algorithm traverses the problem.
+        Saves the open nodes, the current path and the difference between the current state and the previous one."""
+        temp_state = set()
         for line in self.state:
+            temp_line = set()
             for node in line:
-                temp_line.append(copy.copy(node))
-            temp_state.append(temp_line)
+                temp_line.add(copy.copy(node))
+            temp_line = frozenset(temp_line)
+            temp_state.add(temp_line)
 
-        state = {'state': temp_state, 'open': list(self.open), 'path': list(self.board)}
+        if self.solution['states']:
+            diff_state = list(temp_state.difference(self.solution['states'][-1]))
+        else:
+            diff_state = list(temp_state)
+
+        state = {'state': diff_state, 'open': list(self.open), 'path': list(self.board)}
         self.solution['states'].append(state)
 
     def solution_states_generator(self):
@@ -286,11 +295,11 @@ def graph_search(problem, frontier):
         node = frontier.pop(problem.open)           # Pop node
         steps += 1                                  # Increment steps taken
 
-        if node.closed:                             # If node has been closed then
-            continue                                # skip to next iteration
-
         path.append(node)                           # Save path and
         problem.save_state()                        # current state
+
+        if node.closed:                             # If node has been closed then
+            continue                                # skip to next iteration
 
         if problem.goal_test(node):                 # Is current node the goal node? Then
             return path, steps, True                # end algorithm and return result

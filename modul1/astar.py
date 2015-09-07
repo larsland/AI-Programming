@@ -161,15 +161,15 @@ class Astar_program(Frame):
             self.canvas.itemconfig(self.cells[node.x][node.y], fill='red')
         elif node.tile == 'A':
             self.canvas.itemconfig(self.cells[node.x][node.y], fill='green')
-        elif node.closed:
-            # self.canvas.itemconfig(self.cells[node.x][node.y], fill='#add8e6')
-            # self.canvas.itemconfig(self.cells[node.x][node.y], fill=self.get_heat_color(node, max_f))
-            print("poop")
-        elif node in open_nodes or node.closed:
+        elif node in open_nodes:
             if 'oval' not in self.canvas.gettags(self.cells[node.x][node.y]):
                 self.cells[node.x][node.y] = self.canvas.create_oval(node.x*30, node.y*30, (node.x+1)*30, (node.y+1)*30,
                                                                  fill=self.get_heat_color(node, max_f), tags=('oval',))
-            #self.canvas.itemconfig(self.cells[node.x][node.y], fill=self.get_heat_color(node, max_f), outline='blue')
+        elif node.closed:
+            # self.canvas.itemconfig(self.cells[node.x][node.y], fill='#add8e6')
+            self.canvas.itemconfig(self.cells[node.x][node.y], fill=self.get_heat_color(node, max_f))
+            # print("poop")
+            # self.canvas.itemconfig(self.cells[node.x][node.y], fill=self.get_heat_color(node, max_f), outline='blue')
 
     def get_heat_color(self, node, max_f):
         weight = float(node.f)
