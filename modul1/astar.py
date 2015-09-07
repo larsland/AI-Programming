@@ -51,7 +51,7 @@ class Astar_program(Frame):
         exit_btn = Button(self, text="Exit", fg="red", command=self.quit)
         next_step_btn = Button(self, text="Next", fg="green", command=self.next_solution_grid)
         prev_step_btn = Button(self, text="Back", fg="red", command=self.prev_solution_grid)
-        self.custom_map_field = Text(self, width = 20, height = 10)
+        self.custom_map_field = Text(self, width=20, height=10)
         load_custom_map_btn = Button(self, text="Check map info", command=self.load_custom_map)
 
         # Placing components in a grid
@@ -76,11 +76,11 @@ class Astar_program(Frame):
         if '.txt' in matrix:
             matrix = list(open(matrix).readlines())
 
-        width = len(matrix[0])
-        height = len(matrix)
-        self.cells = [['' for _ in range(width)] for _ in range(height)]
+        width = len(matrix)
+        height = len(matrix[0])
+        self.cells = [['' for _ in range(height)] for _ in range(width)]
 
-        self.canvas.config(width=len(matrix)*30, height=len(matrix[0])*30)
+        self.canvas.config(width=width*30, height=height*30)
         y = -1
         for line in matrix:
             x = -1
@@ -124,7 +124,6 @@ class Astar_program(Frame):
             print(line)
 
     def next_solution_grid(self):
-        print(self.step)
         if self.step < len(self.solutions):
             self.step += 1
             self.create_solution_grid(self.solutions[self.step-1])
@@ -149,7 +148,7 @@ class Astar_program(Frame):
         max_f -= min_f
 
         open_nodes = solution['open']
-        self.canvas.config(width=len(matrix)*30, height=(len(matrix[0])-1)*30)
+        self.canvas.config(width=len(matrix)*30, height=(len(matrix[0])+1)*30)
         for node_list in matrix:
             for node in node_list:
                 self.update_rectangle(node, open_nodes, max_f)
@@ -164,7 +163,8 @@ class Astar_program(Frame):
         elif node in open_nodes:
             if 'oval' not in self.canvas.gettags(self.cells[node.x][node.y]):
                 self.cells[node.x][node.y] = self.canvas.create_oval(node.x*30, node.y*30, (node.x+1)*30, (node.y+1)*30,
-                                                                 fill=self.get_heat_color(node, max_f), tags=('oval',))
+                                                                     fill=self.get_heat_color(node, max_f),
+                                                                     tags=('oval',))
         elif node.closed:
             # self.canvas.itemconfig(self.cells[node.x][node.y], fill='#add8e6')
             self.canvas.itemconfig(self.cells[node.x][node.y], fill=self.get_heat_color(node, max_f))
@@ -184,13 +184,13 @@ class Astar_program(Frame):
     def begin_solution_animation(self):
         global cancel_animation_id
         self.reset_grid()
-        ms_delay = math.floor(200 / float(len(self.solutions)))
+        ms_delay = math.floor(2000 / float(len(self.solutions)))
         print(ms_delay)
         cancel_animation_id = self.after(
             ms_delay, self.update_solution_animation, None, self.solutions, ms_delay, 0)
 
     def update_solution_animation(self, label, ani_step, ms_delay, frame_num):
-        print("Updating animation! with frame_num: %s and len(ani_step): %s" % (frame_num, len(ani_step)))
+        # print("Updating animation! with frame_num: %s and len(ani_step): %s" % (frame_num, len(ani_step)))
         global cancel_animation_id
         if frame_num == len(ani_step):
             self.cancel_animation()
@@ -211,6 +211,11 @@ class Astar_program(Frame):
 
     def reset_grid(self, matrix=None):
         self.cancel_animation()
+        if matrix:
+            print("ah, something")
+        else:
+            print("wat, None?")
+        
         self.create_grid(matrix or self.selected_map.get())
 
     # Method for starting the application with the chosen algorithm
