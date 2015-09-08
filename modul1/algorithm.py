@@ -179,7 +179,6 @@ class Board(Problem):
         path_line = list(path[node.y])
         path_line[node.x] = 'x'
         path[node.y] = "".join(path_line)
-
         return path
 
     def solve(self, algorithm):
@@ -187,28 +186,28 @@ class Board(Problem):
         formats the solution with a dictionary"""
         path = list(self.board)
 
-        solution_path, steps, found = algorithm(self)
+        solution_path, found = algorithm(self)
 
         for node in solution_path:
             path = self.add_path(path, node)
 
-        self.solution['path'] = path
         self.solution['length'] = len(solution_path)
-        print(steps)
-        self.solution['steps'] = steps
-        self.solution['found'] = path
+        self.solution['steps'] = len(self.solution['states'])
+        self.solution['found'] = found
         return self.solution
 
     def save_state(self):
         """For storing states as the algorithm traverses the problem.
         Saves the open nodes, the current path and the difference between the current state and the previous one."""
         temp_state = set()
-        for line in self.state:
-            temp_line = set()
-            for node in line:
-                temp_line.add(copy.copy(node))
-            temp_line = frozenset(temp_line)
-            temp_state.add(temp_line)
+        for nodes in self.state:
+            temp_set = set()
+            for node in nodes:
+                # Deep copy of node
+                temp_set.add(copy.copy(node))
+            # Freeze the set so it becomes hashable
+            temp_set = frozenset(temp_set)
+            temp_state.add(temp_set)
 
         if self.solution['states']:
             diff_state = list(temp_state.difference(self.solution['states'][-1]))
@@ -268,10 +267,10 @@ class LIFO:
         pass
 
     def add(self, problem, item):
-        problem.open.appendleft(item)  # First in
+        problem.open.append(item)  # Last in
 
     def pop(self, queue):
-        return queue.popleft()  # Last out
+        return queue.pop()  # First out
 
 
 class FIFO:
@@ -293,27 +292,22 @@ def graph_search(problem, frontier):
     path, steps = [], 0                             # Containers for path and amount of steps taken
     while problem.open:                             # While there are still nodes in the queue
         node = frontier.pop(problem.open)           # Pop node
-        steps += 1                                  # Increment steps taken
-
-        path.append(node)                           # Save path and
-        problem.save_state()                        # current state
 
         if node.closed:                             # If node has been closed then
             continue                                # skip to next iteration
 
         if problem.goal_test(node):                 # Is current node the goal node? Then
-            return path, steps, True                # end algorithm and return result
+            return path, True                # end algorithm and return result
 
         for child_node in problem.actions(node):    # For each child node reachable from the current node,
-            if child_node.closed:                   # if child node has been closed then
-                continue                            # skip to next iteration
-
-            frontier.add(problem, child_node)       # Add child to list of open nodes
-
+            if not child_node.closed:               # if child node has been closed then
+                frontier.add(problem, child_node)   # Add child to list of open nodes
         node.closed = True                          # All the child nodes of this node have been explored so we close it
-        # Alternative: self.closed.append(node)
 
-    return path, steps, False                       # End algorithm and return result
+        path.append(node)                           # Save path and
+        problem.save_state()                        # current state
+
+    return path, False                       # End algorithm and return result
 
 
 def a_star(problem):

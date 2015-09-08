@@ -15,7 +15,7 @@ class Astar_program(Frame):
         Frame.__init__(self, master)
         self.master.title("A* Search")
         self.pack()
-        self.canvas = Canvas(self, width=200, height=0)
+        self.canvas = Canvas(self, width=0, height=0, highlightbackground='black', highlightthickness=1)
         self.cells = [[]]
         self.create_gui()
 
@@ -51,8 +51,9 @@ class Astar_program(Frame):
         exit_btn = Button(self, text="Exit", fg="red", command=self.quit)
         next_step_btn = Button(self, text="Next", fg="green", command=self.next_solution_grid)
         prev_step_btn = Button(self, text="Back", fg="red", command=self.prev_solution_grid)
-        self.custom_map_field = Text(self, width=20, height=10)
-        load_custom_map_btn = Button(self, text="Check map info", command=self.load_custom_map)
+        self.custom_map_field = Text(self, width=20, height=10, highlightbackground='black', highlightthickness=1)
+        load_custom_map_btn = Button(self, text="Load from text",
+                                     command=self.load_custom_map)
 
         # Placing components in a grid
         mode_menu.grid(row=0, column=0)
@@ -66,14 +67,14 @@ class Astar_program(Frame):
         self.custom_map_field.grid(row=1, column=6)
 
         # Calls the method which creates the GUI grid based on the default map
-        self.create_grid(self.selected_map.get())
+        self.create_grid(self.selected_map.get(), is_file=True)
 
-    def create_grid(self, matrix):
+    def create_grid(self, matrix, is_file=False):
         for cell_row in self.cells:
             for cell in cell_row:
                 self.canvas.delete(cell)
 
-        if '.txt' in matrix:
+        if is_file:
             matrix = list(open(matrix).readlines())
 
         width = len(matrix)
@@ -102,26 +103,37 @@ class Astar_program(Frame):
                     self.cells[x][y] = self.canvas.create_rectangle(x*30, y*30, (x+1)*30, (y+1)*30, fill="green",
                                                                     tags='rectangle')
 
+    def get_blocks(self, blockade):
+        blocks = []
+        x, y = blockade[0], blockade[1]
+        blocks.append([x, y])
+        for i in range(0, blockade[2]):
+            for j in range(0, blockade[3]):
+                blocks.append([x+i, y+j])
+        return blocks
+
     def load_custom_map(self):
-        input = self.custom_map_field.get("1.0", 'end-1c').split('\n')
+        try:
+            _input = self.custom_map_field.get("1.0", 'end-1c').split('\n')
 
-        data = {'size': input[0], 'start': input[1], 'goal': input[2], 'blockade': input[3::]}
+            intify = lambda items: [int(item) for item in items]
 
-        size_x = int(data['size'][0:data['size'].index(',')])
-        size_y = int(data['size'][data['size'].index(',')+1::])
+            size = intify(_input[0].split(','))
+            start_node = intify(_input[1].split(','))
+            goal_node = intify(_input[2].split(','))
+            blockades = [intify(in_str.split(',')) for in_str in _input[3::]]
 
-        start_x = int(data['start'][0:data['start'].index(',')])
-        start_y = int(data['start'][data['start'].index(',')+1::])
+            matrix = [['.' for _ in range(size[0])] for _ in range(size[1])]
+            matrix[start_node[0]][start_node[1]] = 'A'
+            matrix[goal_node[0]][goal_node[1]] = 'B'
+            for blockade in blockades:
+                for block in self.get_blocks(blockade):
+                    matrix[block[0]][block[1]] = '#'
 
-        goal_x = int(data['goal'][0:data['goal'].index(',')])
-        goal_y = int(data['goal'][data['goal'].index(',')+1::])
+            self.reset_grid(matrix)
 
-        matrix = [['.' for _ in range(size_x)] for _ in range(size_y)]
-        matrix[start_x][start_y] = 'A'
-        matrix[goal_x][goal_y] = 'B'
-
-        for line in reversed(matrix):
-            print(line)
+        except Exception as e:
+            print("no boi:", e)
 
     def next_solution_grid(self):
         if self.step < len(self.solutions):
@@ -142,7 +154,6 @@ class Astar_program(Frame):
             return
 
         matrix = solution['state']
-        #    max_f = max(node_list, key=lambda n: n.f)
         min_f = min([min(node_list, key=lambda n: n.f) for node_list in matrix], key=lambda n: n.f).f or 0
         max_f = max([max(node_list, key=lambda n: n.f) for node_list in matrix], key=lambda n: n.f).f or 1
         max_f -= min_f
@@ -192,11 +203,9 @@ class Astar_program(Frame):
             ms_delay, self.update_solution_animation, None, self.solutions, ms_delay, 0)
 
     def update_solution_animation(self, label, ani_step, ms_delay, frame_num):
-        # print("Updating animation! with frame_num: %s and len(ani_step): %s" % (frame_num, len(ani_step)))
         global cancel_animation_id
         if frame_num == len(ani_step):
             self.cancel_animation()
-            print("canceled!")
             return
 
         self.create_solution_grid(ani_step[frame_num])
@@ -214,21 +223,19 @@ class Astar_program(Frame):
     def reset_grid(self, matrix=None):
         self.cancel_animation()
         if matrix:
-            print("ah, something")
+            self.create_grid(matrix)
         else:
-            print("wat, None?")
-
-        self.create_grid(matrix or self.selected_map.get())
+            self.create_grid(self.selected_map.get(), is_file=True)
 
     # Method for starting the application with the chosen algorithm
     def start_program(self):
         board = Board(list(open(self.selected_map.get()).readlines()))
 
-        if self.selected_mode.get() == "A*":
+        if self.selected_mode.get() == 'A*':
             board.solve(a_star)
-        elif self.selected_mode.get() == "Breadth-first":
+        elif self.selected_mode.get() == 'Breadth-first':
             board.solve(breadth_first_search)
-        elif self.selected_mode.get() == "Depth-first":
+        elif self.selected_mode.get() == 'Depth-first':
             board.solve(depth_first_search)
 
         board.pretty_print()
