@@ -124,12 +124,17 @@ class Astar_program(Frame):
             blockades = [intify(in_str.split(',')) for in_str in _input[3::]]
 
             matrix = [['.' for _ in range(size[0])] for _ in range(size[1])]
-            matrix[start_node[0]][start_node[1]] = 'A'
-            matrix[goal_node[0]][goal_node[1]] = 'B'
             for blockade in blockades:
                 for block in self.get_blocks(blockade):
-                    matrix[block[0]][block[1]] = '#'
+                    x, y = block[0], block[1]
+                    if x < size[0] and y < size[1]:
+                        matrix[block[0]][block[1]] = '#'
 
+
+            matrix[start_node[0]][start_node[1]] = 'A'
+            matrix[goal_node[0]][goal_node[1]] = 'B'
+
+            self.board = matrix
             self.reset_grid(matrix)
 
         except Exception as e:
@@ -196,7 +201,7 @@ class Astar_program(Frame):
 
     def begin_solution_animation(self):
         global cancel_animation_id
-        self.reset_grid()
+        self.reset_grid(self.board)
         ms_delay = math.floor(2000 / float(len(self.solutions)))
         print(ms_delay)
         cancel_animation_id = self.after(
@@ -229,7 +234,9 @@ class Astar_program(Frame):
 
     # Method for starting the application with the chosen algorithm
     def start_program(self):
-        board = Board(list(open(self.selected_map.get()).readlines()))
+        if not self.board:
+            self.board = list(open(self.selected_map.get()).readlines())
+        board = Board(list(self.board))
 
         if self.selected_mode.get() == 'A*':
             board.solve(a_star)
