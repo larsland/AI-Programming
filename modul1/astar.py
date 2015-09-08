@@ -78,7 +78,7 @@ class Astar_program(Frame):
 
         width = len(matrix)
         height = len(matrix[0])
-        self.cells = [['' for _ in range(height)] for _ in range(width)]
+        self.cells = [[None for _ in range(height)] for _ in range(width)]
 
         self.canvas.config(width=width*30, height=height*30)
         y = -1
@@ -91,16 +91,16 @@ class Astar_program(Frame):
                     item, x, y = item.tile, item.x, item.y
                 if item == '#':
                     self.cells[x][y] = self.canvas.create_rectangle(x*30, y*30, (x+1)*30, (y+1)*30, fill="#121f1f",
-                                                                    tags=('rectangle',))
+                                                                    tags='rectangle')
                 elif item == '.':
                     self.cells[x][y] = self.canvas.create_rectangle(x*30, y*30, (x+1)*30, (y+1)*30, fill="white",
-                                                                    tags=('rectangle',))
+                                                                    tags='rectangle')
                 elif item == 'B':
                     self.cells[x][y] = self.canvas.create_rectangle(x*30, y*30, (x+1)*30, (y+1)*30, fill="red",
-                                                                    tags=('rectangle',))
+                                                                    tags='rectangle')
                 elif item == 'A':
                     self.cells[x][y] = self.canvas.create_rectangle(x*30, y*30, (x+1)*30, (y+1)*30, fill="green",
-                                                                    tags=('rectangle',))
+                                                                    tags='rectangle')
 
     def load_custom_map(self):
         input = self.custom_map_field.get("1.0", 'end-1c').split('\n')
@@ -161,15 +161,17 @@ class Astar_program(Frame):
         elif node.tile == 'A':
             self.canvas.itemconfig(self.cells[node.x][node.y], fill='green')
         elif node in open_nodes:
-            if 'oval' not in self.canvas.gettags(self.cells[node.x][node.y]):
+            if self.canvas.gettags(self.cells[node.x][node.y]) != 'oval':
+                self.canvas.delete(self.cells[node.x][node.y])
                 self.cells[node.x][node.y] = self.canvas.create_oval(node.x*30, node.y*30, (node.x+1)*30, (node.y+1)*30,
                                                                      fill=self.get_heat_color(node, max_f),
-                                                                     tags=('oval',))
+                                                                     tags='oval')
         elif node.closed:
-            # self.canvas.itemconfig(self.cells[node.x][node.y], fill='#add8e6')
-            self.canvas.itemconfig(self.cells[node.x][node.y], fill=self.get_heat_color(node, max_f))
-            # print("poop")
-            # self.canvas.itemconfig(self.cells[node.x][node.y], fill=self.get_heat_color(node, max_f), outline='blue')
+            if self.canvas.gettags(self.cells[node.x][node.y]) != 'rectangle':
+                self.canvas.delete(self.cells[node.x][node.y])
+                self.cells[node.x][node.y] = self.canvas.create_rectangle(
+                    node.x*30, node.y*30, (node.x+1)*30, (node.y+1)*30,
+                    fill=self.get_heat_color(node, max_f), tags='rectangle')
 
     def get_heat_color(self, node, max_f):
         weight = float(node.f)
@@ -215,7 +217,7 @@ class Astar_program(Frame):
             print("ah, something")
         else:
             print("wat, None?")
-        
+
         self.create_grid(matrix or self.selected_map.get())
 
     # Method for starting the application with the chosen algorithm
