@@ -16,7 +16,7 @@ class Astar_program(Frame):
         Frame.__init__(self, master)
         self.master.title("A* Search")
         self.pack()
-        self.canvas = Canvas(self, width=0, height=0, highlightbackground='black', highlightthickness=1)
+        self.canvas = Canvas(self, width=600, height=600, highlightbackground='black', highlightthickness=1)
         self.cells = [[]]
         self.create_gui()
 
@@ -53,19 +53,31 @@ class Astar_program(Frame):
         next_step_btn = Button(self, text="Next", fg="green", command=self.next_solution_grid)
         prev_step_btn = Button(self, text="Back", fg="red", command=self.prev_solution_grid)
         self.custom_map_field = Text(self, width=20, height=10, highlightbackground='black', highlightthickness=1)
-        load_custom_map_btn = Button(self, text="Load from text",
+        load_custom_map_btn = Button(self, text="Load custom map",
                                      command=self.load_custom_map)
+        label_view = Label(self, text="Main view")
+        label_custom_map_view = Label(self, text="Custom map field")
+        label_stats = Label(self, text="Stats: ")
+
 
         # Placing components in a grid
-        mode_menu.grid(row=0, column=0)
-        map_menu.grid(row=0, column=1)
+        mode_menu.grid(row=0, column=0, padx=0, sticky=W)
+        map_menu.grid(row=0, column=1, padx=0)
         start_btn.grid(row=0, column=2)
         prev_step_btn.grid(row=0, column=3)
         next_step_btn.grid(row=0, column=4)
-        exit_btn.grid(row=0, column=5)
-        self.canvas.grid(row=1, column=0, columnspan=6)
-        load_custom_map_btn.grid(row=0, column=6)
-        self.custom_map_field.grid(row=1, column=6)
+        exit_btn.grid(row=0, column=5, sticky=E)
+        label_view.grid(row=1, column=0)
+        self.canvas.grid(row=2, column=0, columnspan=6, rowspan=2)
+        load_custom_map_btn.grid(row=0, column=6, sticky=E)
+        self.custom_map_field.grid(row=2, column=6, sticky=N)
+        label_custom_map_view.grid(row=1, column=6, sticky=NW)
+        label_stats.grid(row=3, column=6, sticky=NW)
+
+        # Configuring components
+        mode_menu.configure(width=15)
+        map_menu.configure(width=15)
+        start_btn.configure(width=8)
 
         # Calls the method which creates the GUI grid based on the default map
         self.create_grid(self.selected_map.get(), is_file=True)
@@ -82,7 +94,7 @@ class Astar_program(Frame):
         height = len(matrix[0])
         self.cells = [[None for _ in range(height)] for _ in range(width)]
 
-        self.canvas.config(width=width*30, height=height*30)
+        #self.canvas.config(width=width*30, height=height*30)
         y = -1
         for line in matrix:
             x = -1
@@ -165,7 +177,7 @@ class Astar_program(Frame):
         max_f -= min_f
 
         open_nodes = solution['open']
-        self.canvas.config(width=len(matrix)*30, height=(len(matrix[0])+1)*30)
+        #self.canvas.config(width=len(matrix)*30, height=(len(matrix[0])+1)*30)
         for node_list in matrix:
             for node in node_list:
                 self.update_rectangle(node, open_nodes, max_f)
