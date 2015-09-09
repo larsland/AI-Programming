@@ -47,7 +47,7 @@ class Astar_program(Frame):
         mode_menu = OptionMenu(self, self.selected_mode, "A*", "Breadth-first", "Depth-first",
                                command=self.reset_grid)
         map_menu = OptionMenu(self, self.selected_map, "map1.txt", "map2.txt", "map3.txt", "map4.txt", "map5.txt",
-                              command=lambda matrix: self.reset_grid(matrix))
+                              command=lambda matrix: self.reset_grid(open("modul1/"+matrix).readlines()))
         start_btn = Button(self, text="Solve", fg="green", command=self.start_program)
         exit_btn = Button(self, text="Exit", fg="red", command=self.quit)
         next_step_btn = Button(self, text="Next", fg="green", command=self.next_solution_grid)
@@ -241,6 +241,7 @@ class Astar_program(Frame):
             return
 
     def reset_grid(self, matrix=None):
+        self.board = matrix
         self.cancel_animation()
         if matrix:
             self.create_grid(matrix)
