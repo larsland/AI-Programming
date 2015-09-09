@@ -1,4 +1,5 @@
-from algorithm import Bunch, Board, a_star, breadth_first_search, depth_first_search
+from algorithms.search import a_star, breadth_first_search, depth_first_search
+from modul1.problem import Board
 from tkinter import *
 import math
 
@@ -75,7 +76,7 @@ class Astar_program(Frame):
                 self.canvas.delete(cell)
 
         if is_file:
-            matrix = list(open(matrix).readlines())
+            matrix = list(open('modul1/'+matrix).readlines())
 
         width = len(matrix)
         height = len(matrix[0])
@@ -235,7 +236,7 @@ class Astar_program(Frame):
     # Method for starting the application with the chosen algorithm
     def start_program(self):
         if not self.board:
-            self.board = list(open(self.selected_map.get()).readlines())
+            self.board = list(open('modul1/'+self.selected_map.get()).readlines())
         board = Board(list(self.board))
 
         if self.selected_mode.get() == 'A*':
