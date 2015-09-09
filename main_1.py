@@ -53,11 +53,12 @@ class Astar_program(Frame):
         next_step_btn = Button(self, text="Next", fg="green", command=self.next_solution_grid)
         prev_step_btn = Button(self, text="Back", fg="red", command=self.prev_solution_grid)
         self.custom_map_field = Text(self, width=20, height=10, highlightbackground='black', highlightthickness=1)
+
         load_custom_map_btn = Button(self, text="Load custom map",
                                      command=self.load_custom_map)
         label_view = Label(self, text="Main view")
         label_custom_map_view = Label(self, text="Custom map field")
-        label_stats = Label(self, text="Stats: ")
+
 
 
         # Placing components in a grid
@@ -67,12 +68,13 @@ class Astar_program(Frame):
         prev_step_btn.grid(row=0, column=3)
         next_step_btn.grid(row=0, column=4)
         exit_btn.grid(row=0, column=5, sticky=E)
-        label_view.grid(row=1, column=0)
-        self.canvas.grid(row=2, column=0, columnspan=6, rowspan=2)
-        load_custom_map_btn.grid(row=0, column=6, sticky=E)
+        label_custom_map_view.grid(row=1, column=6, sticky=W, pady=6)
+        label_view.grid(row=1, column=0, pady=3)
+        self.canvas.grid(row=2, column=0, columnspan=6, rowspan=3)
         self.custom_map_field.grid(row=2, column=6, sticky=N)
-        label_custom_map_view.grid(row=1, column=6, sticky=NW)
-        label_stats.grid(row=3, column=6, sticky=NW)
+
+        load_custom_map_btn.grid(row=0, column=6, sticky=E)
+
 
         # Configuring components
         mode_menu.configure(width=15)
