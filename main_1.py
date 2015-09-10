@@ -43,19 +43,22 @@ class Astar_program(Frame):
         self.selected_mode.set("A*")
         self.selected_map.set("map1.txt")
 
-        # Creating the menus and buttons
+        '''Creating all the GUI components'''
+        # Menus
         mode_menu = OptionMenu(self, self.selected_mode, "A*", "Breadth-first", "Depth-first",
-                               command=self.reset_grid)
+                               command=self.reset_grid(matrix=None))
+
         map_menu = OptionMenu(self, self.selected_map, "map1.txt", "map2.txt", "map3.txt", "map4.txt", "map5.txt",
                               command=lambda matrix: self.reset_grid(open("modul1/"+matrix).readlines()))
+
+        # Buttons
         start_btn = Button(self, text="Solve", fg="green", command=self.start_program)
         exit_btn = Button(self, text="Exit", fg="red", command=self.quit)
         next_step_btn = Button(self, text="Next", fg="green", command=self.next_solution_grid)
         prev_step_btn = Button(self, text="Back", fg="red", command=self.prev_solution_grid)
-        self.custom_map_field = Text(self, width=20, height=10, highlightbackground='black', highlightthickness=1)
+        load_custom_map_btn = Button(self, text="Load custom map", command=self.load_custom_map)
 
-        load_custom_map_btn = Button(self, text="Load custom map",
-                                     command=self.load_custom_map)
+        self.custom_map_field = Text(self, width=20, height=10, highlightbackground='black', highlightthickness=1)
         label_view = Label(self, text="Main view")
         label_custom_map_view = Label(self, text="Custom map field")
 
@@ -96,7 +99,6 @@ class Astar_program(Frame):
         height = len(matrix[0])
         self.cells = [[None for _ in range(height)] for _ in range(width)]
 
-        #self.canvas.config(width=width*30, height=height*30)
         y = -1
         for line in matrix:
             x = -1
@@ -179,7 +181,7 @@ class Astar_program(Frame):
         max_f -= min_f
 
         open_nodes = solution['open']
-        #self.canvas.config(width=len(matrix)*30, height=(len(matrix[0])+1)*30)
+
         for node_list in matrix:
             for node in node_list:
                 self.update_rectangle(node, open_nodes, max_f)
@@ -241,10 +243,10 @@ class Astar_program(Frame):
             return
 
     def reset_grid(self, matrix=None):
-        self.board = matrix
-        self.cancel_animation()
         if matrix:
+            self.cancel_animation()
             self.create_grid(matrix)
+            self.board = matrix
         else:
             self.create_grid(self.selected_map.get(), is_file=True)
 
