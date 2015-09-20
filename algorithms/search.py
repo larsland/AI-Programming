@@ -1,21 +1,7 @@
 from heapq import heappush, heappop
 from collections import deque
+from algorithms.utils import memoize
 import math
-
-
-class Node:
-    def __init__(self, state, problem, parent=None, action=None, path_cost=0):
-        self.state = state
-        self.problem = problem
-        self.parent = parent
-        self.action = action
-        self.path_cost = path_cost
-
-    def __eq__(self, other):
-        return isinstance(other, Node) and self.state == other.state
-
-    def __hash__(self):
-        return hash(str(self.state))
 
 
 class Problem():
@@ -27,7 +13,7 @@ class Problem():
         self.initial = initial
         self.goal = goal
 
-    def init_state(self):
+    def initialize(self):
         """Initialization method for the state of the problem,
         can be a list, matrix, tree or any other data structure that fits the problem"""
         pass
@@ -50,45 +36,59 @@ class Problem():
         pass
 
 
+class Node:
+    def __init__(self, state, problem, parent=None, action=None, path_cost=0):
+        self.state = state
+        self.problem = problem
+        self.parent = parent
+        self.action = action
+        self.path_cost = path_cost
+
+    def __eq__(self, other):
+        return isinstance(other, Node) and self.state == other.state
+
+    def __hash__(self):
+        return hash(str(self.state))
+
+    def path(self):
+        path = []
+        node = self
+        while node.parent:
+            path.append(node)
+            node = node.parent
+        return path
+
+
 class PriorityNode(Node):
     """This node is specialized to be used in the context of a priority heap (or queue).
     The order of nodes is derived from the comparison method __lt__, based on priority, as seen below.
     For the purpose of this task the priority is calculated from f(n) = g(n) + h(n).
     """
 
-    def __init__(self, node_x, node_y, board, tile):
+    def __init__(self, node_x, node_y, problem, tile):
+        self.problem = problem
         # Coordinates
         self.x = node_x
         self.y = node_y
 
         self.tile = tile    # 'A', 'B', '.' or '#'
-        self.board = board  # Reference to the board class
+        self.problem = problem  # Reference to the board class
 
-        # g and f scores
-        self.g = 0
-        self.f = 0
+        self.g = 1
+        self.f = lambda: self.g + self.problem.h(self)
 
-        # Heuristic function with euclidean distance.
-        self.h = lambda x, y: math.sqrt((self.x - x) ** 2 + (self.y - y) ** 2)
-        # Heuristic function with manhattan distance.
-        # self.h = lambda x, y: fabs(x-self.x) + fabs(y-self.y)
-
-        self.c = 0              # Priority Queue counter in case equal priority (f)
         self.closed = False     # Use this to check if the node has been traversed.
 
-        Node.__init__(self, (node_x, node_y), board)
-
-    def update_priority(self, goal, c):
-        self.c = c
-        self.f = self.g + self.h(goal.x, goal.y) * 10  # A*
+        Node.__init__(self, (node_x, node_y), problem)
 
     def __lt__(self, other):
         """Comparison method for priority queue"""
-        return self.f + self.c < other.f + self.c
+        return self.f() < other.f()
 
     def __repr__(self):
         """Representation method for printing a Node with valuable information"""
-        return "<Node (x:%s, y:%s, f:%s, c:%s, t:%s)>" % (self.x, self.y, self.f, self.c, self.tile)
+        return "<Node (x:%s, y:%s, f:%s, g:%s, h:%s, t:%s)>" % (self.x, self.y, self.f(), self.g,
+                                                                self.problem.h(self), self.tile)
 
 
 class Agenda:
@@ -97,13 +97,6 @@ class Agenda:
         pass
 
     def add(self, problem, node):
-        # Simulated memoization of f(n) = g(n) + h(n)
-        if node.f:
-            return
-
-        # Update the priority of the node based on its proximity to the goal
-        # as well as a tie-breaker in the form of a counter.
-        node.update_priority(problem.goal, next(problem.counter))
         # Push node onto heap
         heappush(problem.open, node)
 
@@ -136,29 +129,60 @@ class FIFO:
         return queue.pop()  # First out
 
 
+def graph_search2(problem, frontier):
+    """Search through the successors of a problem to find a goal.
+    The argument frontier should be an empty queue.
+    If two paths reach a state, only use the first one. [Fig. 3.7]"""
+    frontier.append(Node(problem.initial))
+    explored = set()
+    while frontier:
+        node = frontier.pop()
+        if problem.goal_test(node.state):
+            return node
+        explored.add(node.state)
+        frontier.extend(child for child in node.expand(problem)
+                        if child.state not in explored
+                        and child not in frontier)
+    return None
+
+
 def graph_search(problem, frontier):
     """ A normal Graph search contains all the necessary tools to implement the three algorithms
      specified in the task."""
-    problem.init_state()                            # Initialize problem state
-    path, steps = [], 0                             # Containers for path and amount of steps taken
+    problem.initialize()                            # Initialize problem state
     while problem.open:                             # While there are still nodes in the queue
         node = frontier.pop(problem.open)           # Pop node
+        print("node", node)
 
-        if node.closed:                             # If node has been closed then
-            continue                                # skip to next iteration
+        if node.closed:                           # If node has been closed then
+            continue                               # skip to next iteration
 
         if problem.goal_test(node):                 # Is current node the goal node? Then
-            return path, True                # end algorithm and return result
+            print(node.path())
+            return node.path(), True                # end algorithm and return result
 
         for child_node in problem.actions(node):    # For each child node reachable from the current node,
-            if not child_node.closed:               # if child node has been closed then
-                frontier.add(problem, child_node)   # Add child to list of open nodes
-        node.closed = True                          # All the child nodes of this node have been explored so we close it
 
-        path.append(node)                           # Save path and
+            if child_node.closed and node.g + 1 >= child_node.g:
+                continue
+
+            if child_node not in problem.open or node.g + 1 < child_node.g:
+                child_node.parent = node
+                child_node.g = node.g + 1
+                if child_node not in problem.open:
+                    frontier.add(problem, child_node)
+
+            if not child_node.parent or not child_node.parent.closed:    # Calling child services.
+                child_node.parent = node
+
+            if not child_node.closed and child_node not in problem.open:
+                                                    # if child node has been closed then
+                frontier.add(problem, child_node)   # Add child to list of open nodes
+
+        node.closed = True                          # All the child nodes of this node have been explored so we close it
         problem.save_state()                        # current state
 
-    return path, False                       # End algorithm and return result
+    return [], False                       # End algorithm and return result
 
 
 def a_star(problem):

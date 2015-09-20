@@ -1,6 +1,7 @@
-import copy
+import copy, math, random
 from itertools import count
 from algorithms.search import Problem, PriorityNode
+from algorithms.utils import memoize
 
 
 class Board(Problem):
@@ -15,6 +16,10 @@ class Board(Problem):
         self.open = []          # List of open Nodes
         self.goal = None        # The goal Node
         self.initial = None     # The initial Node
+        self.h = lambda node: (abs(node.x - self.goal.x) + abs(node.y - self.goal.y))*(1+1/(len(self.board)+
+                                                                                                 len(self.board[0])))
+        # self.h = memoize(lambda node: math.sqrt(abs(node.x - self.goal.x)**2 + abs(node.y - self.goal.y)**2))
+        # *= (1.0 + p) where p is p < (minimum cost of taking one step)/(expected maximum path length)
         self.counter = count()  # Unique sequence count for correct action priority
 
         # Sizes defining the board
@@ -42,7 +47,7 @@ class Board(Problem):
 
         return representation
 
-    def init_state(self):
+    def initialize(self):
         """Initialize the problem state by feeding the problem through a set of rules """
         self.height = len(self.board) - 1                   # Get the height and width of the problem
         self.width = max(map(len, self.board)) - 1
@@ -72,14 +77,14 @@ class Board(Problem):
         """In our problem, actions are all nodes reachable from current Node within the board matrix"""
         actions = []
         try:
-            if node.y > 0:
-                actions.append(self.state[node.y - 1][node.x])    # Up
+            if node.x < self.width:
+                actions.append(self.state[node.y][node.x + 1])    # Right
             if node.y < self.height:
                 actions.append(self.state[node.y + 1][node.x])    # Down
             if node.x > 0:
                 actions.append(self.state[node.y][node.x - 1])    # Left
-            if node.x < self.width:
-                actions.append(self.state[node.y][node.x + 1])    # Right
+            if node.y > 0:
+                actions.append(self.state[node.y - 1][node.x])    # Up
         except IndexError:
             pass
 

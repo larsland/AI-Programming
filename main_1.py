@@ -6,6 +6,7 @@ import math
 
 class Astar_program(Frame):
     def __init__(self, master=None):
+        self.problem = None
         self.custom_map_field = None
         self.selected_mode = None
         self.selected_map = None
@@ -176,8 +177,10 @@ class Astar_program(Frame):
             return
 
         matrix = solution['state']
-        min_f = min([min(node_list, key=lambda n: n.f) for node_list in matrix], key=lambda n: n.f).f or 0
-        max_f = max([max(node_list, key=lambda n: n.f) for node_list in matrix], key=lambda n: n.f).f or 1
+        min_f = self.problem.h(min([min(node_list, key=lambda n: self.problem.h(n)) for node_list in matrix], key=lambda n: self.problem.h(n))) or 1
+        max_f = self.problem.h(max([max(node_list, key=lambda n: self.problem.h(n)) for node_list in matrix], key=lambda n: self.problem.h(n))) or 1
+        print('max', max_f)
+        print('min', min_f)
         max_f -= min_f
 
         open_nodes = solution['open']
@@ -207,7 +210,7 @@ class Astar_program(Frame):
                     fill=self.get_heat_color(node, max_f), tags='rectangle')
 
     def get_heat_color(self, node, max_f):
-        weight = float(node.f)
+        weight = float(self.problem.h(node))
         heat_length = float(len(self.heat_gradient))
         if weight == 0 or weight is None:
             pos = 0
@@ -219,7 +222,7 @@ class Astar_program(Frame):
     def begin_solution_animation(self):
         global cancel_animation_id
         self.reset_grid(self.board)
-        ms_delay = math.floor(2000 / float(len(self.solutions)))
+        ms_delay = math.floor(6000 / float(len(self.solutions)))
         print(ms_delay)
         cancel_animation_id = self.after(
             ms_delay, self.update_solution_animation, None, self.solutions, ms_delay, 0)
@@ -254,19 +257,19 @@ class Astar_program(Frame):
     def start_program(self):
         if not self.board:
             self.board = list(open('modul1/'+self.selected_map.get()).readlines())
-        board = Board(list(self.board))
+        self.problem = Board(list(self.board))
 
         if self.selected_mode.get() == 'A*':
-            board.solve(a_star)
+            self.problem.solve(a_star)
         elif self.selected_mode.get() == 'Breadth-first':
-            board.solve(breadth_first_search)
+            self.problem.solve(breadth_first_search)
         elif self.selected_mode.get() == 'Depth-first':
-            board.solve(depth_first_search)
+            self.problem.solve(depth_first_search)
 
-        board.pretty_print()
+        self.problem.pretty_print()
 
-        self.solutions = board.solution['states']
-        self.step = board.solution['steps']
+        self.solutions = self.problem.solution['states']
+        self.step = self.problem.solution['steps']
         self.begin_solution_animation()
 
 
