@@ -16,9 +16,8 @@ class Board(Problem):
         self.open = []          # List of open Nodes
         self.goal = None        # The goal Node
         self.initial = None     # The initial Node
-        self.h = lambda node: (abs(node.x - self.goal.x) + abs(node.y - self.goal.y))*(1+1/(len(self.board)+
-                                                                                                 len(self.board[0])))
-        # self.h = memoize(lambda node: math.sqrt(abs(node.x - self.goal.x)**2 + abs(node.y - self.goal.y)**2))
+        self.h = memoize(lambda node: (abs(node.x - self.goal.x) + abs(node.y - self.goal.y))*(1+1/100))
+        #self.h = memoize(lambda node: math.sqrt(abs(node.x - self.goal.x)**2 + abs(node.y - self.goal.y)**2))
         # *= (1.0 + p) where p is p < (minimum cost of taking one step)/(expected maximum path length)
         self.counter = count()  # Unique sequence count for correct action priority
 
@@ -76,16 +75,19 @@ class Board(Problem):
     def actions(self, node):
         """In our problem, actions are all nodes reachable from current Node within the board matrix"""
         actions = []
+        x, y = node.x, node.y
         try:
-            if node.x < self.width:
-                actions.append(self.state[node.y][node.x + 1])    # Right
-            if node.y < self.height:
-                actions.append(self.state[node.y + 1][node.x])    # Down
+            if node.x < self.width - 1:
+                actions.append(self.state[y][x + 1])    # Right
             if node.x > 0:
-                actions.append(self.state[node.y][node.x - 1])    # Left
+                actions.append(self.state[y][x - 1])    # Left
+            if node.y < self.height:
+                actions.append(self.state[y + 1][x])    # Down
             if node.y > 0:
-                actions.append(self.state[node.y - 1][node.x])    # Up
-        except IndexError:
+                actions.append(self.state[y - 1][x])    # Up
+        except IndexError as e:
+            print(e)
+            print(node)
             pass
 
         return actions
@@ -109,6 +111,7 @@ class Board(Problem):
         self.solution['length'] = len(solution_path)
         self.solution['steps'] = len(self.solution['states'])
         self.solution['found'] = found
+        self.solution['path'] = solution_path
         return self.solution
 
     def save_state(self):

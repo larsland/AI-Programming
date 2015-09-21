@@ -11,6 +11,7 @@ class Astar_program(Frame):
         self.selected_mode = None
         self.selected_map = None
         self.solutions = []
+        self.solution_path = []
         self.map_data = None
         self.board = None
         self.step = 0
@@ -19,6 +20,7 @@ class Astar_program(Frame):
         self.pack()
         self.canvas = Canvas(self, width=600, height=600, highlightbackground='black', highlightthickness=1)
         self.cells = [[]]
+        self.texts = [[]]
         self.create_gui()
 
         # 64 length green to yellow to red gradient
@@ -33,6 +35,8 @@ class Astar_program(Frame):
 
         global cancel_animation_id
         cancel_animation_id = None
+        global cancel_animation_id_2
+        cancel_animation_id_2 = None
 
     def create_gui(self):
         # Initiating string variables to bind to various GUI components
@@ -93,12 +97,17 @@ class Astar_program(Frame):
             for cell in cell_row:
                 self.canvas.delete(cell)
 
+        for text_row in self.texts:
+            for text in text_row:
+                self.canvas.delete(text)
+
         if is_file:
             matrix = list(open('modul1/'+matrix).readlines())
 
         width = len(matrix)
         height = len(matrix[0])
         self.cells = [[None for _ in range(height)] for _ in range(width)]
+        self.texts = [[None for _ in range(height)] for _ in range(width)]
 
         y = -1
         for line in matrix:
@@ -179,8 +188,6 @@ class Astar_program(Frame):
         matrix = solution['state']
         min_f = self.problem.h(min([min(node_list, key=lambda n: self.problem.h(n)) for node_list in matrix], key=lambda n: self.problem.h(n))) or 1
         max_f = self.problem.h(max([max(node_list, key=lambda n: self.problem.h(n)) for node_list in matrix], key=lambda n: self.problem.h(n))) or 1
-        print('max', max_f)
-        print('min', min_f)
         max_f -= min_f
 
         open_nodes = solution['open']
@@ -202,12 +209,22 @@ class Astar_program(Frame):
                 self.cells[node.x][node.y] = self.canvas.create_oval(node.x*30, node.y*30, (node.x+1)*30, (node.y+1)*30,
                                                                      fill=self.get_heat_color(node, max_f),
                                                                      tags='oval')
+
+                if len(self.texts) > node.x:
+                    if len(self.texts[node.x]) > node.y:
+                        self.canvas.delete(self.texts[node.x][node.y])
+                self.texts[node.x][node.y] = self.canvas.create_text(node.x*30+15, node.y*30+15, text="%d2" % node.f())
         elif node.closed:
             if self.canvas.gettags(self.cells[node.x][node.y]) != 'rectangle':
                 self.canvas.delete(self.cells[node.x][node.y])
                 self.cells[node.x][node.y] = self.canvas.create_rectangle(
                     node.x*30, node.y*30, (node.x+1)*30, (node.y+1)*30,
                     fill=self.get_heat_color(node, max_f), tags='rectangle')
+
+                if len(self.texts) > node.x:
+                    if len(self.texts[node.x]) > node.y:
+                        self.canvas.delete(self.texts[node.x][node.y])
+                self.texts[node.x][node.y] = self.canvas.create_text(node.x*30+15, node.y*30+15, text="%d2" % node.f())
 
     def get_heat_color(self, node, max_f):
         weight = float(self.problem.h(node))
@@ -219,18 +236,23 @@ class Astar_program(Frame):
         color = self.heat_gradient[pos]
         return color
 
+    def draw_solution_path(self, node):
+        self.canvas.itemconfig(self.cells[node.x][node.y], fill='blue')
+
     def begin_solution_animation(self):
         global cancel_animation_id
         self.reset_grid(self.board)
         ms_delay = math.floor(6000 / float(len(self.solutions)))
-        print(ms_delay)
         cancel_animation_id = self.after(
             ms_delay, self.update_solution_animation, None, self.solutions, ms_delay, 0)
 
     def update_solution_animation(self, label, ani_step, ms_delay, frame_num):
         global cancel_animation_id
         if frame_num == len(ani_step):
-            self.cancel_animation()
+            if self.problem.solution['found']:
+                self.animate_solution_path()
+            else:
+                self.cancel_animation()
             return
 
         self.create_solution_grid(ani_step[frame_num])
@@ -238,12 +260,22 @@ class Astar_program(Frame):
         cancel_animation_id = self.after(
             ms_delay, self.update_solution_animation, label, ani_step, ms_delay, frame_num)
 
-    def cancel_animation(self):
+    def animate_solution_path(self):
         global cancel_animation_id
-        if cancel_animation_id is not None:
-            self.after_cancel(cancel_animation_id)
-            cancel_animation_id = None
+        ms_delay = math.floor(3000 / float(len(self.solution_path)))
+        cancel_animation_id = self.after(
+            ms_delay, self.update_solution_path_animation, None, self.solution_path, ms_delay, 0)
+
+    def update_solution_path_animation(self, label, ani_step, ms_delay, frame_num):
+        global cancel_animation_id
+        if frame_num == len(ani_step):
+            self.cancel_animation()
             return
+
+        self.draw_solution_path(ani_step[frame_num])
+        frame_num = (frame_num + 1) % (len(ani_step) + 1)
+        cancel_animation_id = self.after(
+            ms_delay, self.update_solution_path_animation, label, ani_step, ms_delay, frame_num)
 
     def reset_grid(self, matrix=None):
         if matrix:
@@ -252,6 +284,13 @@ class Astar_program(Frame):
             self.board = matrix
         else:
             self.create_grid(self.selected_map.get(), is_file=True)
+
+    def cancel_animation(self):
+        global cancel_animation_id
+        if cancel_animation_id is not None:
+            self.after_cancel(cancel_animation_id)
+            cancel_animation_id = None
+            return
 
     # Method for starting the application with the chosen algorithm
     def start_program(self):
@@ -270,6 +309,7 @@ class Astar_program(Frame):
 
         self.solutions = self.problem.solution['states']
         self.step = self.problem.solution['steps']
+        self.solution_path = list(reversed(self.problem.solution['path']))[:-1]
         self.begin_solution_animation()
 
 

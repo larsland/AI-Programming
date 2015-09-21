@@ -129,10 +129,8 @@ class FIFO:
         return queue.pop()  # First out
 
 
-def graph_search2(problem, frontier):
-    """Search through the successors of a problem to find a goal.
-    The argument frontier should be an empty queue.
-    If two paths reach a state, only use the first one. [Fig. 3.7]"""
+"""
+def graph_searcher(problem, frontier):
     frontier.append(Node(problem.initial))
     explored = set()
     while frontier:
@@ -145,39 +143,59 @@ def graph_search2(problem, frontier):
                         and child not in frontier)
     return None
 
-
+def best_first_graph_search,problem, frontier
+    f = memoize(f, 'f')
+    node = Node(problem.initial)
+    if problem.goal_test(node.state):
+        return node
+    frontier = PriorityQueue(min, f)
+    frontier.append(node)
+    explored = set()
+    while frontier:
+        node = frontier.pop()
+        if problem.goal_test(node.state):
+            return node
+        explored.add(node.state)
+        for child in node.expand(problem):
+            if child.state not in explored and child not in frontier:
+                frontier.append(child)
+            elif child in frontier:
+                incumbent = frontier[child]
+                if f(child) < f(incumbent):
+                    del frontier[incumbent]
+                    frontier.append(child)
+"""
 def graph_search(problem, frontier):
     """ A normal Graph search contains all the necessary tools to implement the three algorithms
      specified in the task."""
     problem.initialize()                            # Initialize problem state
     while problem.open:                             # While there are still nodes in the queue
-        node = frontier.pop(problem.open)           # Pop node
-        print("node", node)
-
-        if node.closed:                           # If node has been closed then
-            continue                               # skip to next iteration
-
+        node = frontier.pop(problem.open)           # Pop start node
         if problem.goal_test(node):                 # Is current node the goal node? Then
             print(node.path())
             return node.path(), True                # end algorithm and return result
 
-        for child_node in problem.actions(node):    # For each child node reachable from the current node,
+        if node.closed:
+            continue
 
-            if child_node.closed and node.g + 1 >= child_node.g:
+        node.closed = True
+        for child in problem.actions(node):         # For each child node reachable from the current node,
+            if child.closed and node.g + 1 >= child.g:
                 continue
 
-            if child_node not in problem.open or node.g + 1 < child_node.g:
-                child_node.parent = node
-                child_node.g = node.g + 1
-                if child_node not in problem.open:
-                    frontier.add(problem, child_node)
+            if child not in problem.open or node.g + 1 < child.g:
+                child.parent = node
+                child.g = node.g + 1
+                if child not in problem.open:
+                    child.closed = False
+                    frontier.add(problem, child)
 
-            if not child_node.parent or not child_node.parent.closed:    # Calling child services.
-                child_node.parent = node
+            if not child.parent or not child.parent.closed:    # Calling child services.
+                child.parent = node
 
-            if not child_node.closed and child_node not in problem.open:
+            if not child.closed and child not in problem.open:
                                                     # if child node has been closed then
-                frontier.add(problem, child_node)   # Add child to list of open nodes
+                frontier.add(problem, child)        # Add child to list of open nodes
 
         node.closed = True                          # All the child nodes of this node have been explored so we close it
         problem.save_state()                        # current state
