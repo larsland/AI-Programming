@@ -1,3 +1,6 @@
+from modul2.gui import Gui
+from tkinter import *
+
 class Node:
     def __init__(self, index):
         self.index = index
@@ -62,7 +65,10 @@ def init_problem():
     domain = set_domain(k)
 
     csp = CSP(nodes, domain, constraints)
-    print(csp)
+
+    root = Tk()
+    app = Gui(csp, master=root)
+    app.mainloop()
 
 
 if __name__ == '__main__':
