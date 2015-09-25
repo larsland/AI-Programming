@@ -29,9 +29,9 @@ class Gui(Frame):
         self.canvas.grid(row=1, column=0, columnspan=2)
 
         self.paint_graph()
-        print(self.csp.constraints)
 
     def paint_graph(self):
+        print(len(self.csp.nodes))
         for node in self.csp.nodes:
             node.xPos = float(node.xPos) * 20
             node.yPos = float(node.yPos) * 20
@@ -40,10 +40,10 @@ class Gui(Frame):
         for i in range(0, len(self.csp.constraints)):
             start_x = self.csp.nodes[int(self.csp.constraints[i][0])].xPos
             start_y = self.csp.nodes[int(self.csp.constraints[i][0])].yPos
-            end_x = self.csp.nodes[int(self.csp.constraints[i][1])].yPos
+            end_x = self.csp.nodes[int(self.csp.constraints[i][1])].xPos
             end_y = self.csp.nodes[int(self.csp.constraints[i][1])].yPos
 
-            self.canvas.create_line(start_x, start_y, end_x+10, end_y+10)
+            self.canvas.create_line(start_x+5, start_y+5, end_x+5, end_y+5)
 
 
 
