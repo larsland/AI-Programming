@@ -1,7 +1,6 @@
 class Node:
     def __init__(self, index):
         self.index = index
-        self.domain = []
         self.xPos = 0.0
         self.yPos = 0.0
 
@@ -10,31 +9,25 @@ class Node:
 
 
 class CSP:
-    def __init__(self, nodes, k):
-        self.k = k
+    def __init__(self, nodes, domain, constraints):
         self.nodes = nodes
-        self.domain = self.set_domain()
+        self.domain = domain
+        self.constraints = constraints
 
     def __repr__(self):
-        return "Nodes: " + str(self.nodes) + "K-value: " + str(self.k)
-
-    def set_domain(self):
-        variable_colors = ['red', 'green', 'blue', 'yellow', 'pink', 'brown']
-        return variable_colors[0:self.k]
+        return "Nodes: " + str(self.nodes) + '\n' + "Domain: " + str(self.domain) + '\n' + \
+               "Constraints: " + str(self.constraints)
 
 
 def get_graph():
     input_graph = input("Select graph (1-6): ")
-    k = int(input("K-value: "))
-
     input_graph = "graph" + input_graph + ".txt"
     graph = open('modul2/' + input_graph, 'r').read().splitlines()
+    return graph
 
-    num_vertices = int([i for i in graph[0].split()][0])
-    num_edges = int([i for i in graph[0].split()][1])
 
+def create_nodes(num_vertices, graph):
     nodes = []
-
     for i in range(1, num_vertices + 1):
         node = Node(i)
         state = [i for i in graph[i].split()]
@@ -42,13 +35,38 @@ def get_graph():
         node.xPos = state[1]
         node.yPos = state[2]
         nodes.append(node)
+    return nodes
 
-    csp = CSP(nodes, k)
+
+def set_constraints(num_vertices, graph):
+    constraints = []
+    for i in range(num_vertices + 1, len(graph)):
+        constraint = [i for i in graph[i].split()]
+        constraints.append(constraint)
+    return constraints
+
+
+def set_domain(k):
+    variable_colors = ['red', 'green', 'blue', 'yellow', 'pink', 'brown']
+    return variable_colors[0:k]
+
+
+def init_problem():
+    k = int(input("K-value: "))
+    graph = get_graph()
+    num_vertices = int([i for i in graph[0].split()][0])
+    num_edges = int([i for i in graph[0].split()][1])
+
+    nodes = create_nodes(num_vertices, graph)
+    constraints = set_constraints(num_vertices, graph)
+    domain = set_domain(k)
+
+    csp = CSP(nodes, domain, constraints)
     print(csp)
 
 
 if __name__ == '__main__':
-    get_graph()
+    init_problem()
 
 
 
