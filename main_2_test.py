@@ -1,14 +1,16 @@
 from modul2.gui import Gui
 from tkinter import *
 
+
 class Node:
     def __init__(self, index):
         self.index = index
         self.xPos = 0.0
         self.yPos = 0.0
+        self.color = "black"
 
     def __repr__(self):
-        return "ID:" + str(self.index) +" Xpos:" + str(self.xPos) + " Ypos:" + str(self.yPos)
+        return "ID:" + str(self.index) + " Xpos:" + str(self.xPos) + " Ypos:" + str(self.yPos)
 
 
 class CSP:

@@ -8,6 +8,7 @@ class Gui(Frame):
         self.master.title("VC problem")
         self.pack()
         self.canvas = Canvas(self, width=1366, height=768, highlightbackground='black', highlightthickness=1)
+        self.canvas.configure(scrollregion=(-384, -683, 384, 683))
         self.selected_graph = None
         self.selected_k_value = None
         self.create_gui()
@@ -44,6 +45,9 @@ class Gui(Frame):
             end_y = self.csp.nodes[int(self.csp.constraints[i][1])].yPos
 
             self.canvas.create_line(start_x+5, start_y+5, end_x+5, end_y+5)
+
+
+
 
 
 
