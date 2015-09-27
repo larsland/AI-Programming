@@ -23,7 +23,9 @@ class CSP:
         self.nodes = nodes
         self.domain = domain
         self.constraints = constraints
+        self.set_node_domains()
 
+    def set_node_domains(self):
         for node in self.nodes:
             node.domain = self.domain
 
@@ -39,16 +41,34 @@ class GAC:
 
     def initialization(self):
         for constraint in self.csp.constraints:
-            self.queue.append((constraint[0], constraint))
-            self.queue.append((constraint[1], constraint))
+            self.queue.append((self.csp.nodes[int(constraint[0])], constraint))
+            self.queue.append((self.csp.nodes[int(constraint[1])], constraint))
 
     def domain_filtering(self):
+        counter = 0
         while self.queue:
             (var, con) = self.queue.pop()
+            initial_domain = len(var.domain)
 
-    #def rerun(self):
 
-    #def revise(self):
+    def rerun(self):
+        pass
+
+    def revise(self):
+        pass
+
+    '''
+    def revise(csp, Xi, Xj, removals):
+    "Return true if we remove a value."
+    revised = False
+    for x in csp.curr_domains[Xi][:]:
+        # If Xi=x conflicts with Xj=y for every possible y, eliminate Xi=x
+        if every(lambda y: not csp.constraints(Xi, x, Xj, y),
+                 csp.curr_domains[Xj]):
+            csp.prune(Xi, x, removals)
+            revised = True
+    return revised
+    '''
 
 
 
