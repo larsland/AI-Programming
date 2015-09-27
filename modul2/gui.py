@@ -36,7 +36,7 @@ class Gui(Frame):
         for node in self.csp.nodes:
             node.xPos = float(node.xPos) * 20
             node.yPos = float(node.yPos) * 20
-            self.canvas.create_oval(node.xPos, node.yPos, node.xPos+10, node.yPos+10, fill="red")
+            self.canvas.create_oval(node.xPos, node.yPos, node.xPos+10, node.yPos+10, fill=node.color)
 
         for i in range(0, len(self.csp.constraints)):
             start_x = self.csp.nodes[int(self.csp.constraints[i][0])].xPos
