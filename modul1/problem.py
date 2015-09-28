@@ -92,6 +92,9 @@ class Board(Problem):
 
         return actions
 
+    def path_cost(self, movement):
+        return 1
+
     def add_path(self, path, node):
         path_line = list(path[node.y])
         path_line[node.x] = 'x'

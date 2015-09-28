@@ -35,6 +35,9 @@ class Problem():
         """Useful when you want to review the states your algorithm created"""
         pass
 
+    def path_cost(self, movement):
+        """Cost of a movement"""
+        pass
 
 class Node:
     def __init__(self, state, problem, parent=None, action=None, path_cost=0):
@@ -129,42 +132,6 @@ class FIFO:
         return queue.pop()  # First out
 
 
-"""
-def graph_searcher(problem, frontier):
-    frontier.append(Node(problem.initial))
-    explored = set()
-    while frontier:
-        node = frontier.pop()
-        if problem.goal_test(node.state):
-            return node
-        explored.add(node.state)
-        frontier.extend(child for child in node.expand(problem)
-                        if child.state not in explored
-                        and child not in frontier)
-    return None
-
-def best_first_graph_search,problem, frontier
-    f = memoize(f, 'f')
-    node = Node(problem.initial)
-    if problem.goal_test(node.state):
-        return node
-    frontier = PriorityQueue(min, f)
-    frontier.append(node)
-    explored = set()
-    while frontier:
-        node = frontier.pop()
-        if problem.goal_test(node.state):
-            return node
-        explored.add(node.state)
-        for child in node.expand(problem):
-            if child.state not in explored and child not in frontier:
-                frontier.append(child)
-            elif child in frontier:
-                incumbent = frontier[child]
-                if f(child) < f(incumbent):
-                    del frontier[incumbent]
-                    frontier.append(child)
-"""
 def graph_search(problem, frontier):
     """ A normal Graph search contains all the necessary tools to implement the three algorithms
      specified in the task."""
@@ -172,7 +139,6 @@ def graph_search(problem, frontier):
     while problem.open:                             # While there are still nodes in the queue
         node = frontier.pop(problem.open)           # Pop start node
         if problem.goal_test(node):                 # Is current node the goal node? Then
-            print(node.path())
             return node.path(), True                # end algorithm and return result
 
         if node.closed:
@@ -185,7 +151,7 @@ def graph_search(problem, frontier):
 
             if child not in problem.open or node.g + 1 < child.g:
                 child.parent = node
-                child.g = node.g + 1
+                child.g = node.g + problem.path_cost([node, child])
                 if child not in problem.open:
                     child.closed = False
                     frontier.add(problem, child)
