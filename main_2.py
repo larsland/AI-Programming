@@ -1,5 +1,6 @@
 from modul2.gui import Gui
 from tkinter import *
+from algorithms.search import Problem
 
 class Node:
     def __init__(self, index):
@@ -10,23 +11,26 @@ class Node:
         self.color = "black"
 
     def __repr__(self):
-        return "ID:"   + str(self.index)
+        return "ID:" + str(self.index)
 
 
-class CSP:
+class CSP(Problem):
     def __init__(self, nodes, domain, constraints):
         self.nodes = nodes
         self.domain = domain
         self.constraints = constraints
-        self.set_node_domains()
 
-    def set_node_domains(self):
-        for node in self.nodes:
-            node.domain = self.domain
+        Problem.__init__(self, (nodes, domain, constraints), (nodes, domain, constraints))
 
     def __repr__(self):
         return "Nodes: " + str(self.nodes) + '\n' + "Domain: " + str(self.domain) + '\n' + \
                "Constraints: " + str(self.constraints)
+
+    def prune(self, var, value, removals):
+        # Rule out var=value.
+        self.domain[var].remove(value)
+        if removals is not None:
+            removals.append((var, value))
 
 
 class GAC:
@@ -37,16 +41,16 @@ class GAC:
 
     def initialization(self):
         for constraint in self.csp.constraints:
-            for i in range(0, len(constraint)):
-                self.queue.append((self.csp.nodes[constraint[i]], constraint))
+            for var in constraint:
+                self.queue.append((self.csp.nodes[var], constraint))
 
         # Print all node-constraint pairs in queue for debugging
-        for x in range(0, len(self.queue)):
-            print(self.queue[x])
+        for x in self.queue:
+            print(x)
 
     def domain_filtering(self):
         while self.queue:
-            (var, con) = self.queue.pop(0)
+            var, con = self.queue.pop(0)
 
             if self.revise(var, con):
                 if len(var.domain) == 0:
@@ -112,7 +116,7 @@ def set_constraints(num_vertices, graph):
     return constraints
 
 
-def set_domain(k):
+def get_vc_domain(k):
     variable_colors = ['red', 'green', 'blue', 'yellow', 'pink', 'brown']
     return variable_colors[0:k]
 
@@ -125,9 +129,13 @@ def init_problem():
 
     nodes = create_nodes(num_vertices, graph)
     constraints = set_constraints(num_vertices, graph)
-    domain = set_domain(k)
+    vc_dom = get_vc_domain(k)
+    domains = {}
+    for node in nodes:
+        domains[node] = vc_dom
 
-    csp = CSP(nodes, domain, constraints)
+
+    csp = CSP(nodes, domains, constraints)
     gac = GAC(csp)
     gac.initialization()
 
