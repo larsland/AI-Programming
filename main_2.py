@@ -43,15 +43,16 @@ class GAC:
         for constraint in self.csp.constraints:
             self.queue.append((self.csp.nodes[int(constraint[0])], constraint))
             self.queue.append((self.csp.nodes[int(constraint[1])], constraint))
+            print(self.queue)
 
     def domain_filtering(self):
-        counter = 0
         while self.queue:
-            (var, con) = self.queue.pop()
-            initial_domain = len(var.domain)
+            (var, con) = self.queue.pop(0)
+
             if self.revise(var, con):
-                if len(self.csp.domains(var)) == 0:
+                if len(var.domain) == 0:
                     return False
+
                 for x in list(set(self.neighbors(var)) - set(con)):
                     self.queue.append((x, var))
 
@@ -63,9 +64,9 @@ class GAC:
 
     def revise(self, var, con):
         revised = False
-        for x in self.csp.domains(var):
+        for x in var.domain:
             # if no value y in Dj allows (x,y) to satisfy the constraint between Xi and Xj:
-            if all([x not in domain for domain in self.csp.domains(con)]):
+            if x not in [c.domain for c in con]:
                 self.csp.prune(var, x, self.removals)
                 revised = True
         return revised
@@ -82,16 +83,6 @@ class GAC:
             revised = True
     return revised
     '''
-
-    def run(self):
-        # dont know what Im doing
-        while self.queue:
-            Xi, Xj = self.queue.pop()
-            if self.revise(Xi, Xj):
-                if len(self.csp.domains(Xi)) == 0:
-                    return False
-                for x in list(set(self.neighbors(Xi)) - set(Xj)):
-                    self.queue.append((x, Xi))
 
 
 def get_graph():
@@ -116,7 +107,7 @@ def create_nodes(num_vertices, graph):
 def set_constraints(num_vertices, graph):
     constraints = []
     for i in range(num_vertices + 1, len(graph)):
-        constraint = [i for i in graph[i].split()]
+        constraint = [int(i) for i in graph[i].split()]
         constraints.append(constraint)
     return constraints
 
