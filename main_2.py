@@ -49,6 +49,11 @@ class GAC:
         while self.queue:
             (var, con) = self.queue.pop()
             initial_domain = len(var.domain)
+            if self.revise(var, con):
+                if len(self.csp.domains(var)) == 0:
+                    return False
+                for x in list(set(self.neighbors(var)) - set(con)):
+                    self.queue.append((x, var))
 
     def neighbors(self, Xi):
         return ['wat']
@@ -56,15 +61,14 @@ class GAC:
     def rerun(self):
         pass
 
-    def revise(self, Xi, Xj):
+    def revise(self, var, con):
         revised = False
-        for x in self.csp.domains(Xi):
+        for x in self.csp.domains(var):
             # if no value y in Dj allows (x,y) to satisfy the constraint between Xi and Xj:
-            if all([x not in domain for domain in self.csp.domains(Xj)]):
-                self.csp.prune(Xi, x, self.removals)
+            if all([x not in domain for domain in self.csp.domains(con)]):
+                self.csp.prune(var, x, self.removals)
                 revised = True
         return revised
-
 
     '''
     def revise(csp, Xi, Xj, removals):
@@ -88,11 +92,6 @@ class GAC:
                     return False
                 for x in list(set(self.neighbors(Xi)) - set(Xj)):
                     self.queue.append((x, Xi))
-
-
-
-
-
 
 
 def get_graph():
