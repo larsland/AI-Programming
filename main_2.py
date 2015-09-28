@@ -43,7 +43,7 @@ class GAC:
         for constraint in self.csp.constraints:
             self.queue.append((self.csp.nodes[int(constraint[0])], constraint))
             self.queue.append((self.csp.nodes[int(constraint[1])], constraint))
-            print(self.queue)
+        print(self.queue)
 
     def domain_filtering(self):
         while self.queue:
