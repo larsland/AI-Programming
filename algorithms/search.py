@@ -39,6 +39,7 @@ class Problem():
         """Cost of a movement"""
         pass
 
+
 class Node:
     def __init__(self, state, problem, parent=None, action=None, path_cost=0):
         self.state = state

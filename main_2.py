@@ -1,7 +1,6 @@
 from modul2.gui import Gui
 from tkinter import *
 
-
 class Node:
     def __init__(self, index):
         self.index = index
