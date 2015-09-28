@@ -10,11 +10,7 @@ class Node:
         self.color = "black"
 
     def __repr__(self):
-        return "ID:"   + str(self.index) + \
-            " Xpos:"   + str(self.xPos) + \
-            " Ypos:"   + str(self.yPos) + \
-            " Color:"  + str(self.color) + \
-            " Domain:" + str(self.domain)
+        return "ID:"   + str(self.index)
 
 
 class CSP:
@@ -41,9 +37,12 @@ class GAC:
 
     def initialization(self):
         for constraint in self.csp.constraints:
-            self.queue.append((self.csp.nodes[int(constraint[0])], constraint))
-            self.queue.append((self.csp.nodes[int(constraint[1])], constraint))
-        print(self.queue)
+            for i in range(0, len(constraint)):
+                self.queue.append((self.csp.nodes[constraint[i]], constraint))
+
+        # Print all node-constraint pairs in queue for debugging
+        for x in range(0, len(self.queue)):
+            print(self.queue[x])
 
     def domain_filtering(self):
         while self.queue:
@@ -55,6 +54,7 @@ class GAC:
 
                 for x in list(set(self.neighbors(var)) - set(con)):
                     self.queue.append((x, var))
+
 
     def neighbors(self, Xi):
         return ['wat']
@@ -130,7 +130,6 @@ def init_problem():
     csp = CSP(nodes, domain, constraints)
     gac = GAC(csp)
     gac.initialization()
-    gac.domain_filtering()
 
     root = Tk()
     app = Gui(csp, master=root)
