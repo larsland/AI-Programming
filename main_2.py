@@ -37,6 +37,7 @@ class GAC:
     def __init__(self, csp):
         self.csp = csp
         self.queue = []
+        self.removals = []
 
     def initialization(self):
         for constraint in self.csp.constraints:
@@ -53,8 +54,14 @@ class GAC:
     def rerun(self):
         pass
 
-    def revise(self):
-        pass
+    def revise(self, Xi, Xj):
+        revised = False
+        for x in self.csp.domains(Xi):
+            if all([x not in domain for domain in self.csp.domains(Xj)]):
+                self.csp.prune(Xi, x, self.removals)
+                revised = True
+        return revised
+
 
     '''
     def revise(csp, Xi, Xj, removals):
