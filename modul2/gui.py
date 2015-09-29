@@ -39,10 +39,10 @@ class Gui(Frame):
             self.canvas.create_oval(node.xPos, node.yPos, node.xPos+10, node.yPos+10, fill=node.color)
 
         for i in range(0, len(self.csp.constraints)):
-            start_x = self.csp.nodes[int(self.csp.constraints[i][0])].xPos
-            start_y = self.csp.nodes[int(self.csp.constraints[i][0])].yPos
-            end_x = self.csp.nodes[int(self.csp.constraints[i][1])].xPos
-            end_y = self.csp.nodes[int(self.csp.constraints[i][1])].yPos
+            start_x = self.csp.nodes[int(self.csp.constraints[i].variables[0])].xPos
+            start_y = self.csp.nodes[int(self.csp.constraints[i].variables[0])].yPos
+            end_x = self.csp.nodes[int(self.csp.constraints[i].variables[1])].xPos
+            end_y = self.csp.nodes[int(self.csp.constraints[i].variables[1])].yPos
 
             self.canvas.create_line(start_x+5, start_y+5, end_x+5, end_y+5)
 
