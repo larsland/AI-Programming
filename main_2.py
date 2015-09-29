@@ -136,10 +136,10 @@ def create_nodes(num_vertices, graph):
 #constraint = Constraint(i, GAC.method)
 
 
-def set_constraints(num_vertices, graph):
+def set_constraints(num_vertices, graph, con, descript):
     constraints = []
     for i in range(num_vertices + 1, len(graph)):
-        constraint = Constraint([int(i) for i in graph[i].split()], )
+        constraint = Constraint([int(i) for i in graph[i].split()], con, descript)
         constraints.append(constraint)
     return constraints
 
@@ -156,16 +156,22 @@ def makefunc(var_names, expression, envir=globals()):
     return eval('(lambda ' + args[1:] + ': ' + expression + ' ) ', envir)
 
 
-def init_problem():
+def init_VCproblem():
+    var_list = input('vars: ').replace(' ', '').split(',')
+    con_func = input('cons: ')
+    description = con_func
+    constraint = makefunc(var_list, con_func)
+
     k = int(input("K-value (3-10): "))
     graph = get_graph()
     num_vertices = int([i for i in graph[0].split()][0])
     num_edges = int([i for i in graph[0].split()][1])
 
     nodes = create_nodes(num_vertices, graph)
-    constraint = memoize(lambda n: n[0]!=n[1])
-    constraints = set_constraints(num_vertices, graph)
-    vc_dom = range(0,k)
+    # constraint = memoize(lambda n: n[0] != n[1])
+    constraints = set_constraints(num_vertices, graph, constraint, description)
+
+    vc_dom = range(0, k)
     domains = {}
     for node in nodes:
         domains[node] = vc_dom
@@ -179,9 +185,9 @@ def init_problem():
     app = Gui(csp, master=root)
     app.mainloop()
 
-
+import ast
 if __name__ == '__main__':
-    init_problem()
+    init_VCproblem()
 
 
 '''
