@@ -10,7 +10,7 @@ class Node:
         self.xPos = x
         self.yPos = y
         self.domain = []
-        self.color = "black"
+        self.color = "light blue"
 
     def __repr__(self):
         return "ID:" + str(self.id)

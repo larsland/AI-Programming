@@ -36,7 +36,8 @@ class Gui(Frame):
         for node in self.csp.nodes:
             node.xPos = float(node.xPos) * 20
             node.yPos = float(node.yPos) * 20
-            self.canvas.create_oval(node.xPos, node.yPos, node.xPos+10, node.yPos+10, fill=node.color)
+            self.canvas.create_oval(node.xPos, node.yPos, node.xPos+15, node.yPos+15, fill=node.color)
+            self.canvas.create_text(node.xPos+7, node.yPos+7, text=str(node.id))
 
         for i in range(0, len(self.csp.constraints)):
             start_x = self.csp.nodes[int(self.csp.constraints[i].variables[0])].xPos
@@ -44,7 +45,7 @@ class Gui(Frame):
             end_x = self.csp.nodes[int(self.csp.constraints[i].variables[1])].xPos
             end_y = self.csp.nodes[int(self.csp.constraints[i].variables[1])].yPos
 
-            self.canvas.create_line(start_x+5, start_y+5, end_x+5, end_y+5)
+            self.canvas.create_line(start_x+10, start_y+10, end_x+10, end_y+10)
 
 
 
