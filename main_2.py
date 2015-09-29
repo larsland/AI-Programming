@@ -1,5 +1,5 @@
-#from modul2.gui import Gui
-#from tkinter import *
+from modul2.gui import Gui
+from tkinter import *
 from algorithms.search import Problem
 from algorithms.utils import memoize
 
@@ -36,12 +36,13 @@ class CSP(Problem):
     def __repr__(self):
         return "Nodes: " + str(self.nodes) + '\n' + "Domain: " + str(self.domain) + '\n' + \
                "Constraints: " + str(self.constraints)
-
+'''
     def prune(self, var, value, removals):
         # Rule out var=value.
         self.domain[var].remove(value)
         if removals is not None:
             removals.append((var, value))
+'''
 
 
 class GAC:
@@ -52,7 +53,7 @@ class GAC:
 
     def initialization(self):
         for constraint in self.csp.constraints:
-            for var in constraint:
+            for var in constraint.variables:
                 self.queue.append((self.csp.nodes[var], constraint))
 
         # Print all node-constraint pairs in queue for debugging
@@ -137,7 +138,7 @@ def create_nodes(num_vertices, graph):
 def set_constraints(num_vertices, graph):
     constraints = []
     for i in range(num_vertices + 1, len(graph)):
-        constraint = [int(i) for i in graph[i].split()]
+        constraint = Constraint([int(i) for i in graph[i].split()])
         constraints.append(constraint)
     return constraints
 
@@ -166,9 +167,9 @@ def init_problem():
     gac = GAC(csp)
     gac.initialization()
 
-    #root = Tk()
-    #app = Gui(csp, master=root)
-    #app.mainloop()
+    root = Tk()
+    app = Gui(csp, master=root)
+    app.mainloop()
 
 
 if __name__ == '__main__':
