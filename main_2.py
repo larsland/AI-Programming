@@ -9,7 +9,6 @@ class Node:
         self.id = id
         self.xPos = x
         self.yPos = y
-        self.domain = []
         self.color = "light blue"
 
     def __repr__(self):
@@ -38,11 +37,14 @@ class CSP(Problem):
         return "Nodes: " + str(self.nodes) + '\n' + "Domain: " + str(self.domain) + '\n' + \
                "Constraints: " + str(self.constraints)
 
-    def prune(self, var, value, removals):
+    def prune(self, node, value, removals):
         # Rule out var=value.
-        self.domain[var].remove(value)
+        print("node.domain", self.domain[node])
+        node_domain = self.domain[node]
+        if value in node_domain:
+            node_domain.remove(value)
         if removals is not None:
-            removals.append((var, value))
+            removals.append((node, value))
 
 
 class GAC:
@@ -53,48 +55,58 @@ class GAC:
 
     def initialization(self):
         for constraint in self.csp.constraints:
-            for var in constraint.variables:
-                self.queue.append((self.csp.nodes[var], constraint))
+            for node_id in constraint.variables:
+                self.queue.append((self.csp.nodes[node_id], constraint))
 
         # Print all node-constraint pairs in queue for debugging
         for x in self.queue:
             print(x)
 
+        while True:
+            stuff = self.domain_filtering()
+            if not stuff:
+                self.rerun()
+                break
+            else:
+                break
+
     def domain_filtering(self):
         while self.queue:
-            var, con = self.queue.pop(0)
+            node, con = self.queue.pop(0)
 
-            if self.revise(var, con):
-                if len(var.domain) == 0:
+            if self.revise(node, con):
+                if len(self.csp.domain[node]) == 0:
                     return False
 
-                for x in list(set(self.get_neighbors(var)) - set(con)):
-                    self.queue.append((x, var))
+                for x in list(set(self.get_neighbors(node)) - set(con.variables)):
+                    self.queue.append((x, node))
 
     def get_neighbors(self, node):
         neighbors = []
         for c in self.csp.constraints:
             neighbor = False
             current = []
-            for n in c.variables:
-                if node.id == n:
+            for n_id in c.variables:
+                if node.id == n_id:
                     neighbor = True
                 else:
-                    current.append(n)
+                    current.append(n_id)
             if neighbor:
                 neighbors += current
         return neighbors
 
+
     def rerun(self):
         pass
 
-    def revise(self, var, con):
+    def revise(self, node, con):
         revised = False
-        for x in var.domain:
-            for y in con.domain:
-                if x != y and con.method([x, y]):
-                    self.csp.prune(var, x, self.removals)
+        for value in self.csp.domain[node]:
+            for c_v in con.variables:
+                if node != c_v and con.method([value, c_v]):
+                    self.csp.prune(node, value, self.removals)
                     revised = True
+        print('node: %s, domain: %s' % (node, self.csp.domain[node]))
         return revised
 
     '''
@@ -143,10 +155,10 @@ def create_nodes(num_vertices, graph):
 #constraint = Constraint(i, GAC.method)
 
 
-def set_constraints(num_vertices, graph, con, descript):
+def set_constraints(num_vertices, graph, con, description):
     constraints = []
     for i in range(num_vertices + 1, len(graph)):
-        constraint = Constraint([int(i) for i in graph[i].split()], con, descript)
+        constraint = Constraint([int(i) for i in graph[i].split()], con, description)
         constraints.append(constraint)
     return constraints
 
@@ -178,7 +190,7 @@ def init_VCproblem():
     # constraint = memoize(lambda n: n[0] != n[1])
     constraints = set_constraints(num_vertices, graph, constraint, description)
 
-    vc_dom = range(0, k)
+    vc_dom = list(range(0, k))
     domains = {}
     for node in nodes:
         domains[node] = vc_dom
