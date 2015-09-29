@@ -16,13 +16,15 @@ class Node:
 
 
 class Constraint:
-    def __init__(self, variables, method=None):
+    def __init__(self, variables, method=None, description=None):
         self.variables = variables
         self.method = method
+        self.description = description
         
     def __repr__(self):
-        return "<Constraint (variables:%s)>" % self.variables
-    
+        return "<Constraint (variables:%s, constraint:%s)>" % (self.variables, self.description or '')
+
+
 class CSP(Problem):
     def __init__(self, nodes, domain, constraints):
         self.nodes = nodes
