@@ -5,15 +5,15 @@ from algorithms.utils import memoize
 from functools import lru_cache
 
 class Node:
-    def __init__(self, index):
-        self.index = index
-        self.xPos = 0.0
-        self.yPos = 0.0
+    def __init__(self, id, x, y):
+        self.id = id
+        self.xPos = x
+        self.yPos = y
         self.domain = []
         self.color = "black"
 
     def __repr__(self):
-        return "ID:" + str(self.index)
+        return "ID:" + str(self.id)
 
 
 class Constraint:
@@ -37,13 +37,12 @@ class CSP(Problem):
     def __repr__(self):
         return "Nodes: " + str(self.nodes) + '\n' + "Domain: " + str(self.domain) + '\n' + \
                "Constraints: " + str(self.constraints)
-'''
+
     def prune(self, var, value, removals):
         # Rule out var=value.
         self.domain[var].remove(value)
         if removals is not None:
             removals.append((var, value))
-'''
 
 
 class GAC:
@@ -69,11 +68,22 @@ class GAC:
                 if len(var.domain) == 0:
                     return False
 
-                for x in list(set(self.neighbors(var)) - set(con)):
+                for x in list(set(self.get_neighbors(var)) - set(con)):
                     self.queue.append((x, var))
 
-    def neighbors(self, Xi):
-        return ['wat']
+    def get_neighbors(self, node):
+        neighbors = []
+        for c in self.csp.constraints:
+            neighbor = False
+            current = []
+            for n in c.variables:
+                if node.id == n:
+                    neighbor = True
+                else:
+                    current.append(n)
+            if neighbor:
+                neighbors += current
+        return neighbors
 
     def rerun(self):
         pass
@@ -82,7 +92,7 @@ class GAC:
         revised = False
         for x in var.domain:
             for y in con.domain:
-                if x != y and con.method([x,y]):
+                if x != y and con.method([x, y]):
                     self.csp.prune(var, x, self.removals)
                     revised = True
         return revised
@@ -124,11 +134,8 @@ def get_graph():
 def create_nodes(num_vertices, graph):
     nodes = []
     for i in range(1, num_vertices + 1):
-        node = Node(i)
-        state = [i for i in graph[i].split()]
-        node.index = state[0]
-        node.xPos = state[1]
-        node.yPos = state[2]
+        id, x, y = [i for i in graph[i].split()]
+        node = Node(int(id), float(x), float(y))
         nodes.append(node)
     return nodes
 
@@ -180,6 +187,9 @@ def init_VCproblem():
     csp = CSP(nodes, domains, constraints)
     gac = GAC(csp)
     gac.initialization()
+
+    for node in csp.nodes:
+        print(gac.get_neighbors(node))
 
     root = Tk()
     app = Gui(csp, master=root)
