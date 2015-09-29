@@ -2,6 +2,7 @@ from modul2.gui import Gui
 from tkinter import *
 from algorithms.search import Problem
 from algorithms.utils import memoize
+from functools import lru_cache
 
 class Node:
     def __init__(self, index):
@@ -22,7 +23,7 @@ class Constraint:
         self.description = description
         
     def __repr__(self):
-        return "<Constraint (variables:%s, constraint:%s)>" % (self.variables, self.description or '')
+        return "<Constraint (vars:%s, c:%s)>" % (self.variables, self.description or '')
 
 
 class CSP(Problem):
@@ -138,7 +139,7 @@ def create_nodes(num_vertices, graph):
 def set_constraints(num_vertices, graph):
     constraints = []
     for i in range(num_vertices + 1, len(graph)):
-        constraint = Constraint([int(i) for i in graph[i].split()])
+        constraint = Constraint([int(i) for i in graph[i].split()], )
         constraints.append(constraint)
     return constraints
 
@@ -146,6 +147,13 @@ def set_constraints(num_vertices, graph):
 def get_vc_domain(k):
     variable_colors = ['red', 'green', 'blue', 'yellow', 'pink', 'brown', 'purple', 'orange']
     return variable_colors[0:k]
+
+
+def makefunc(var_names, expression, envir=globals()):
+    args = ''
+    for n in var_names:
+        args += ', ' + n
+    return eval('(lambda ' + args[1:] + ': ' + expression + ' ) ', envir)
 
 
 def init_problem():
