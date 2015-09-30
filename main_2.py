@@ -10,7 +10,7 @@ class Node:
         self.id = id
         self.xPos = x
         self.yPos = y
-        self.color = "light blue"
+        self.color = "red"
 
     def __repr__(self):
         return "ID:" + str(self.id)
@@ -41,6 +41,9 @@ class CSP:
             node_domain.remove(value)
         if removals is not None:
             removals.append((node, value))
+
+    def get_domain(self, node):
+        return self.domain[node]
 
 
 class GAC:
@@ -101,7 +104,6 @@ class GAC:
         return revised
 
 
-
 class GACNode(PriorityNode):
     def __init__(self, problem):
         self.state = problem.state
@@ -160,6 +162,7 @@ class VCGraphProblem(Problem, CSP):
         """Cost of a movement"""
         return 1
 
+
 def get_graph():
     input_graph = input("Select graph (1-6): ")
     input_graph = "graph" + str(input_graph) + ".txt"
@@ -174,9 +177,6 @@ def create_nodes(num_vertices, graph):
         node = Node(int(id), float(x), float(y))
         nodes.append(node)
     return nodes
-
-#GAC -> memoize(lambda n: n[0]!=n[1])
-#constraint = Constraint(i, GAC.method)
 
 
 def set_constraints(num_vertices, graph, con, description):
@@ -219,88 +219,21 @@ def init_VCproblem():
     for node in nodes:
         domains[node] = list(vc_dom)
 
-
     csp = CSP(nodes, domains, constraints)
+
+    '''
     gac = GAC(csp)
     gac.initialization()
     gac.domain_filtering()
 
     for node in csp.nodes:
         print(gac.get_neighbors(node))
+    '''
 
     root = Tk()
     app = Gui(csp, master=root)
     app.mainloop()
 
-import ast
 if __name__ == '__main__':
     init_VCproblem()
 
-
-'''
-
-class Constraint():
-
-    method = None
-
-    def __init__(self):
-        self.vars = []
-        
-
-
-> [x,y,z], x + y <= z
-
-y i Dy som != x i Dx
-lambda n: return n[0] != n[1]
-
-
-def makefunc(variables, expression, envir=globals()):
-    return eval('(lambda ' + ','.join(variables)[:1] + ': ' + expression + ')', envir)
-        
-        
-        
-Constraint.method = staticmethod(makefunc(['n'], 'n[0] != n[1]'))
-
-
-def revise(self, node, constraint):
-        new_domain = []
-        for domain_node in node.domain:
-            valid_domain = False
-            for constraint_node in constraint.vars:
-                if constraint_node != node:
-                    for d in constraint_node.domain:
-                        if constraint.method([domain_node, d]):
-                            valid_domain = True
-                            break
-
-            if valid_domain:
-                new_domain.append(domain_node)
-
-        node.domain = new_domain
-        
-def zebra_constraint(A, a, B, b, recurse=0):
-        same = (a == b)
-        next_to = abs(a - b) == 1
-        if A == 'Englishman' and B == 'Red': return same
-        if A == 'Spaniard' and B == 'Dog': return same
-        if A == 'Chesterfields' and B == 'Fox': return next_to
-        if A == 'Norwegian' and B == 'Blue': return next_to
-        if A == 'Kools' and B == 'Yellow': return same
-        if A == 'Winston' and B == 'Snails': return same
-        if A == 'LuckyStrike' and B == 'OJ': return same
-        if A == 'Ukranian' and B == 'Tea': return same
-        if A == 'Japanese' and B == 'Parliaments': return same
-        if A == 'Kools' and B == 'Horse': return next_to
-        if A == 'Coffee' and B == 'Green': return same
-        if A == 'Green' and B == 'Ivory': return (a - 1) == b
-        if recurse == 0: return zebra_constraint(B, b, A, a, 1)
-        if ((A in Colors and B in Colors) or
-            (A in Pets and B in Pets) or
-            (A in Drinks and B in Drinks) or
-            (A in Countries and B in Countries) or
-            (A in Smokes and B in Smokes)): return not same        
-        raise 'error'
-
-
-        
-'''
