@@ -15,11 +15,13 @@ class Board(Problem):
         self.state = []         # Matrix of board Nodes
         self.open = []          # List of open Nodes
         self.goal = None        # The goal Node
-        self.initial = None     # The initial Node
-        self.h = memoize(lambda node: (abs(node.x - self.goal.x) + abs(node.y - self.goal.y))*(1+1/100))
-        #self.h = memoize(lambda node: math.sqrt(abs(node.x - self.goal.x)**2 + abs(node.y - self.goal.y)**2))
+
+        # Getting a tie breaker.
         # *= (1.0 + p) where p is p < (minimum cost of taking one step)/(expected maximum path length)
-        self.counter = count()  # Unique sequence count for correct action priority
+        p = 1 + 1/(len(self.board) * len(self.board[0]))
+        # Setting heuristic with tie breaker.
+        self.h = memoize(lambda node: (abs(node.x - self.goal.x) + abs(node.y - self.goal.y))*p)
+        # self.h = memoize(lambda node: math.sqrt(abs(node.x - self.goal.x)**2 + abs(node.y - self.goal.y)**2))
 
         # Sizes defining the board
         self.width = 0
@@ -29,7 +31,7 @@ class Board(Problem):
         self.solution = {'path': [], 'length': 0, 'found': False, 'steps': 0, 'states': []}
 
         # Initialize super class
-        Problem.__init__(self, self.state, self.initial, self.goal)
+        Problem.__init__(self, self.state, self.goal)
 
     def __repr__(self):
         """Representation method for printing a Board with valuable information"""
@@ -64,8 +66,7 @@ class Board(Problem):
                     if tile == 'B':                         # If tile has value of B then
                         self.goal = node                    # set this node as the goal node.
                     elif tile == 'A':                       # If tile has value of A then
-                        self.initial = node                 # set this node as start node and
-                        self.open.append(node)              # add it to the open set.
+                        self.open.append(node)              # adding initial node to the open set.
                     elif tile == '#':                       # If tile has value of # then
                         node.closed = True                  # close the node as it can not be accessed.
 

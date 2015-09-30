@@ -157,6 +157,11 @@ class GAC:
                                 break
     '''
 
+class VCGraph(Problem):
+    def __init__(self):
+        self.state = []
+        self.open = []
+
 
 def get_graph():
     input_graph = input("Select graph (1-6): ")
