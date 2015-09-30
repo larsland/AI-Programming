@@ -87,6 +87,7 @@ class Board(Problem):
                     node_row.append(node)                   # Add node to current row of nodes and
             self.state.append(node_row)                     # add row of nodes to the problem state.
 
+    @memoize
     def actions(self, node):
         """In our problem, actions are all nodes reachable from current Node within the board matrix"""
         actions = []

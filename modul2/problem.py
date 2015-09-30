@@ -1,7 +1,7 @@
 import copy, math, random
 from itertools import count
 from algorithms.search import Problem, PriorityNode
-from algorithms.utils import memoize
+from algorithms.utils import memoize, Bunch
 
 
 class Board(Problem):
@@ -25,11 +25,9 @@ class Board(Problem):
         self.width = 0
         self.height = 0
 
-        # Holds several solution related data instances
-        self.solution = {'path': [], 'length': 0, 'found': False, 'steps': 0, 'states': []}
 
         # Initialize super class
-        Problem.__init__(self, self.state, self.initial, self.goal)
+        Problem.__init__(self, self.state, self.goal)
 
     def __repr__(self):
         """Representation method for printing a Board with valuable information"""
@@ -42,7 +40,7 @@ class Board(Problem):
         representation += 'goal node:     ' + str(self.goal) + '\n)'
         representation += 'open:          ' + str(self.open) + '\n'
         representation += 'counter:       ' + str(next(self.counter)) + '\n'
-        representation += 'solution path: ' + str(self.solution['path']) + '\n'
+        representation += 'solution path: ' + str(self.solution.path) + '\n'
 
         return representation
 
@@ -104,17 +102,12 @@ class Board(Problem):
     def solve(self, algorithm):
         """Solve the problem with the selected algorithm and
         formats the solution with a dictionary"""
-        path = list(self.board)
-
         solution_path, found = algorithm(self)
 
-        for node in solution_path:
-            path = self.add_path(path, node)
-
-        self.solution['length'] = len(solution_path)
-        self.solution['steps'] = len(self.solution['states'])
-        self.solution['found'] = found
-        self.solution['path'] = solution_path
+        self.solution.length = len(solution_path)
+        self.solution.steps = len(self.solution.states)
+        self.solution.found = found
+        self.solution.path = solution_path
         return self.solution
 
     def save_state(self):
@@ -130,32 +123,32 @@ class Board(Problem):
             temp_set = frozenset(temp_set)
             temp_state.add(temp_set)
 
-        if self.solution['states']:
-            diff_state = list(temp_state.difference(self.solution['states'][-1]))
+        if self.solution.states:
+            diff_state = list(temp_state.difference(self.solution.states[-1]))
         else:
             diff_state = list(temp_state)
 
-        state = {'state': diff_state, 'open': list(self.open), 'path': list(self.board)}
-        self.solution['states'].append(state)
+        state = Bunch(state=diff_state, open=list(self.open), path=list(self.board))
+        self.solution.states.append(state)
 
     def solution_states_generator(self):
         """Generator for all the solution states"""
-        for state in self.solution['states']:
+        for state in self.solution.states:
             yield state
 
     def get_solution_states(self):
-        return self.solution['states']
+        return self.solution.states
 
     def pretty_print(self):
         """Helper method for beautiful printing of the problem solution"""
-        if self.solution['found']:
+        if self.solution.found:
             print(
-                "Solution found in %s steps, solution length is %s" % (self.solution['steps'], self.solution['length']))
+                "Solution found in %s steps, solution length is %s" % (self.solution.steps, self.solution.length))
         else:
-            print("No solution found in %s steps, solution length is %s" % (self.solution['steps'], float('inf')))
+            print("No solution found in %s steps, solution length is %s" % (self.solution.steps, float('inf')))
 
         print('_' * len(self.board[0]))
-        for solution_line in self.solution['path']:
+        for solution_line in self.solution.path:
             print(solution_line)
         print('_' * len(self.board[0]))
         print('')

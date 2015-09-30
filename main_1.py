@@ -249,7 +249,7 @@ class Astar_program(Frame):
     def update_solution_animation(self, label, ani_step, ms_delay, frame_num):
         global cancel_animation_id
         if frame_num == len(ani_step):
-            if self.problem.solution['found']:
+            if self.problem.solution.found:
                 self.animate_solution_path()
             else:
                 self.cancel_animation()
@@ -307,9 +307,9 @@ class Astar_program(Frame):
 
         self.problem.pretty_print()
 
-        self.solutions = self.problem.solution['states']
-        self.step = self.problem.solution['steps']
-        self.solution_path = list(reversed(self.problem.solution['path']))[:-1]
+        self.solutions = self.problem.solution.states
+        self.step = self.problem.solution.steps
+        self.solution_path = list(reversed(self.problem.solution.path))[:-1]
         self.begin_solution_animation()
 
 

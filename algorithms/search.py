@@ -1,6 +1,6 @@
 from heapq import heappush, heappop
 from collections import deque
-from algorithms.utils import memoize
+from algorithms.utils import memoize, Bunch
 import math
 
 
@@ -11,6 +11,9 @@ class Problem():
         other arguments."""
         self.state = state
         self.goal = goal
+        # Holds several solution related data instances
+        self.solution = Bunch(path=[], length=0, found=False, steps=0, states=[])
+        # self.solution = {'path': [], 'length': 0, 'found': False, 'steps': 0, 'states': []}
 
     def initialize(self):
         """Initialization method for the state of the problem,
@@ -185,10 +188,3 @@ def breadth_first_search(problem):
     where the open nodes are on a First In first Out queue (LIFO)"""
     problem.open = deque()
     return graph_search(problem, FIFO())
-
-
-class Bunch(dict):
-    """Simple class for prototyping and other handy stuff"""
-    def __init__(self, *args, **kwargs):
-        super(Bunch, self).__init__(*args, **kwargs)
-        self.__dict__ = self

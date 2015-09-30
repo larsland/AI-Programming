@@ -53,3 +53,16 @@ class memoize():
         except KeyError:
             res = cache[key] = self.func(*args, **kw)
         return res
+
+
+class Bunch(dict):
+    """Simple class for prototyping and other handy stuff"""
+    def __init__(self, *args, **kwargs):
+        super(Bunch, self).__init__(*args, **kwargs)
+        self.__dict__ = self
+
+    def __eq__(self, other):
+        return isinstance(other, Bunch) and self.__hash__() == other.__hash__()
+
+    def __hash__(self):
+        return hash(str(self))

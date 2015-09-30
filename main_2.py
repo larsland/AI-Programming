@@ -118,27 +118,13 @@ class GACStateNode(PriorityNode):
                (self.f(), self.g, self.problem.h(self), self.state, self.closed)
 
 
-class BoardNode(PriorityNode):
-    def __init__(self, node_x, node_y, problem, tile):
-        self.x = node_x
-        self.y = node_y
-        self.tile = tile
-
-        PriorityNode.__init__(self, (node_x, node_y), problem)
-
-    def __repr__(self):
-        """Representation method for printing a Node with valuable information"""
-        return "<BoardNode (x,y:%s, f:%f, g:%i, h:%f, tile:%s, closed:%s)>" %\
-               (self.state, self.f(), self.g, self.problem.h(self), self.tile, self.closed)
-
-
 class VCGraphProblem(Problem, CSP):
-    def __init__(self):
-        self.state = []
+    def __init__(self, state):
+        self.state = state
         self.open = []
         # self.h = memoize(lambda state: sum([len(self.domain[node])-1 for node in state.nodes]))
 
-        Problem.__init__(self, self.state, self.open)
+        Problem.__init__(self, self.state, len(self.state.nodes))
 
     @memoize
     def h(self, state):
@@ -152,6 +138,7 @@ class VCGraphProblem(Problem, CSP):
         can be a list, matrix, tree or any other data structure that fits the problem"""
         pass
 
+    @memoize
     def actions(self, state):
         """Returns all actions that can be performed from current state,
         either as a data structure or a generator"""
@@ -169,12 +156,19 @@ class VCGraphProblem(Problem, CSP):
         return []
 
     def solve(self, algorithm):
-        """Solve the problem with the given algorithm"""
-        pass
+        """Solve the problem with the selected algorithm and
+        formats the solution with a dictionary"""
+        solution_path, found = algorithm(self)
+
+        self.solution.length = len(solution_path)
+        self.solution.steps = len(self.solution.states)
+        self.solution.found = found
+        self.solution.path = solution_path
+        return self.solution
 
     def goal_test(self, other):
         """General goal test to see if goal has been achieved"""
-        return self.goal == other
+        return self.goal == self.h(other)
 
     def save_state(self):
         """Useful when you want to review the states your algorithm created"""
