@@ -1,17 +1,23 @@
-"""
-def memoize(f):
-    memo = {}
-    def helper(x, memo=memo):
-        if x not in memo:
-            memo[x] = f(x)
-        return memo[x]
-    return helper
-"""
-
 from functools import partial
 
-class memoize(object):
-    """cache the return value of a method
+
+class HashableList(list):
+    def __init__(self, stuff=[]):
+        list.__init__(self, stuff)
+
+    def __eq__(self, other):
+        return isinstance(other, HashableList) and self.__hash__() == other.__hash__()
+
+    def __hash__(self):
+        return hash(str(self))
+
+class memoize():
+    """
+    Credit goes to Daniel Miller, Wed, 3 Nov 2010 (MIT).
+    http://code.activestate.com/recipes/577452-a-memoize-decorator-for-instance-methods/
+
+
+    cache the return value of a method
 
     This class is meant to be used as a decorator of methods. The return value
     from a given method invocation will be cached on the instance whose method
@@ -29,10 +35,12 @@ class memoize(object):
     """
     def __init__(self, func):
         self.func = func
+
     def __get__(self, obj, objtype=None):
         if obj is None:
             return self.func
         return partial(self, obj)
+
     def __call__(self, *args, **kw):
         obj = args[0]
         try:

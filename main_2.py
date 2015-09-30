@@ -1,7 +1,7 @@
 from modul2.gui import Gui
 from tkinter import *
 from algorithms.search import Problem, PriorityNode, Bunch
-from algorithms.utils import memoize
+from algorithms.utils import memoize, HashableList
 import copy
 
 
@@ -136,10 +136,11 @@ class VCGraphProblem(Problem, CSP):
     def __init__(self):
         self.state = []
         self.open = []
-        # self.h = lambda state: sum([len(self.domain[node])-1 for node in state.nodes])
+        # self.h = memoize(lambda state: sum([len(self.domain[node])-1 for node in state.nodes]))
 
         Problem.__init__(self, self.state, self.open)
 
+    @memoize
     def h(self, state):
         len_sum = 0
         for node in state.nodes:
@@ -260,6 +261,18 @@ def init_VCproblem(graph=None):
     app = Gui(csp, master=root)
     app.mainloop()
 
+
+
+from algorithms.utils import HashableList
+import timeit
+
+@memoize
+def long_operation(stuff):
+    return len(list(reversed(stuff)))
+
 if __name__ == '__main__':
     init_VCproblem()
+
+
+
 
