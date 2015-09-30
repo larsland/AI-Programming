@@ -29,7 +29,8 @@ class Gui(Frame):
         self.canvas = Canvas(group_state, width=600, height=600, bg="#F0F0F0", highlightbackground="black",
                              highlightthickness=1)
         graph_menu = OptionMenu(group_options, self.selected_graph, "graph1.txt", "graph2.txt",
-                                "graph3.txt", "graph4.txt", "graph5.txt", "graph6.txt")
+                                "graph3.txt", "graph4.txt", "graph5.txt", "graph6.txt",)
+
         k_value_menu = OptionMenu(group_options, self.selected_k_value, 4, 5, 6)
         label_colored_nodes = Label(group_stats, text="0/0")
         btn_start = Button(group_options, text="Start", padx=5, pady=5, bg="light green")
@@ -64,6 +65,7 @@ class Gui(Frame):
 
         for node in self.csp.nodes:
             self.canvas.create_oval(node.xPos, node.yPos, node.xPos+15, node.yPos+15, fill=node.color)
+            self.canvas.create_text(node.xPos, node.yPos, text=node.id)
 
     def get_graph_dims(self):
         x_positions, y_positions = [], []
@@ -97,3 +99,6 @@ class Gui(Frame):
         for node in self.csp.nodes:
             node.xPos = (10 + (x_offset + node.xPos) * 15) * x_scale
             node.yPos = (10 + (y_offset + node.yPos) * 15) * y_scale
+
+
+
