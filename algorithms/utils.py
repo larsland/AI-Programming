@@ -1,16 +1,5 @@
 from functools import partial
 
-
-class HashableList(list):
-    def __init__(self, stuff=[]):
-        list.__init__(self, stuff)
-
-    def __eq__(self, other):
-        return isinstance(other, HashableList) and self.__hash__() == other.__hash__()
-
-    def __hash__(self):
-        return hash(str(self))
-
 class memoize():
     """
     Credit goes to Daniel Miller, Wed, 3 Nov 2010 (MIT).
@@ -53,6 +42,24 @@ class memoize():
         except KeyError:
             res = cache[key] = self.func(*args, **kw)
         return res
+
+
+"""
+Creating some special classes that can be hashed and used as keys in dictionaries:
+"""
+
+
+class HashableList(list):
+    """List class that can be used as key in dictionaries. Superficial (not deep equal)"""
+    def __init__(self, _list=None):
+        list.__init__(self, _list or [])
+
+    def __eq__(self, other):
+        return isinstance(other, HashableList) and self.__hash__() == other.__hash__()
+
+    def __hash__(self):
+        """Superficial (not deep equal)"""
+        return hash(str(self))
 
 
 class Bunch(dict):

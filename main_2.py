@@ -1,19 +1,23 @@
 from modul2.gui import Gui
 from tkinter import *
-from algorithms.search import Problem, PriorityNode
+from algorithms.search import Problem, PriorityNode, Node
 from algorithms.utils import memoize, HashableList
 import copy
 
 
-class Node:
-    def __init__(self, id, x, y):
+class VCNode(Node):
+    def __init__(self, id, x, y, problem):
         self.id = id
         self.xPos = x
         self.yPos = y
         self.color = "red"
 
+        Node.__init__(self, (x, y), problem)
+
     def __repr__(self):
-        return "ID:" + str(self.id)
+        """Representation method for printing a Node with valuable information"""
+        return "<VCNode (id:%s, state:%s, color:%s, c:%s)>" % (self.id, self.state, self.color, self.closed)
+
 
 
 class Constraint:
@@ -65,6 +69,12 @@ class GAC:
         while self.revise_queue:
             node, con = self.revise_queue.pop()
 
+
+            """
+
+            Wat?
+
+            """
             if not self.csp.domain[node]:
                 break
 
@@ -190,7 +200,7 @@ def create_nodes(num_vertices, graph):
     nodes = []
     for i in range(1, num_vertices + 1):
         id, x, y = [i for i in graph[i].split()]
-        node = Node(int(id), float(x), float(y))
+        node = VCNode(int(id), float(x), float(y), graph)
         nodes.append(node)
     return nodes
 
@@ -248,7 +258,7 @@ def init_VCproblem(graph=None):
     #    print(gac.get_neighbors(node))
 
 
-    print(gac.get_neighbors(csp.nodes[7]))
+    #print(gac.get_neighbors(csp.nodes[7]))
 
 
     root = Tk()
