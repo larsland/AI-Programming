@@ -1,5 +1,4 @@
 import copy, math, random
-from itertools import count
 from algorithms.search import Problem, PriorityNode
 from algorithms.utils import memoize, Bunch
 
