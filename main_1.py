@@ -309,7 +309,7 @@ class Astar_program(Frame):
 
         self.solutions = self.problem.solution.states
         self.step = self.problem.solution.steps
-        self.solution_path = list(reversed(self.problem.solution.path))[:-1]
+        self.solution_path = list(reversed(self.problem.solution['path']))[:-1]
         self.begin_solution_animation()
 
 

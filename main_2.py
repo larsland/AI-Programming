@@ -1,6 +1,6 @@
 from modul2.gui import Gui
 from tkinter import *
-from algorithms.search import Problem, PriorityNode, Bunch
+from algorithms.search import Problem, PriorityNode
 from algorithms.utils import memoize, HashableList
 import copy
 

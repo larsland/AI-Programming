@@ -1,7 +1,7 @@
 import copy, math, random
 from itertools import count
 from algorithms.search import Problem, PriorityNode
-from algorithms.utils import memoize
+from algorithms.utils import memoize, Bunch
 
 
 class BoardNode(PriorityNode):
@@ -42,7 +42,7 @@ class Board(Problem):
         self.height = 0
 
         # Holds several solution related data instances
-        self.solution = {'path': [], 'length': 0, 'found': False, 'steps': 0, 'states': []}
+        self.solution = Bunch(path=[], length=0, found=False, steps=0, states=[])
 
         # Initialize super class
         Problem.__init__(self, self.state, self.goal)
@@ -87,7 +87,6 @@ class Board(Problem):
                     node_row.append(node)                   # Add node to current row of nodes and
             self.state.append(node_row)                     # add row of nodes to the problem state.
 
-    @memoize
     def actions(self, node):
         """In our problem, actions are all nodes reachable from current Node within the board matrix"""
         actions = []

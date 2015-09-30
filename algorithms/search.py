@@ -12,7 +12,6 @@ class Problem():
         self.state = state
         self.goal = goal
         # Holds several solution related data instances
-        self.solution = Bunch(path=[], length=0, found=False, steps=0, states=[])
         # self.solution = {'path': [], 'length': 0, 'found': False, 'steps': 0, 'states': []}
 
     def initialize(self):
