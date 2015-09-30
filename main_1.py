@@ -242,7 +242,7 @@ class Astar_program(Frame):
     def begin_solution_animation(self):
         global cancel_animation_id
         self.reset_grid(self.board)
-        ms_delay = math.floor(6000 / float(len(self.solutions)))
+        ms_delay = math.floor(500 / float(len(self.solutions)))
         cancel_animation_id = self.after(
             ms_delay, self.update_solution_animation, None, self.solutions, ms_delay, 0)
 
@@ -262,7 +262,7 @@ class Astar_program(Frame):
 
     def animate_solution_path(self):
         global cancel_animation_id
-        ms_delay = math.floor(3000 / float(len(self.solution_path)))
+        ms_delay = math.floor(250 / float(len(self.solution_path)))
         cancel_animation_id = self.after(
             ms_delay, self.update_solution_path_animation, None, self.solution_path, ms_delay, 0)
 
