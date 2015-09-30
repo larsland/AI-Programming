@@ -107,11 +107,28 @@ class GAC:
         return revised
 
 
-class GACNode(PriorityNode):
-    def __init__(self, problem):
-        self.state = problem.state
+class GACStateNode(PriorityNode):
+    def __init__(self, gac_state, problem):
+        PriorityNode.__init__(self, gac_state, problem)
 
-        PriorityNode.__init__(self, None, None, problem, None)
+    def __repr__(self):
+        """Representation method for printing a Node with valuable information"""
+        return "<GACStateNode (f:%s, g:%s, h:%s, state:%s, closed:%s)>" % \
+               (self.f(), self.g, self.problem.h(self), self.state, self.closed)
+
+
+class BoardNode(PriorityNode):
+    def __init__(self, node_x, node_y, problem, tile):
+        self.x = node_x
+        self.y = node_y
+        self.tile = tile
+
+        PriorityNode.__init__(self, (node_x, node_y), problem)
+
+    def __repr__(self):
+        """Representation method for printing a Node with valuable information"""
+        return "<BoardNode (x,y:%s, f:%f, g:%i, h:%f, tile:%s, closed:%s)>" %\
+               (self.state, self.f(), self.g, self.problem.h(self), self.tile, self.closed)
 
 
 class VCGraphProblem(Problem, CSP):

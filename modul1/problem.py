@@ -4,6 +4,20 @@ from algorithms.search import Problem, PriorityNode
 from algorithms.utils import memoize
 
 
+class BoardNode(PriorityNode):
+    def __init__(self, node_x, node_y, problem, tile):
+        self.x = node_x
+        self.y = node_y
+        self.tile = tile
+
+        PriorityNode.__init__(self, (node_x, node_y), problem)
+
+    def __repr__(self):
+        """Representation method for printing a Node with valuable information"""
+        return "<BoardNode (x,y:%s, f:%f, g:%i, h:%f, tile:%s, closed:%s)>" %\
+               (self.state, self.f(), self.g, self.problem.h(self), self.tile, self.closed)
+
+
 class Board(Problem):
     """The problem in this task is a matrix of nodes, which can be thought of as a board.
     This board problem contains the variables needed to represent this matrix, and the
@@ -61,7 +75,7 @@ class Board(Problem):
             for tile in row:                                # For each tile in the board row
                 x += 1
                 if tile != '\n':                            # If tile not a line break then
-                    node = PriorityNode(x, y, self, tile)   # create the PriorityNode based on position and tile value.
+                    node = BoardNode(x, y, self, tile)      # create the PriorityNode based on position and tile value.
 
                     if tile == 'B':                         # If tile has value of B then
                         self.goal = node                    # set this node as the goal node.
@@ -76,15 +90,15 @@ class Board(Problem):
     def actions(self, node):
         """In our problem, actions are all nodes reachable from current Node within the board matrix"""
         actions = []
-        x, y = node.x, node.y
+        x, y = node.state
         try:
-            if node.x < self.width - 1:
+            if x < self.width - 1:
                 actions.append(self.state[y][x + 1])    # Right
-            if node.x > 0:
+            if x > 0:
                 actions.append(self.state[y][x - 1])    # Left
-            if node.y < self.height:
+            if y < self.height:
                 actions.append(self.state[y + 1][x])    # Down
-            if node.y > 0:
+            if y > 0:
                 actions.append(self.state[y - 1][x])    # Up
         except IndexError as e:
             print(e)

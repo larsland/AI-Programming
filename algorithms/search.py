@@ -46,12 +46,18 @@ class Node:
         self.parent = parent
         self.action = action
         self.path_cost = path_cost
+        self.closed = False     # Use this to check if the node has been traversed.
 
     def __eq__(self, other):
         return isinstance(other, Node) and self.state == other.state
 
     def __hash__(self):
         return hash(str(self.state))
+
+    def __repr__(self):
+        """Representation method for printing a Node with valuable information"""
+        return "<Node (state:%s, action:%s, path_cost:%s, c:%s)>" % (self.state, self.action, self.path_cost,
+                                                                     self.closed)
 
     def path(self):
         path = []
@@ -67,22 +73,11 @@ class PriorityNode(Node):
     The order of nodes is derived from the comparison method __lt__, based on priority, as seen below.
     For the purpose of this task the priority is calculated from f(n) = g(n) + h(n).
     """
-
-    def __init__(self, node_x, node_y, problem, tile):
-        self.problem = problem
-        # Coordinates
-        self.x = node_x
-        self.y = node_y
-
-        self.tile = tile    # 'A', 'B', '.' or '#'
-        self.problem = problem  # Reference to the board class
-
+    def __init__(self, state, problem):
         self.g = 1
         self.f = lambda: self.g + self.problem.h(self)
 
-        self.closed = False     # Use this to check if the node has been traversed.
-
-        Node.__init__(self, (node_x, node_y), problem)
+        Node.__init__(self, state, problem, path_cost=1)
 
     def __lt__(self, other):
         """Comparison method for priority queue"""
@@ -90,8 +85,8 @@ class PriorityNode(Node):
 
     def __repr__(self):
         """Representation method for printing a Node with valuable information"""
-        return "<Node (x:%s, y:%s, f:%s, g:%s, h:%s, t:%s)>" % (self.x, self.y, self.f(), self.g,
-                                                                self.problem.h(self), self.tile)
+        return "<PriorityNode (f:%s, g:%s, h:%s, state:%s, closed:%s)>" % \
+               (self.f(), self.g, self.problem.h(self), self.state, self.closed)
 
 
 class Agenda:
