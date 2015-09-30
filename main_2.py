@@ -65,6 +65,9 @@ class GAC:
         while self.revise_queue:
             node, con = self.revise_queue.pop()
 
+            if not self.csp.domain[node]:
+                break
+
             if self.revise(node, con):
                 self.push_pairs(node, con)
 
@@ -217,7 +220,7 @@ def makefunc(var_names, expression, envir=globals()):
     return eval('(lambda ' + args[1:] + ': ' + expression + ' ) ', envir)
 
 
-def init_VCproblem():
+def init_VCproblem(graph=None):
     var_list = input('vars: ').replace(' ', '').split(',')
     con_func = input('cons: ')
     description = con_func
@@ -225,6 +228,7 @@ def init_VCproblem():
 
     k = int(input("K-value (3-10): "))
     graph = get_graph()
+
     num_vertices = int([i for i in graph[0].split()][0])
     num_edges = int([i for i in graph[0].split()][1])
 
@@ -239,14 +243,18 @@ def init_VCproblem():
 
     csp = CSP(nodes, domains, constraints)
 
-    '''
+
     gac = GAC(csp)
     gac.initialization()
     gac.domain_filtering()
 
-    for node in csp.nodes:
-        print(gac.get_neighbors(node))
-    '''
+
+    #for node in csp.nodes:
+    #    print(gac.get_neighbors(node))
+
+
+    print(gac.get_neighbors(csp.nodes[7]))
+
 
     root = Tk()
     app = Gui(csp, master=root)
