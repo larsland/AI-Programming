@@ -75,6 +75,7 @@ class GAC:
                     if j != node:
                         self.revise_queue.append([c, j])
 
+    @memoize
     def get_neighbors(self, node):
         neighbors = []
         for c in self.csp.constraints:
