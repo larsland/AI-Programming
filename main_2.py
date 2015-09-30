@@ -5,13 +5,6 @@ from algorithms.utils import memoize
 import copy
 
 
-class GACNode(PriorityNode):
-    def __init__(self, problem):
-        self.state = problem.state
-
-        PriorityNode.__init__(self, None, None, problem, None)
-
-
 class Node:
     def __init__(self, id, x, y):
         self.id = id
@@ -33,14 +26,11 @@ class Constraint:
         return "<Constraint (vars:%s, c:%s)>" % (self.variables, self.description or '')
 
 
-class CSP(Problem):
+class CSP:
     def __init__(self, nodes, domain, constraints):
         self.nodes = nodes
         self.domain = domain
         self.constraints = constraints
-        self.state = Bunch(nodes=nodes, domain=domain, constraints=constraints)
-
-        Problem.__init__(self, (nodes, domain, constraints), (nodes, domain, constraints))
 
     def __repr__(self):
         return "<CSP (n: %s, d: %s, c: %s)>" % (self.nodes, self.domain, self.constraints)
@@ -51,19 +41,6 @@ class CSP(Problem):
             node_domain.remove(value)
         if removals is not None:
             removals.append((node, value))
-
-    def actions(self, node):
-        actions = []
-        for i, d in node.nodes:
-            if len(d) > 1:
-                children = []
-                for j in range(len(d)):
-                    child = copy.deepcopy(node)
-                    child.nodes[i] = [d[j]]
-                    child.rerun(i)
-                    if not child.contra:
-                        children.append(child)
-                return actions
 
 
 class GAC:
@@ -113,25 +90,6 @@ class GAC:
         self.push_pairs(i)
         self.domain_filtering()
 
-    """
-
-        for k in self.get_neighbors(node):
-            if node != k:
-                self.queue.append((k, node))
-
-        #for x in list(set(self.get_neighbors(node)) - set(con.variables)):
-        #    self.queue.append((x, node))
-        """
-
-    """
-    def rerun(self):
-        for constraint in self.csp.constraints:
-            if node in constraint.variables:
-                for c_v in constraint.variables:
-                    if node != c_v:
-                        self.queue.append((c_v, constraint))
-    """
-
     def revise(self, node, con):
         print('node: %s, domain: %s' % (node, self.csp.domain[node]))
         revised = False
@@ -142,26 +100,65 @@ class GAC:
                     revised = True
         return revised
 
-    '''
-    
-    
-    def revise(self, node, constraint):
-            new_domain = []
-            for domain_node in node.domain:
-                valid_domain = False
-                for constraint_node in constraint.vars:
-                    if constraint_node != node:
-                        for d in constraint_node.domain:
-                            if constraint.method([domain_node, d]):
-                                valid_domain = True
-                                break
-    '''
 
-class VCGraph(Problem):
+
+class GACNode(PriorityNode):
+    def __init__(self, problem):
+        self.state = problem.state
+
+        PriorityNode.__init__(self, None, None, problem, None)
+
+
+class VCGraphProblem(Problem, CSP):
     def __init__(self):
         self.state = []
         self.open = []
+        # self.h = lambda state: sum([len(self.domain[node])-1 for node in state.nodes])
 
+        Problem.__init__(self, self.state, self.open)
+
+    def h(self, state):
+        len_sum = 0
+        for node in state.nodes:
+            len_sum += self.domain[node] - 1
+        return len_sum
+
+    def initialize(self):
+        """Initialization method for the state of the problem,
+        can be a list, matrix, tree or any other data structure that fits the problem"""
+        pass
+
+    def actions(self, state):
+        """Returns all actions that can be performed from current state,
+        either as a data structure or a generator"""
+        actions = []
+        for i, d in state.nodes:
+            if len(d) > 1:
+                children = []
+                for j in range(len(d)):
+                    child = copy.deepcopy(state)
+                    child.nodes[i] = [d[j]]
+                    child.rerun(i)
+                    if not child.contra:
+                        children.append(child)
+                return actions
+        return []
+
+    def solve(self, algorithm):
+        """Solve the problem with the given algorithm"""
+        pass
+
+    def goal_test(self, other):
+        """General goal test to see if goal has been achieved"""
+        return self.goal == other
+
+    def save_state(self):
+        """Useful when you want to review the states your algorithm created"""
+        pass
+
+    def path_cost(self, movement):
+        """Cost of a movement"""
+        return 1
 
 def get_graph():
     input_graph = input("Select graph (1-6): ")
