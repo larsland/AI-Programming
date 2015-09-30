@@ -7,8 +7,8 @@ class Gui(Frame):
         self.csp = csp
         self.master.title("VC problem")
         self.pack()
-        self.canvas = Canvas(self, width=1366, height=768, highlightbackground='black', highlightthickness=1)
-        self.canvas.configure(scrollregion=(-384, -683, 384, 683))
+        self.canvas = Canvas(self, width=800, height=600, highlightbackground='black', highlightthickness=1)
+        #self.canvas.configure(scrollregion=(self.canvas.bbox("all")))
         self.selected_graph = None
         self.selected_k_value = None
         self.create_gui()
@@ -32,7 +32,8 @@ class Gui(Frame):
         self.paint_graph()
 
     def paint_graph(self):
-        print(len(self.csp.nodes))
+        dim = self.get_graph_dims()
+        self.get_graph_dims()
         for node in self.csp.nodes:
             node.xPos = float(node.xPos) * 20
             node.yPos = float(node.yPos) * 20
@@ -46,6 +47,27 @@ class Gui(Frame):
             end_y = self.csp.nodes[int(self.csp.constraints[i].variables[1])].yPos
 
             self.canvas.create_line(start_x+10, start_y+10, end_x+10, end_y+10)
+
+    def get_graph_dims(self):
+        x_positions, y_positions = [], []
+        for node in self.csp.nodes:
+            x_positions.append(node.xPos)
+            y_positions.append(node.yPos)
+        max_x = max(x_positions)
+        max_y = max(y_positions)
+        min_x = min(x_positions)
+        min_y = min(y_positions)
+        canvas_width = self.canvas['width']
+        canvas_height = self.canvas['height']
+
+        dimensions = {"max_x": max_x, "max_y": max_y, "min_x": min_x, "min_y": min_y,
+                      "c_width": canvas_width, "c_height": canvas_height}
+
+        return dimensions
+
+
+
+
 
 
 
