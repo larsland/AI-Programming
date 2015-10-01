@@ -13,6 +13,10 @@ class VCNode(Node):
         self.xPos = x
         self.yPos = y
         self.color = "red"
+        self.domain = []
+        self.choice = None
+        self.neighbors = []
+        self.constraint = lambda i, j: i != j
 
         Node.__init__(self, (x, y), problem)
 
@@ -21,8 +25,8 @@ class VCNode(Node):
 
     def __repr__(self):
         """Representation method for printing a Node with valuable information"""
-        return "<VCNode (id:%s, state:%s, color:%s, c:%s)>" % (self.id, self.state, self.color, self.closed)
-
+        # return "<VCNode (id:%s, state:%s, color:%s, c:%s, d:%s)>" % (self.id, self.state, self.color, self.closed, self.domain)
+        return "<VCNode (id:%s, d:%s, c:%s)>" % (self.id, self.domain, self.choice)
 
 
 class Constraint:
@@ -32,7 +36,8 @@ class Constraint:
         self.description = description
         
     def __repr__(self):
-        return "<Constraint (vars:%s, c:%s)>" % (self.variables, self.description or '')
+        # return "<Constraint (vars:%s, c:%s)>" % (self.variables, self.description or '')
+        return ""
 
 
 class CSP:
@@ -45,49 +50,51 @@ class CSP:
         return "<CSP (n: %s, d: %s, c: %s)>" % (self.nodes, self.domain, self.constraints)
 
     def prune(self, node, value, removals):
-        node_domain = self.domain[node.id]
-        if value in node_domain:
-            node_domain.remove(value)
+        if value in node.domain:
+            node.domain.remove(value)
         if removals is not None:
             removals.append((node, value))
 
     def get_domain(self, node):
-        return self.domain[node.id]
+        return node.domain
 
 
 class GAC(PriorityNode):
     def __init__(self, csp, problem):
         self.csp = csp
-        self.nodes = [] # revise queue
+        self.revise_queue = []  # revise queue
+
         self.removals = []
         self.problem = problem
 
-        PriorityNode.__init__(self, self.nodes, self.problem)
+        PriorityNode.__init__(self, self.revise_queue, self.problem)
+
+
+    def __repr__(self):
+        """Representation method for printing a Node with valuable information"""
+        return "<GAC (f:%s, g:%s, h:%s, revise_q:%s, closed:%s)>" % \
+               (self.f(), self.g, self.problem.h(self), self.revise_queue, self.closed)
 
     def initialization(self):
         for constraint in self.csp.constraints:
             for node_id in constraint.variables:
-                self.nodes.append((self.csp.nodes[node_id], constraint))
+                self.revise_queue.append((self.csp.nodes[node_id], constraint))
 
-        self.state = copy.deepcopy(self.nodes)
+        self.state = copy.deepcopy(self.revise_queue)
         # Print all node-constraint pairs in queue for debugging
-        for x in self.nodes:
+        for x in self.revise_queue:
             print(x)
 
     def domain_filtering(self):
-        while self.nodes:
-            node, con = self.nodes.pop()
+        while self.revise_queue:
+            node, con = self.revise_queue.pop()
 
-
-            """
-
-            Wat?
-
-            """
-            if not self.csp.domain[node.id]:
+            if not node.domain:
                 break
 
-            if self.revise(node, con):
+            print('NODE', node)
+            nodes = self.revise(node, con)
+            if nodes:
                 self.push_pairs(node, con)
 
     def push_pairs(self, node, con=None):
@@ -95,9 +102,9 @@ class GAC(PriorityNode):
             if node in c.variables and (con is None or c != con):
                 for j in c.variables:
                     if j != node:
-                        self.nodes.append([c, j])
+                        self.revise_queue.append([c, j])
 
-    @memoize
+    # @memoize
     def get_neighbors(self, node):
         neighbors = []
         for c in self.csp.constraints:
@@ -112,21 +119,29 @@ class GAC(PriorityNode):
                 neighbors += current
         return neighbors
 
+    def get_node(self, id):
+        for node, _ in self.revise_queue:
+            if node.id == id:
+                return node
+
     def rerun(self, i):
         self.push_pairs(i)
         self.domain_filtering()
 
     def revise(self, node, con):
-        print('node: %s, domain: %s' % (node, self.csp.domain[node.id]))
         revised = False
-        for value in self.csp.domain[node.id]:
-            for c_v in con.variables:
-                if node != c_v and con.method(value, self.csp.domain[c_v]):
-                    self.csp.prune(node, value, self.removals)
+        for value in node.domain:                                               # For each possible value in the domain of the node
+            for neighbor_id in con.variables:                                   # check against all neighbors on constraint
+                neighbor = self.get_node(neighbor_id)                           # get a neighbor node from id
+
+                if node.id != neighbor_id and not con.method(value, neighbor):  # if neighbor is not node and constraint does not hold
+                    if value in node.domain:
+                        node.domain.remove(value)
+                    # self.csp.prune(node, value, self.removals)  # prune neighbor from
                     revised = True
         return revised
 
-
+"""
 class GACStateNode(PriorityNode):
     def __init__(self, gac_state, problem):
         self.state = gac_state
@@ -134,21 +149,29 @@ class GACStateNode(PriorityNode):
         PriorityNode.__init__(self, gac_state, problem)
 
     def __repr__(self):
-        """Representation method for printing a Node with valuable information"""
+        # Representation method for printing a Node with valuable information
         return "<GACStateNode (f:%s, g:%s, h:%s, state:%s, closed:%s)>" % \
                (self.f(), self.g, self.problem.h(self), self.state, self.closed)
-
+"""
 
 class VCGraphProblem(Problem):
     def __init__(self, csp):
         self.csp = csp
         self.open = []
-        # self.h = memoize(lambda state: sum([len(self.domain[node])-1 for node in state.nodes]))
+
+        self.h = lambda state: sum(d for d in [len(n.domain)-1 for n, _ in state.revise_queue])
 
         # Holds several solution related data instances
         self.solution = Bunch(path=[], length=0, found=False, steps=0, states=[])
 
         Problem.__init__(self, csp)
+    """
+    def h(self, state):
+        len_sum = 0
+        for node, d in state.state:
+            len_sum += len(node.domain) - 1
+        return len_sum
+    """
 
     def __repr__(self):
         return "<VCGraphProblem (csp:%s, open:%s, solution:%s)>" % \
@@ -167,27 +190,24 @@ class VCGraphProblem(Problem):
         """Returns all actions that can be performed from current state,
         either as a data structure or a generator"""
         actions = []
-        for i, c in state.nodes:
-            vars = c.variables
-            if len(vars) > 1:
-                for var in vars:
-                    action = copy.deepcopy(state)
-                    action.csp.domain[i] = [var]
-                    action.rerun(i)
-                    print("hello?", action)
-                    if action.csp.domain[i]:
-                        actions.append(action)
-                return actions
-        return []
+        print("actions!")
+        for i, c in state.revise_queue:
+            _vars = c.variables
+            if len(_vars) > 1:
+                for var in _vars:
+                    if var != i.id:
+                        new_state = copy.deepcopy(state)
+                        for n in [n for n, _ in new_state.revise_queue if n.id == i.id]:
+                            n.domain = [var]
+                            n.choice = var
+                            print("before", new_state)
+                            new_state.rerun(i)
+                            print("after", new_state)
+                            if n.domain:
+                                actions.append(new_state)
 
-    def h(self, state):
-        print(self)
-        len_sum = 0
-        for node, d in state.nodes:
-            len_sum += len(self.csp.domain[node.id]) - 1
-            print(node.id, self.csp.domain[node.id])
-        print("H:", len_sum)
-        return len_sum
+        return actions
+
 
     def solve(self, algorithm):
         """Solve the problem with the selected algorithm and
@@ -202,11 +222,10 @@ class VCGraphProblem(Problem):
 
     def goal_test(self, other):
         """General goal test to see if goal has been achieved"""
-        return self.goal == self.h(other)
+        return False
 
     def save_state(self):
         """Useful when you want to review the states your algorithm created"""
-        pass
 
     def path_cost(self, movement):
         """Cost of a movement"""
@@ -258,7 +277,7 @@ def init_VCproblem(graph=None):
     if not con_func:
         con_func = 'x!=y'
     description = con_func
-    constraint = makefunc(var_list, con_func)
+    constraint = lambda x, y: x != y  # makefunc(var_list, con_func)
 
     k = input("K-value (3-10): ")
     if not k:
@@ -275,7 +294,7 @@ def init_VCproblem(graph=None):
     vc_domain = range(0, k)
     domains = {}
     for node in nodes:
-        domains[node.id] = list(vc_domain)
+        node.domain = list(vc_domain)
 
     csp = CSP(nodes, domains, constraints)
     vc = VCGraphProblem(csp)
