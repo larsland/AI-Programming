@@ -1,7 +1,7 @@
 from modul2.gui import Gui
 from tkinter import *
-from algorithms.search import Problem, PriorityNode, Node
-from algorithms.utils import memoize, HashableList
+from algorithms.search import Problem, PriorityNode, Node, a_star
+from algorithms.utils import memoize, HashableList, Bunch
 import copy
 
 
@@ -50,24 +50,26 @@ class CSP:
         return self.domain[node]
 
 
-class GAC:
-    def __init__(self, csp):
+class GAC(PriorityNode):
+    def __init__(self, csp, problem):
         self.csp = csp
-        self.revise_queue = []
+        self.nodes = [] # revise queue
         self.removals = []
+
+        PriorityNode.__init__(self, self.csp, problem)
 
     def initialization(self):
         for constraint in self.csp.constraints:
             for node_id in constraint.variables:
-                self.revise_queue.append((self.csp.nodes[node_id], constraint))
+                self.nodes.append((self.csp.nodes[node_id], constraint))
 
         # Print all node-constraint pairs in queue for debugging
-        for x in self.revise_queue:
+        for x in self.nodes:
             print(x)
 
     def domain_filtering(self):
-        while self.revise_queue:
-            node, con = self.revise_queue.pop()
+        while self.nodes:
+            node, con = self.nodes.pop()
 
 
             """
@@ -86,7 +88,7 @@ class GAC:
             if node in c.variables and (con is None or c != con):
                 for j in c.variables:
                     if j != node:
-                        self.revise_queue.append([c, j])
+                        self.nodes.append([c, j])
 
     @memoize
     def get_neighbors(self, node):
@@ -129,41 +131,76 @@ class GACStateNode(PriorityNode):
 
 
 class VCGraphProblem(Problem, CSP):
-    def __init__(self, state):
-        self.state = state
+    def __init__(self):
+        self.gac = None
+        self.state = None
         self.open = []
+        self.csp = None
         # self.h = memoize(lambda state: sum([len(self.domain[node])-1 for node in state.nodes]))
 
-        Problem.__init__(self, self.state, len(self.state.nodes))
+        # Holds several solution related data instances
+        self.solution = Bunch(path=[], length=0, found=False, steps=0, states=[])
 
-    @memoize
-    def h(self, state):
-        len_sum = 0
-        for node in state.nodes:
-            len_sum += self.domain[node] - 1
-        return len_sum
+        Problem.__init__(self, self.state)
 
     def initialize(self):
-        """Initialization method for the state of the problem,
-        can be a list, matrix, tree or any other data structure that fits the problem"""
-        pass
+        var_list = input('vars: ').replace(' ', '').split(',')
+        if not var_list:
+            var_list = ['x', 'y']
+        con_func = input('cons: ')
+        if not con_func:
+            con_func = 'x!=y'
+        description = con_func
+        constraint = makefunc(var_list, con_func)
 
-    @memoize
+        k = input("K-value (3-10): ")
+        if not k:
+            k = '3'
+        k = int(k)
+        graph = get_graph()
+
+        num_vertices = int([i for i in graph[0].split()][0])
+        num_edges = int([i for i in graph[0].split()][1])
+
+        nodes = create_nodes(num_vertices, graph)
+        constraints = set_constraints(num_vertices, graph, constraint, description)
+
+        vc_domain = range(0, k)
+        domains = {}
+        for node in nodes:
+            domains[node] = list(vc_domain)
+
+        self.csp = CSP(nodes, domains, constraints)
+        initial = GAC(self.csp, self)
+        # initial = GACStateNode(self.gac, self)
+        initial.initialization()
+        self.open.append(initial)
+
+        # self.goal = len(self.state.nodes)
+
+    # @memoize
     def actions(self, state):
         """Returns all actions that can be performed from current state,
         either as a data structure or a generator"""
         actions = []
         for i, d in state.nodes:
-            if len(d) > 1:
-                children = []
-                for j in range(len(d)):
-                    child = copy.deepcopy(state)
-                    child.nodes[i] = [d[j]]
-                    child.rerun(i)
-                    if not child.contra:
-                        children.append(child)
+            l = len(d.variables)
+            if l > 1:
+                for j in range(l):
+                    action = copy.deepcopy(state)
+                    action.nodes[i] = [d[j]]
+                    action.rerun(i)
+                    if action.nodes[i]:
+                        yield action
                 return actions
         return []
+
+    @memoize
+    def h(self, state):
+        len_sum = 0
+        for node, d in state.nodes:
+            len_sum += len(self.csp.domain[node]) - 1
+        return len_sum
 
     def solve(self, algorithm):
         """Solve the problem with the selected algorithm and
@@ -226,6 +263,16 @@ def makefunc(var_names, expression, envir=globals()):
 
 
 def init_VCproblem(graph=None):
+
+
+    vc = VCGraphProblem()
+    vc.solve(a_star)
+
+
+
+
+    """
+
     var_list = input('vars: ').replace(' ', '').split(',')
     con_func = input('cons: ')
     description = con_func
@@ -264,6 +311,8 @@ def init_VCproblem(graph=None):
     root = Tk()
     app = Gui(csp, master=root)
     app.mainloop()
+
+    """
 
 
 
