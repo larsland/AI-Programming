@@ -3,7 +3,6 @@ from modul1.problem import Board
 from tkinter import *
 import math
 
-
 class Astar_program(Frame):
     def __init__(self, master=None):
         self.problem = None
@@ -18,7 +17,8 @@ class Astar_program(Frame):
         Frame.__init__(self, master)
         self.master.title("A* Search")
         self.pack()
-        self.canvas = Canvas(self, width=600, height=600, highlightbackground='black', highlightthickness=1)
+        self.group_view = LabelFrame(self, text="View", padx=5, pady=5)
+        self.canvas = Canvas(self.group_view, width=600, height=600, highlightbackground='black', highlightthickness=1)
         self.cells = [[]]
         self.texts = [[]]
         self.create_gui()
@@ -48,41 +48,40 @@ class Astar_program(Frame):
         self.selected_mode.set("A*")
         self.selected_map.set("map1.txt")
 
-        '''Creating all the GUI components'''
-        # Menus
-        mode_menu = OptionMenu(self, self.selected_mode, "A*", "Breadth-first", "Depth-first",
+        # Creating the GUI components
+        group_options = LabelFrame(self, text="Options", padx=5, pady=5)
+        group_custom_map = LabelFrame(self, text="Custom Map Input", padx=5, pady=5)
+        group_stats = LabelFrame(self, text="Stats", padx=5, pady=5)
+
+        mode_menu = OptionMenu(group_options, self.selected_mode, "A*", "Breadth-first", "Depth-first",
                                command=self.reset_grid(matrix=None))
 
-        map_menu = OptionMenu(self, self.selected_map, "map1.txt", "map2.txt", "map3.txt", "map4.txt", "map5.txt",
+        map_menu = OptionMenu(group_options, self.selected_map, "map1.txt", "map2.txt", "map3.txt", "map4.txt", "map5.txt",
                               command=lambda matrix: self.reset_grid(open("modul1/"+matrix).readlines()))
 
         # Buttons
-        start_btn = Button(self, text="Solve", fg="green", command=self.start_program)
-        exit_btn = Button(self, text="Exit", fg="red", command=self.quit)
-        next_step_btn = Button(self, text="Next", fg="green", command=self.next_solution_grid)
-        prev_step_btn = Button(self, text="Back", fg="red", command=self.prev_solution_grid)
-        load_custom_map_btn = Button(self, text="Load custom map", command=self.load_custom_map)
+        start_btn = Button(group_options, text="Solve", fg="green", command=self.start_program)
+        exit_btn = Button(group_options, text="Exit", fg="red", command=self.quit)
+        next_step_btn = Button(group_options, text="Next", fg="green", command=self.next_solution_grid)
+        prev_step_btn = Button(group_options, text="Back", fg="red", command=self.prev_solution_grid)
+        load_custom_map_btn = Button(group_custom_map, text="Load custom map", command=self.load_custom_map)
 
-        self.custom_map_field = Text(self, width=20, height=10, highlightbackground='black', highlightthickness=1)
-        label_view = Label(self, text="Main view")
-        label_custom_map_view = Label(self, text="Custom map field")
-
-
+        self.custom_map_field = Text(group_custom_map, width=20, height=10, highlightbackground='black', highlightthickness=1)
 
         # Placing components in a grid
+        group_options.grid(row=0, column=0, sticky=W+E)
+        self.group_view.grid(row=1, column=0)
+        group_custom_map.grid(row=0, column=1, rowspan=2, sticky=N)
+        group_stats.grid(row=1, column=1, sticky=E+S+W)
         mode_menu.grid(row=0, column=0, padx=0, sticky=W)
         map_menu.grid(row=0, column=1, padx=0)
-        start_btn.grid(row=0, column=2)
         prev_step_btn.grid(row=0, column=3)
         next_step_btn.grid(row=0, column=4)
+        start_btn.grid(row=0, column=2)
         exit_btn.grid(row=0, column=5, sticky=E)
-        label_custom_map_view.grid(row=1, column=6, sticky=W, pady=6)
-        label_view.grid(row=1, column=0, pady=3)
-        self.canvas.grid(row=2, column=0, columnspan=6, rowspan=3)
-        self.custom_map_field.grid(row=2, column=6, sticky=N)
-
-        load_custom_map_btn.grid(row=0, column=6, sticky=E)
-
+        self.canvas.grid(row=0, column=0)
+        self.custom_map_field.grid(row=0, column=0, sticky=N)
+        load_custom_map_btn.grid(row=1, column=0, sticky=E+W)
 
         # Configuring components
         mode_menu.configure(width=15)
@@ -321,54 +320,6 @@ def main():
 main()
 
 
-"""
-def create_grid_from_string(self, board_matrix):
-    print(board_matrix)
-    map_string = ""
-    y_counter = 0
-
-    # Checking if the board comes from a file, or as a path
-    if ".txt" in board_matrix:
-        fo = open(board_matrix, "r")
-        for line in fo.readlines():
-            y_counter += 1
-            for c in line:
-                map_string += c
-    else:
-        for c in board_matrix:
-            y_counter += 1
-            map_string += c
-
-    # Changing the size of the canvas according to the current map dimensions
-    print(len(map_string))
-    self.canvas.config(width=len(map_string), height=len(map_string))
-
-    x0_counter = 0
-    y0_counter = 0
-    x1_counter = 30
-    y1_counter = 30
-
-    for c in map_string:
-        if c == '.':
-            self.canvas.create_rectangle(x0_counter, y0_counter, x1_counter, y1_counter, fill="white")
-        elif c == '#':
-            self.canvas.create_rectangle(x0_counter, y0_counter, x1_counter, y1_counter, fill="#121f1f")
-        elif c == 'A':
-            self.canvas.create_rectangle(x0_counter, y0_counter, x1_counter, y1_counter, fill="green")
-        elif c == 'B':
-            self.canvas.create_rectangle(x0_counter, y0_counter, x1_counter, y1_counter, fill="red")
-        elif c == 'x':
-            self.canvas.create_rectangle(x0_counter, y0_counter, x1_counter, y1_counter, fill="yellow")
-
-        x0_counter += 30
-        x1_counter += 30
-
-        if c == '\n':
-            x0_counter = 0
-            y0_counter += 30
-            x1_counter = 30
-            y1_counter += 30
-"""
 
 
 
