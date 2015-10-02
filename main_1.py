@@ -157,14 +157,14 @@ class Astar_program(Frame):
                     if x < size[0] and y < size[1]:
                         matrix[block[1]][block[0]] = '#'
 
-            matrix[start_node[0]][start_node[1]] = 'A'
-            matrix[goal_node[0]][goal_node[1]] = 'B'
+            matrix[start_node[1]][start_node[0]] = 'A'
+            matrix[goal_node[1]][goal_node[0]] = 'B'
 
             self.board = matrix.reverse()
             self.reset_grid(matrix)
 
         except Exception as e:
-            print("no boi:", e)
+            print("Invalid map data:", e)
 
     def next_solution_grid(self):
         if self.step < len(self.solutions):
