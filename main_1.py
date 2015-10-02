@@ -3,6 +3,7 @@ from modul1.problem import Board
 from tkinter import *
 import math
 
+
 class Astar_program(Frame):
     def __init__(self, master=None):
         self.problem = None
@@ -154,13 +155,12 @@ class Astar_program(Frame):
                 for block in self.get_blocks(blockade):
                     x, y = block[0], block[1]
                     if x < size[0] and y < size[1]:
-                        matrix[block[0]][block[1]] = '#'
-
+                        matrix[block[1]][block[0]] = '#'
 
             matrix[start_node[0]][start_node[1]] = 'A'
             matrix[goal_node[0]][goal_node[1]] = 'B'
 
-            self.board = matrix
+            self.board = matrix.reverse()
             self.reset_grid(matrix)
 
         except Exception as e:
