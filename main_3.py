@@ -2,6 +2,16 @@ from tkinter import Tk
 from modul3.gui import Gui
 
 
+class Variable:
+    def __init__(self, state, index):
+        self.index = index
+        self.state = state
+        self.domain = []
+
+    def __repr__(self):
+        return "ID: " + str(self.index) + " State: " + str(self.state) + " Domain: " + str(self.domain)
+
+
 def get_scenario():
     input_scenario = input("Select scenario (0-6): ")
     input_scenario = "scenario" + str(input_scenario) + ".txt"
@@ -24,9 +34,20 @@ def get_col_specs(scenario, num_rows):
 
 
 def create_vars(matrix):
+    rows = []
+    cols = []
     vars = []
     for row in range(len(matrix)):
-        vars.append(matrix[row])
+        rows.append(matrix[row])
+    for i in range(len(matrix[0])):
+        cols.append([row[i] for row in matrix])
+
+    vars = zip(rows, cols)
+
+    print("VARS: ", list(vars))
+
+
+
     return vars
 
 
@@ -52,8 +73,15 @@ def init():
     col_specs = get_col_specs(scenario, num_rows)
 
     matrix = [['0' for x in range(num_cols)] for x in range(num_rows)]
+    matrix[0][0] = 'X'
+    matrix[6][0] = 'X'
 
     vars = create_vars(matrix)
+    #for i in range(0, len(vars)):
+    #    print(vars[i])
+
+    print("Length", len(matrix))
+    print("COL: ", [row[0] for row in matrix])
 
     root = Tk()
     app = Gui(matrix, master=root)
