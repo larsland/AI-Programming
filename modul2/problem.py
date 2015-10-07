@@ -1,8 +1,6 @@
-
 from heapq import heappush, heappop
-from collections import deque
-import math
 from algorithms.utils import memoize
+
 
 class Problem():
     def __init__(self, state, goal=None):
