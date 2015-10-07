@@ -3,9 +3,11 @@ from tkinter import *
 from algorithms.search import Problem, PriorityNode, Node, a_star
 from algorithms.utils import memoize, HashableList, Bunch
 import copy
-
+from pprint import PrettyPrinter
+pp = PrettyPrinter(indent=4)
 import itertools
 count = itertools.count()
+
 
 class VCNode(Node):
     def __init__(self, id, x, y, problem):
@@ -26,7 +28,7 @@ class VCNode(Node):
     def __repr__(self):
         """Representation method for printing a Node with valuable information"""
         # return "<VCNode (id:%s, state:%s, color:%s, c:%s, d:%s)>" % (self.id, self.state, self.color, self.closed, self.domain)
-        return "<VCNode (id:%s, d:%s, c:%s)>" % (self.id, self.domain, self.choice)
+        return "<VCNode (id:%s, d:%s)>" % (self.id, self.domain)
 
 
 class Constraint:
@@ -36,8 +38,7 @@ class Constraint:
         self.description = description
         
     def __repr__(self):
-        # return "<Constraint (vars:%s, c:%s)>" % (self.variables, self.description or '')
-        return ""
+        return "<Constraint (vars:%s, c:%s)>" % (self.variables, self.description or '')
 
 
 class CSP:
@@ -58,71 +59,66 @@ class CSP:
     def get_domain(self, node):
         return node.domain
 
+    def get_node(self, _id):
+        return self.nodes[_id]
+
 
 class GAC(PriorityNode):
-    def __init__(self, csp, problem):
+    def __init__(self, csp, problem, _id=None):
+        self.id = _id
         self.csp = csp
         self.revise_queue = []  # revise queue
 
         self.removals = []
         self.problem = problem
 
-        PriorityNode.__init__(self, self.revise_queue, self.problem)
+        self.g = 1
+        self.f = lambda: self.g + self.problem.h(self)
+
+        PriorityNode.__init__(self, self.revise_queue, self.problem, self.g)
 
 
     def __repr__(self):
         """Representation method for printing a Node with valuable information"""
-        return "<GAC (f:%s, g:%s, h:%s, revise_q:%s, closed:%s)>" % \
-               (self.f(), self.g, self.problem.h(self), self.revise_queue, self.closed)
+        return "<GAC (id:%i, f:%s, g:%s, h:%s, revise_q:%s, closed:%s)>" % \
+               (self.id, self.f(), self.g, self.problem.h(self), self.revise_queue, self.closed)
 
     def initialization(self):
-        for constraint in self.csp.constraints:
-            for node_id in constraint.variables:
-                self.revise_queue.append((self.csp.nodes[node_id], constraint))
+        self.revise_queue = [(self.csp.nodes[n], c) for c in self.csp.constraints for n in c.variables]
+        self.state = list(self.revise_queue)
 
-        self.state = copy.deepcopy(self.revise_queue)
         # Print all node-constraint pairs in queue for debugging
+        n, c = self.revise_queue[0]
+        # tiny assumption
+        n.domain = [n.domain[0]]
         for x in self.revise_queue:
             print(x)
 
     def domain_filtering(self):
+        #print("Revise queue -------------------------------------------------")
+        pp.pprint(self)
+        #print("Revise queue -------------------------------------------------")
         while self.revise_queue:
-            node, con = self.revise_queue.pop()
+            node, con = self.revise_queue.pop(0)
 
             if not node.domain:
                 break
 
-            print('NODE', node)
-            nodes = self.revise(node, con)
-            if nodes:
-                self.push_pairs(node, con)
+            print('revising')
+            if self.revise(node, con):
+                self.push_pairs(node)
 
     def push_pairs(self, node, con=None):
+        print("wat")
         for c in self.csp.constraints:
             if node in c.variables and (con is None or c != con):
                 for j in c.variables:
+                    print('Seriously?', (node, j) not in self.revise_queue)
                     if j != node:
-                        self.revise_queue.append([c, j])
+                        self.revise_queue.append((c, j))
 
-    # @memoize
-    def get_neighbors(self, node):
-        neighbors = []
-        for c in self.csp.constraints:
-            neighbor = False
-            current = []
-            for n_id in c.variables:
-                if node.id == n_id:
-                    neighbor = True
-                else:
-                    current.append(n_id)
-            if neighbor:
-                neighbors += current
-        return neighbors
-
-    def get_node(self, id):
-        for node, _ in self.revise_queue:
-            if node.id == id:
-                return node
+    def get_node(self, _id):
+        return self.csp.nodes[_id]
 
     def rerun(self, i):
         self.push_pairs(i)
@@ -130,29 +126,42 @@ class GAC(PriorityNode):
 
     def revise(self, node, con):
         revised = False
-        for value in node.domain:                                               # For each possible value in the domain of the node
-            for neighbor_id in con.variables:                                   # check against all neighbors on constraint
-                neighbor = self.get_node(neighbor_id)                           # get a neighbor node from id
-
-                if node.id != neighbor_id and not con.method(value, neighbor):  # if neighbor is not node and constraint does not hold
-                    if value in node.domain:
-                        node.domain.remove(value)
-                    # self.csp.prune(node, value, self.removals)  # prune neighbor from
+        print('node, con')
+        pp.pprint((node, con))
+        for value in node.domain:
+            satisfies = False
+            other_node = self.get_node([n for n in con.variables if n != node][0])
+            for other_value in other_node.domain:
+                if con.method(value, other_value):
+                    satisfies = True
+                    break
+            if not satisfies:
+                if value in node.domain:
+                    node.domain.remove(value)
                     revised = True
         return revised
 
-"""
-class GACStateNode(PriorityNode):
-    def __init__(self, gac_state, problem):
-        self.state = gac_state
-        self.nodes = gac_state.nodes
-        PriorityNode.__init__(self, gac_state, problem)
+    def revise_old_shit(self, node, con):
+        revised = False
+        for value in node.domain:                                               # For each possible value in the domain of the node
+            for neighbor_id in con.variables:                                   # check against all neighbors on constraint
+                neighbor = self.get_node(neighbor_id)                           # get a neighbor node from id
+                if neighbor:
+                    for val2 in neighbor.domain:
+                        if node.id != neighbor_id and con.method(value, val2):  # if neighbor is not node and constraint does not hold
+                            if value in node.domain:
+                                node.domain.remove(value)
+                            # self.csp.prune(node, value, self.removals)  # prune neighbor from
+                            revised = True
+        return revised
 
-    def __repr__(self):
-        # Representation method for printing a Node with valuable information
-        return "<GACStateNode (f:%s, g:%s, h:%s, state:%s, closed:%s)>" % \
-               (self.f(), self.g, self.problem.h(self), self.state, self.closed)
-"""
+
+
+class GACNode(GAC, PriorityNode):
+    def __init__(self, csp, problem):
+        GAC.__init__(self, csp, problem)
+
+
 
 class VCGraphProblem(Problem):
     def __init__(self, csp):
@@ -178,10 +187,16 @@ class VCGraphProblem(Problem):
                (self.csp, self.open, self.solution)
 
     def initialize(self):
-        initial = GAC(self.csp, self)
+        initial = GAC(self.csp, self, next(count))
         # initial = GACStateNode(self.gac, self)
         initial.initialization()
+        pp.pprint(initial)
+        print('w-------a--------t')
+        initial.domain_filtering()
+        print('w-------a--------t')
+        pp.pprint(initial)
         self.open.append(initial)
+
 
         # self.goal = len(self.state.nodes)
 
@@ -192,22 +207,33 @@ class VCGraphProblem(Problem):
         actions = []
         print("actions!")
         for i, c in state.revise_queue:
+            print('____________________________________________________________________________________')
+            print('')
+            pp.pprint((i, c))
+            print('____________________________________________________________________________________')
+            print('')
             _vars = c.variables
             if len(_vars) > 1:
                 for var in _vars:
                     if var != i.id:
                         new_state = copy.deepcopy(state)
+                        new_state.id = next(count)
                         for n in [n for n, _ in new_state.revise_queue if n.id == i.id]:
+
+                            print("Before:")
+                            pp.pprint(new_state)
+
+                            # Assumption!
                             n.domain = [var]
-                            n.choice = var
-                            print("before", new_state)
                             new_state.rerun(i)
-                            print("after", new_state)
+
+                            print("After:")
+                            pp.pprint(new_state)
+
                             if n.domain:
                                 actions.append(new_state)
 
         return actions
-
 
     def solve(self, algorithm):
         """Solve the problem with the selected algorithm and

@@ -1,8 +1,8 @@
+
 from heapq import heappush, heappop
 from collections import deque
-from algorithms.utils import memoize, Bunch
 import math
-
+from algorithms.utils import memoize
 
 class Problem():
     def __init__(self, state, goal=None):
@@ -96,13 +96,19 @@ class Agenda:
     def __init__(self):
         pass
 
-    def add(self, problem, node):
+    @staticmethod
+    def add(queue, node):
         # Push node onto heap
-        heappush(problem.open, node)
+        heappush(queue, node)
 
-    def pop(self, queue):
+    @staticmethod
+    def pop(queue):
         # Use heappop to retrieve node with highest priority
-        return heappop(queue)
+        return heappop(queue)[1], queue
+
+    @staticmethod
+    def contains(item, queue):
+        return item in queue
 
 
 class LIFO:
@@ -110,11 +116,17 @@ class LIFO:
     def __init__(self):
         pass
 
-    def add(self, problem, item):
-        problem.open.append(item)  # Last in
+    @staticmethod
+    def add(_open, item):
+        _open.append(item)  # Last in
 
-    def pop(self, queue):
-        return queue.pop()  # First out
+    @staticmethod
+    def pop(queue):
+        return queue.pop()[1], queue  # First out
+
+    @staticmethod
+    def contains(item, queue):
+        return item in queue
 
 
 class FIFO:
@@ -122,69 +134,65 @@ class FIFO:
     def __init__(self):
         pass
 
-    def add(self, problem, item):
-        problem.open.appendleft(item)  # First in
+    @staticmethod
+    def add(_open, item):
+        _open.appendleft(item)  # First in
 
-    def pop(self, queue):
-        return queue.pop()  # First out
+    @staticmethod
+    def pop(queue):
+        return queue.pop()[1], queue  # First out
 
-def graph_search2(problem, frontier):
-    """ A normal Graph search contains all the necessary tools to implement the three algorithms
-     specified in the task."""
-    problem.initialize()                            # Initialize problem state
-    while problem.open:                             # While there are still nodes in the queue
-        node = frontier.pop(problem.open)           # Pop start node
-        if problem.goal_test(node):                 # Is current node the goal node? Then
-            return node.path(), True                # end algorithm and return result
-
-        if node.closed:
-            continue
-
-        node.closed = True
-        for child in problem.actions(node):         # For each child node reachable from the current node,
-
-            print("child", child)
-            if child.closed and node.g + 1 >= child.g:
-                continue
-
-            if child not in problem.open or node.g + 1 < child.g:
-                child.parent = node
-                child.g = node.g + problem.path_cost((node, child))
-                if child not in problem.open:
-                    child.closed = False
-                    frontier.add(problem, child)
-
-            if not child.parent or not child.parent.closed:    # Calling child services.
-                child.parent = node
-
-            if not child.closed and child not in problem.open:
-                                                    # if child node has been closed then
-                frontier.add(problem, child)        # Add child to list of open nodes
-
-        node.closed = True                          # All the child nodes of this node have been explored so we close it
-        problem.save_state()                        # current state
-
-    return [], False                       # End algorithm and return result
+    @staticmethod
+    def contains(item, queue):
+        return item in queue
 
 
-def a_star(problem):
-    """A* is a graph search with a heuristic.
-    In our implementation we use our Priority Nodes
-    with their heuristic as well as a PriorityQueue
-    to implement the A* algorithm."""
-    return graph_search(problem, Agenda())
+class GraphSearch:
+    def __init__(self, problem, frontier):
+        self.problem = problem
+        self.frontier = frontier()
+        self.open, self.closed, self.path, self.came_from = [], [], [], {}
 
+        self.is_closed = memoize(lambda node: node in self.closed)
 
-def depth_first_search(problem):
-    """Depth first search is a graph search
-    where the open nodes are on a Last In First Out queue (LIFO),
-    also known as a Stack"""
-    problem.open = deque()
-    return graph_search(problem, LIFO())
+        # Initializing
+        self.g = {self.problem.start: 0}
+        self.frontier.add(self.open, (self.problem.h(self.problem.start), self.problem.start))
 
+    def search(self):
+        """
+        A general algorithm for A*, dfs and bfs search.
+        :param problem: The problem instance that this graph searcher will try to solve
+        :param frontier: Class which holds methods to interact with the data structure of open nodes
+        :return: Path to goal and indicator of success
+        """
+        _open, closed, path = self.open, self.closed, self.path
+        problem, g, frontier = self.problem, self.g, self.frontier
+        is_closed = self.is_closed
 
-def breadth_first_search(problem):
-    """Depth first search is a graph search
-    where the open nodes are on a First In first Out queue (LIFO)"""
-    problem.open = deque()
-    return graph_search(problem, FIFO())
+        while _open:
+            node, _open = frontier.pop(_open)
+            closed.append(node)
+            #problem.save_state(node)
+            path.append(node)
+            if problem.is_goal(node):
+                return self.path, True
+            for child in problem.actions(node):
+                #print("child", child)
+                new_g = g[node] + problem.path_cost((node, child))
+                if is_closed(child):
+                    continue
+                in_open = frontier.contains(child, _open)
+                if not in_open or (child in g and new_g < g[child]):
+                    g[child] = new_g
+                    f = new_g + problem.h(child)
+                    self.came_from[child] = node
+                    if not in_open:
+                        frontier.add(_open, (f, child))
+        return [], False
+
+    def reconstruct_path(self, path):
+        " Reconstructs path from goal to start node. "
+        while path[-1] != self.problem.start:
+            path.append(self.came_from[path[-1]])
+        return path[::-1]
