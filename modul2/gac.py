@@ -78,7 +78,7 @@ class GACState(CSP):
                 for j in c.variables:
                     if j != node:
                         self.queue.append((j, c))
-
+    """
     def unsat_cs(self):
         uc = 0
         for c in self.constraints:
@@ -94,3 +94,4 @@ class GACState(CSP):
 
     def uncolor_vs(self):
         return sum([1 for d in self.nodes.itervalues() if len(d) > 1])
+    """

@@ -1,6 +1,7 @@
 from modul2.GAC import GACState, Constraint
 import copy
 
+
 class VCProblem:
     def __init__(self):
         self.points = {}
