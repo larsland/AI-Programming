@@ -46,12 +46,7 @@ class GACState(CSP):
                 self.push_pairs(node, cons)
 
     def revise(self, node, cons):
-        #print('node: ', node)
-        #print('cons: ', cons)
-        #print(self.nodes)
-        #print([self.nodes[j] for j in cons.variables if j != node])
         combinations = [i for i in map(list, zip(*[self.nodes[j] for j in cons.variables if j != node]))]
-        print(combinations)
 
         def constraint_cmp(x, var_combs=combinations):
             return any(map(lambda vs: cons.method(vs + [x]), var_combs))
