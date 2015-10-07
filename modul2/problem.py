@@ -81,7 +81,7 @@ class PriorityNode(Node):
 
     def __lt__(self, other):
         """Comparison method for priority queue"""
-        return self.f() < other.f()
+        return self.f < other.f
 
     def __repr__(self):
         """Representation method for printing a Node with valuable information"""
@@ -102,7 +102,7 @@ class Agenda:
     @staticmethod
     def pop(queue):
         # Use heappop to retrieve node with highest priority
-        return heappop(queue)[1], queue
+        return heappop(queue), queue
 
     @staticmethod
     def contains(item, queue):
@@ -120,7 +120,7 @@ class LIFO:
 
     @staticmethod
     def pop(queue):
-        return queue.pop()[1], queue  # First out
+        return queue.pop(), queue  # First out
 
     @staticmethod
     def contains(item, queue):
@@ -138,7 +138,7 @@ class FIFO:
 
     @staticmethod
     def pop(queue):
-        return queue.pop()[1], queue  # First out
+        return queue.pop(), queue  # First out
 
     @staticmethod
     def contains(item, queue):
@@ -155,7 +155,7 @@ class GraphSearch:
 
         # Initializing
         self.g = {self.problem.start: 0}
-        self.frontier.add(self.open, (self.problem.h(self.problem.start), self.problem.start))
+        self.frontier.add(self.open, self.problem.start)
 
     def search(self):
         """
@@ -176,17 +176,17 @@ class GraphSearch:
             if problem.is_goal(node):
                 return self.path, True
             for child in problem.actions(node):
-                #print("child", child)
                 new_g = g[node] + problem.path_cost((node, child))
                 if is_closed(child):
                     continue
                 in_open = frontier.contains(child, _open)
                 if not in_open or (child in g and new_g < g[child]):
                     g[child] = new_g
-                    f = new_g + problem.h(child)
+                    child.f = new_g + problem.h(child)
                     self.came_from[child] = node
                     if not in_open:
-                        frontier.add(_open, (f, child))
+                        frontier.add(_open, child)
+        print("wat")
         return [], False
 
     def reconstruct_path(self, path):

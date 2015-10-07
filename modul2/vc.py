@@ -1,5 +1,22 @@
-from modul2.GAC import GACState, Constraint
+from algorithms.csp import Constraint, GAC
+from algorithms.utils import UniversalDict
 import copy
+
+
+# PriorityNode
+class VCGACNode(GAC):
+    def __init__(self, nodes, problem, constraints):
+        self.nodes = nodes
+        self.problem = problem
+        self.constraints = constraints
+        self.queue = []
+        self.contradiction = False
+        self.f = 0
+
+        GAC.__init__(self, nodes, nodes, constraints)
+
+    def __lt__(self, other):
+        return self.f < other.f
 
 
 class VCProblem:
@@ -9,12 +26,12 @@ class VCProblem:
         self.constraints = []
         self.get_input()
 
-        self.Constraint = Constraint
-        root = GACState(self.nodes, self, self.constraints)
+        self._constraints = UniversalDict(lambda x, y: x != y)
+
+        root = VCGACNode(self.nodes, self, self.constraints)
         root.initialize()
         root.domain_filtering()
         self.start = root
-        self.i = 0
 
         self.open = [root]
 
@@ -29,17 +46,18 @@ class VCProblem:
 
     def actions(self, state):
         " Generates children and runs the rerun method. "
+        children = []
         for node, dom in state.nodes.items():
+            children = []
             if len(dom) > 1:
-                children = []
                 for j in range(len(dom)):
                     child = copy.deepcopy(state)
                     child.nodes[node] = [dom[j]]
                     child.rerun(node)
                     if not child.contradiction:
                         children.append(child)
-                assert(children != []) # No solution or bug
                 return children
+        return children
 
     def h(self, state):
         return sum(len(d)-1 for d in state.nodes.values())
@@ -55,6 +73,26 @@ class VCProblem:
         for n in var_names:
             args += "," + n
         return eval("(lambda " + args[1:] + ": " + expression + ")")
+
+    def get_input(self):
+        " From file and asks K from user. "
+        f = open('modul2/graph.txt', "r")
+        ls = f.read().splitlines()
+        nv, ne = map(int, ls[0].split())
+
+        K = int(input("K = "))
+
+        for s in ls[1:nv+1]:
+            index, x, y = map(eval, s.split())
+            self.points[index] = (x, y)
+            self.nodes[index] = [i for i in range(K)]
+
+        for s in ls[nv+1:]:
+            n, m = map(int, s.split())
+            self.constraints.append(Constraint([n, m], lambda x, y: x != y))
+
+    def solve(self, algorithm):
+        print(algorithm(self))
 
     """
     def make_var(self, l, s):
@@ -84,24 +122,3 @@ class VCProblem:
             constraint = Constraint([n, m], lambda n: n[0] != n[1], description)
             self.constraints.append(constraint)
     """
-
-    def get_input(self):
-        " From file and asks K from user. "
-        f = open('modul2/graph.txt', "r")
-        ls = f.read().splitlines()
-        nv, ne = map(int, ls[0].split())
-
-        K = int(input("K = "))
-
-        for s in ls[1:nv+1]:
-            index, x, y = map(eval, s.split())
-            self.points[index] = (x, y)
-            self.nodes[index] = [i for i in range(K)]
-
-        for s in ls[nv+1:]:
-            n, m = map(int, s.split())
-            self.constraints.append(Constraint([n, m], lambda n: n[0] != n[1]))
-
-
-    def solve(self, algorithm):
-        print(algorithm(self))
