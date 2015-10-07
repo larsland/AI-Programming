@@ -128,7 +128,7 @@ class FIFO:
     def pop(self, queue):
         return queue.pop()  # First out
 
-def graph_search2(problem, frontier):
+def graph_search(problem, frontier):
     """ A normal Graph search contains all the necessary tools to implement the three algorithms
      specified in the task."""
     problem.initialize()                            # Initialize problem state
