@@ -1,6 +1,7 @@
 from tkinter import Tk
 from modul3.gui import Gui
 
+
 def get_scenario():
     input_scenario = input("Select scenario (0-6): ")
     input_scenario = "scenario" + str(input_scenario) + ".txt"
@@ -22,6 +23,25 @@ def get_col_specs(scenario, num_rows):
     return col_specs
 
 
+def create_vars(matrix):
+    vars = []
+    for row in range(len(matrix)):
+        vars.append(matrix[row])
+    return vars
+
+
+def printer(row_specs, col_specs, matrix, num_cols, num_rows):
+    for line in range(len(matrix)):
+        print(matrix[line])
+
+    print("NUMBER OF COLUMNS: " + str(num_cols))
+    print("NUMBER OF ROWS: " + str(num_rows))
+    print("ROW SPECS: ")
+    print(row_specs)
+    print("COL SPECS: ")
+    print(col_specs)
+
+
 def init():
     scenario = get_scenario()
 
@@ -33,23 +53,11 @@ def init():
 
     matrix = [['0' for x in range(num_cols)] for x in range(num_rows)]
 
-    for line in range(len(matrix)):
-        print(matrix[line])
-
-    print("NUMBER OF COLUMNS: " + str(num_cols))
-    print("NUMBER OF ROWS: " + str(num_rows))
-    print("ROW SPECS: ")
-    print(row_specs)
-    print("COL SPECS: ")
-    print(col_specs)
-
-    matrix[0][0] = 'X'
+    vars = create_vars(matrix)
 
     root = Tk()
     app = Gui(matrix, master=root)
     app.mainloop()
-
-
 
 
 init()
