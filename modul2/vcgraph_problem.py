@@ -13,7 +13,7 @@ class VCGACNode(GAC):
         self.contradiction = False
         self.f = 0
 
-        GAC.__init__(self, nodes, nodes, constraints)
+        GAC.__init__(self, nodes, problem, constraints)
 
     def __lt__(self, other):
         return self.f < other.f
@@ -21,22 +21,21 @@ class VCGACNode(GAC):
 
 class VCProblem:
     def __init__(self):
-        self.points = {}
         self.nodes = {}
         self.constraints = []
         self.get_input()
 
         self._constraints = UniversalDict(lambda x, y: x != y)
 
+        self.initialize()
+
+    def initialize(self):
         root = VCGACNode(self.nodes, self, self.constraints)
         root.initialize()
         root.domain_filtering()
         self.start = root
 
         self.open = [root]
-
-    def initialize(self):
-        pass
 
     def save_state(self):
         pass
@@ -46,18 +45,17 @@ class VCProblem:
 
     def actions(self, state):
         " Generates children and runs the rerun method. "
-        children = []
+        actions = []
         for node, dom in state.nodes.items():
-            children = []
             if len(dom) > 1:
                 for j in range(len(dom)):
                     child = copy.deepcopy(state)
                     child.nodes[node] = [dom[j]]
                     child.rerun(node)
                     if not child.contradiction:
-                        children.append(child)
-                return children
-        return children
+                        actions.append(child)
+                return actions
+        return actions
 
     def h(self, state):
         return sum(len(d)-1 for d in state.nodes.values())
@@ -76,7 +74,7 @@ class VCProblem:
 
     def get_input(self):
         " From file and asks K from user. "
-        f = open('modul2/graph.txt', "r")
+        f = open('modul2/graph6.txt', "r")
         ls = f.read().splitlines()
         nv, ne = map(int, ls[0].split())
 
@@ -84,7 +82,6 @@ class VCProblem:
 
         for s in ls[1:nv+1]:
             index, x, y = map(eval, s.split())
-            self.points[index] = (x, y)
             self.nodes[index] = [i for i in range(K)]
 
         for s in ls[nv+1:]:
