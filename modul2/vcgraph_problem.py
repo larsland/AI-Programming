@@ -72,7 +72,7 @@ class VCProblem:
 
     def get_input(self):
         " From file and asks K from user. "
-        f = open('modul2/graph1.txt', "r")
+        f = open('modul2/graph2.txt', "r")
         ls = f.read().splitlines()
         nv, ne = map(int, ls[0].split())
 

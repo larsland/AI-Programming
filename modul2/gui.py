@@ -66,7 +66,8 @@ class Gui(Frame):
 
         for i in self.csp.coordinates:
             self.canvas.create_oval(self.csp.coordinates[i][0], self.csp.coordinates[i][1],
-                                    self.csp.coordinates[i][0] + 15, self.csp.coordinates[i][1] + 15, fill="black")
+                                    self.csp.coordinates[i][0] + 15, self.csp.coordinates[i][1] + 15,
+                                    fill="black")
 
     def get_graph_dims(self):
         x_positions, y_positions = [], []
