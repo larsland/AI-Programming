@@ -5,15 +5,12 @@ import copy
 
 # PriorityNode
 class VCGACNode(GAC):
-    def __init__(self, nodes, problem, constraints):
-        self.nodes = nodes
+    def __init__(self, nodes, problem, constraints, coordinates):
+        self.coordinates = coordinates
         self.problem = problem
-        self.constraints = constraints
-        self.queue = []
-        self.contradiction = False
         self.f = 0
 
-        GAC.__init__(self, nodes, problem, constraints)
+        GAC.__init__(self, nodes, nodes, constraints)
 
     def __lt__(self, other):
         return self.f < other.f
@@ -21,6 +18,7 @@ class VCGACNode(GAC):
 
 class VCProblem:
     def __init__(self):
+        self.coordinates = {}
         self.nodes = {}
         self.constraints = []
         self.get_input()
@@ -30,7 +28,7 @@ class VCProblem:
         self.initialize()
 
     def initialize(self):
-        root = VCGACNode(self.nodes, self, self.constraints)
+        root = VCGACNode(self.nodes, self, self.constraints, self.coordinates)
         root.initialize()
         root.domain_filtering()
         self.start = root
@@ -82,6 +80,7 @@ class VCProblem:
 
         for s in ls[1:nv+1]:
             index, x, y = map(eval, s.split())
+            self.coordinates[index] = (x, y)
             self.nodes[index] = [i for i in range(K)]
 
         for s in ls[nv+1:]:

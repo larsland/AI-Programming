@@ -19,13 +19,11 @@ class CSP:
 
 
 class GAC(CSP):
-    def __init__(self, nodes, problem, constraints):
-        self.nodes = nodes
-        self.problem = problem
-        self.constraints = constraints
+    def __init__(self, nodes, domain, constraints):
         self.queue = []
+        self.contradiction = False
 
-        CSP.__init__(self, nodes, nodes, constraints)
+        CSP.__init__(self, nodes, domain, constraints)
 
     def __repr__(self):
         return "<GAC(n:%s, q:%s, c:%s, q:%s)>" % (self.nodes, self.queue, self.constraints, self.queue)
