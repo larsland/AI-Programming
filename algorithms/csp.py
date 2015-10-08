@@ -30,7 +30,6 @@ class GAC(CSP):
     def __repr__(self):
         return "<GAC(n:%s, q:%s, c:%s, q:%s)>" % (self.nodes, self.queue, self.constraints, self.queue)
 
-
     def initialize(self):
         self.queue = [(node, cons) for cons in self.constraints for node in cons.variables]
 
