@@ -75,11 +75,11 @@ class PriorityNode(Node):
     The order of nodes is derived from the comparison method __lt__, based on priority, as seen below.
     For the purpose of this task the priority is calculated from f(n) = g(n) + h(n).
     """
-    def __init__(self, state, problem):
-        self.g = 1
+    def __init__(self, state, problem, path_cost=1):
+        self.g = path_cost
         self.f = lambda: self.g + self.problem.h(self)
 
-        Node.__init__(self, state, problem, path_cost=1)
+        Node.__init__(self, state, problem, path_cost=path_cost)
 
     def __lt__(self, other):
         """Comparison method for priority queue"""
@@ -128,7 +128,6 @@ class FIFO:
     def pop(self, queue):
         return queue.pop()  # First out
 
-
 def graph_search(problem, frontier):
     """ A normal Graph search contains all the necessary tools to implement the three algorithms
      specified in the task."""
@@ -143,12 +142,14 @@ def graph_search(problem, frontier):
 
         node.closed = True
         for child in problem.actions(node):         # For each child node reachable from the current node,
+
+            print("child", child)
             if child.closed and node.g + 1 >= child.g:
                 continue
 
             if child not in problem.open or node.g + 1 < child.g:
                 child.parent = node
-                child.g = node.g + problem.path_cost([node, child])
+                child.g = node.g + problem.path_cost((node, child))
                 if child not in problem.open:
                     child.closed = False
                     frontier.add(problem, child)
