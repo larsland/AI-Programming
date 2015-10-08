@@ -9,6 +9,7 @@ class VCGACNode(GAC):
         self.coordinates = coordinates
         self.problem = problem
         self.f = 0
+        self.value = 1
 
         GAC.__init__(self, nodes, nodes, constraints)
 

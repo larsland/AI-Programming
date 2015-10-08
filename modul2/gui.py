@@ -10,8 +10,12 @@ class Gui(Frame):
         self.canvas = None
         self.selected_graph = None
         self.selected_k_value = None
+        self.colors = {0: "#FF0000", 1: "#33CC33", 2: "#3366CC", 3: "#FFFF00", 4: "#FF6600", 5: "#FF3399",
+                       6: "#993300", 7: "#990033", 8: "#808080", 9: "#99FFCC"}
         self.create_gui()
         self.csp = None
+
+
 
     def create_gui(self):
         # Initializing the variables the option menus will use
@@ -53,7 +57,6 @@ class Gui(Frame):
         self.paint_graph()
 
     def paint_graph(self):
-
         self.scale_cords(self.get_graph_dims())
 
         for i in range(0, len(self.csp.constraints)):
@@ -67,7 +70,7 @@ class Gui(Frame):
         for i in self.csp.coordinates:
             self.canvas.create_oval(self.csp.coordinates[i][0], self.csp.coordinates[i][1],
                                     self.csp.coordinates[i][0] + 15, self.csp.coordinates[i][1] + 15,
-                                    fill="black")
+                                    fill=self.colors[self.csp.nodes[i][1]])
 
     def get_graph_dims(self):
         x_positions, y_positions = [], []

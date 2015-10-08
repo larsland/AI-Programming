@@ -20,6 +20,10 @@ if __name__ == '__main__':
     # print("Solved: ", path)
     print("Times: VC_init: %s, GraphSearch_init: %s, search: %s" % (t2-t1, t3-t2, t4-t3))
 
+    for i in VC.nodes:
+        if len(VC.nodes[i]) == 1:
+            VC.nodes[i].value = VC.nodes[i][0]
+
     root = Tk()
     app = Gui(VC, master=root)
     app.mainloop()
