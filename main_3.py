@@ -16,6 +16,11 @@ class Variable:
                " Domain: " + str(self.domain)
 
 
+class Constraint:
+    def __init__(self, row_rule, col_rule):
+        self.constraint = (row_rule, col_rule)
+
+
 def get_scenario():
     input_scenario = input("Select scenario (0-6): ")
     input_scenario = "scenario" + str(input_scenario) + ".txt"
@@ -47,16 +52,14 @@ def create_vars(matrix):
     return vars
 
 
-def printer(row_specs, col_specs, matrix, num_cols, num_rows):
-    for line in range(len(matrix)):
-        print(matrix[line])
+def set_domains(vars, row_specs, col_specs):
+    for i in range(0, len(row_specs)):
+        vars[i].domain = row_specs[i]
 
-    print("NUMBER OF COLUMNS: " + str(num_cols))
-    print("NUMBER OF ROWS: " + str(num_rows))
-    print("ROW SPECS: ")
-    print(row_specs)
-    print("COL SPECS: ")
-    print(col_specs)
+    counter = 0
+    for i in range(len(row_specs), len(vars)):
+        vars[i].domain = col_specs[counter]
+        counter += 1
 
 
 def init():
@@ -74,22 +77,15 @@ def init():
 
     vars = create_vars(matrix)
 
-    for i in range(0, len(row_specs)):
-        vars[i].domain = row_specs[i]
-
-    counter = 0
-    for i in range(len(row_specs), len(vars)):
-        vars[i].domain = col_specs[counter]
-        counter += 1
+    set_domains(vars, row_specs, col_specs)
 
     for i in range(0, len(vars)):
         print(vars[i])
 
-
-
+    '''
     root = Tk()
     app = Gui(matrix, master=root)
     app.mainloop()
-
+    '''
 
 init()
