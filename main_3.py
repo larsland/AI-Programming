@@ -3,13 +3,17 @@ from modul3.gui import Gui
 
 
 class Variable:
-    def __init__(self, state, index):
+    def __init__(self, type, state, index):
+        self.type = type
         self.index = index
         self.state = state
         self.domain = []
 
     def __repr__(self):
-        return "ID: " + str(self.index) + " State: " + str(self.state) + " Domain: " + str(self.domain)
+        return "ID: " + str(self.index) + \
+               " Type: " + str(self.type) +  \
+               " State: " + str(self.state) + \
+               " Domain: " + str(self.domain)
 
 
 def get_scenario():
@@ -34,19 +38,11 @@ def get_col_specs(scenario, num_rows):
 
 
 def create_vars(matrix):
-    rows = []
-    cols = []
     vars = []
     for row in range(len(matrix)):
-        rows.append(matrix[row])
+        vars.append(Variable("row", matrix[row], row))
     for i in range(len(matrix[0])):
-        cols.append([row[i] for row in matrix])
-
-    vars = zip(rows, cols)
-
-    print("VARS: ", list(vars))
-
-
+        vars.append(Variable("col", [row[i] for row in matrix], len(matrix) + i))
 
     return vars
 
@@ -77,11 +73,19 @@ def init():
     matrix[6][0] = 'X'
 
     vars = create_vars(matrix)
-    #for i in range(0, len(vars)):
-    #    print(vars[i])
 
-    print("Length", len(matrix))
-    print("COL: ", [row[0] for row in matrix])
+    for i in range(0, len(row_specs)):
+        vars[i].domain = row_specs[i]
+
+    counter = 0
+    for i in range(len(row_specs), len(vars)):
+        vars[i].domain = col_specs[counter]
+        counter += 1
+
+    for i in range(0, len(vars)):
+        print(vars[i])
+
+
 
     root = Tk()
     app = Gui(matrix, master=root)
