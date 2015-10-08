@@ -72,7 +72,7 @@ class VCProblem:
 
     def get_input(self):
         " From file and asks K from user. "
-        f = open('modul2/graph6.txt', "r")
+        f = open('modul2/graph1.txt', "r")
         ls = f.read().splitlines()
         nv, ne = map(int, ls[0].split())
 
@@ -80,7 +80,7 @@ class VCProblem:
 
         for s in ls[1:nv+1]:
             index, x, y = map(eval, s.split())
-            self.coordinates[index] = (x, y)
+            self.coordinates[index] = [x, y]
             self.nodes[index] = [i for i in range(K)]
 
         for s in ls[nv+1:]:

@@ -53,25 +53,27 @@ class Gui(Frame):
         self.paint_graph()
 
     def paint_graph(self):
+
         self.scale_cords(self.get_graph_dims())
 
         for i in range(0, len(self.csp.constraints)):
-            start_x = self.csp.nodes[int(self.csp.constraints[i].variables[0])].xPos
-            start_y = self.csp.nodes[int(self.csp.constraints[i].variables[0])].yPos
-            end_x = self.csp.nodes[int(self.csp.constraints[i].variables[1])].xPos
-            end_y = self.csp.nodes[int(self.csp.constraints[i].variables[1])].yPos
+            start_x = self.csp.coordinates[int(self.csp.constraints[i].variables[0])][0]
+            start_y = self.csp.coordinates[int(self.csp.constraints[i].variables[0])][1]
+            end_x = self.csp.coordinates[int(self.csp.constraints[i].variables[1])][0]
+            end_y = self.csp.coordinates[int(self.csp.constraints[i].variables[1])][1]
 
             self.canvas.create_line(start_x+7.5, start_y+7.5, end_x+7.5, end_y+7.5)
 
-        for node in self.csp.nodes:
-            self.canvas.create_oval(node.xPos, node.yPos, node.xPos+15, node.yPos+15, fill=node.color)
-            self.canvas.create_text(node.xPos, node.yPos, text=node.id)
+        for i in self.csp.coordinates:
+            self.canvas.create_oval(self.csp.coordinates[i][0], self.csp.coordinates[i][1],
+                                    self.csp.coordinates[i][0] + 15, self.csp.coordinates[i][1] + 15, fill="black")
 
     def get_graph_dims(self):
         x_positions, y_positions = [], []
-        for node in self.csp.nodes:
-            x_positions.append(node.xPos)
-            y_positions.append(node.yPos)
+        for i in self.csp.coordinates:
+            x_positions.append(self.csp.coordinates[i][0])
+            y_positions.append(self.csp.coordinates[i][1])
+
         max_x = max(x_positions)
         max_y = max(y_positions)
         min_x = min(x_positions)
@@ -96,9 +98,12 @@ class Gui(Frame):
         if (10 + (y_offset + dim['max_y']) * 15) > (int(self.canvas['height']) - 10):
             y_scale = (int(self.canvas['height'])-20) / (10 + (y_offset + dim['max_y']) * 15)
 
-        for node in self.csp.nodes:
-            node.xPos = (10 + (x_offset + node.xPos) * 15) * x_scale
-            node.yPos = (10 + (y_offset + node.yPos) * 15) * y_scale
+        for i in self.csp.coordinates:
+            self.csp.coordinates[i][0] = (10 + (x_offset + self.csp.coordinates[i][0]) * 15) * x_scale
+            self.csp.coordinates[i][1] = (10 + (y_offset + self.csp.coordinates[i][1]) * 15) * y_scale
+
+
+
 
 
 
