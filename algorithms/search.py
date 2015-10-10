@@ -2,6 +2,7 @@ from heapq import heappush, heappop
 from collections import deque
 from algorithms.utils import memoize, Bunch
 import math
+from abc import abstractclassmethod
 
 
 class Problem():
@@ -12,30 +13,36 @@ class Problem():
         self.state = state
         self.goal = goal
         # Holds several solution related data instances
-        # self.solution = {'path': [], 'length': 0, 'found': False, 'steps': 0, 'states': []}
+        self.solution = Bunch(path=[], length=0, found=False, steps=0, states=[])
 
+    @abstractclassmethod
     def initialize(self):
         """Initialization method for the state of the problem,
         can be a list, matrix, tree or any other data structure that fits the problem"""
         pass
 
+    @abstractclassmethod
     def actions(self, state):
         """Returns all actions that can be performed from current state,
         either as a data structure or a generator"""
         pass
 
+    @abstractclassmethod
     def solve(self, algorithm):
         """Solve the problem with the given algorithm"""
         pass
 
-    def goal_test(self, other):
+    @abstractclassmethod
+    def is_goal(self, other):
         """General goal test to see if goal has been achieved"""
         return self.goal == other
 
+    @abstractclassmethod
     def save_state(self):
         """Useful when you want to review the states your algorithm created"""
         pass
 
+    @abstractclassmethod
     def path_cost(self, movement):
         """Cost of a movement"""
         pass

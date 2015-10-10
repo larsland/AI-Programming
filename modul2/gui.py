@@ -1,21 +1,21 @@
 from tkinter import *
+from modul2.search import GraphSearch, Agenda
 
 
 class Gui(Frame):
-    def __init__(self, csp,  master=None):
+    def __init__(self, vcp,  master=None):
         Frame.__init__(self, master)
-        self.csp = csp
+        self.csp = vcp
+        self.gs = GraphSearch(vcp, frontier=Agenda)
         self.master.title("VC problem")
         self.pack()
         self.canvas = None
         self.selected_graph = None
         self.selected_k_value = None
         self.colors = {0: "#FF0000", 1: "#33CC33", 2: "#3366CC", 3: "#FFFF00", 4: "#FF6600", 5: "#FF3399",
-                       6: "#993300", 7: "#990033", 8: "#808080", 9: "#99FFCC"}
+                       6: "#993300", 7: "#990033", 8: "#808080", 9: "#99FFCC", 10: "#000000"}
         self.create_gui()
         self.csp = None
-
-
 
     def create_gui(self):
         # Initializing the variables the option menus will use
@@ -54,29 +54,59 @@ class Gui(Frame):
         btn_start.grid(row=0, column=5, sticky=E)
         btn_exit.grid(row=0, column=6, sticky=E)
 
-        self.paint_graph()
+        #self.paint_graph(self.csp)
+        self.search()
 
-    def paint_graph(self):
-        self.scale_cords(self.get_graph_dims())
+    def search(self):
+        vc_nodes, found = self.gs.search()
 
-        for i in range(0, len(self.csp.constraints)):
-            start_x = self.csp.coordinates[int(self.csp.constraints[i].variables[0])][0]
-            start_y = self.csp.coordinates[int(self.csp.constraints[i].variables[0])][1]
-            end_x = self.csp.coordinates[int(self.csp.constraints[i].variables[1])][0]
-            end_y = self.csp.coordinates[int(self.csp.constraints[i].variables[1])][1]
+        if found:
+            self.paint_solution(vc_nodes)
+        else:
+            self.paint_error()
+            print("Fant ikke løsning, kis (jeg er i gui.py)")
+
+    def paint_solution(self, vc_nodes):
+        final_node = vc_nodes[-1]
+        coordinates = self.scale_coords(self.get_graph_dims(final_node), final_node)
+
+        for constraint in final_node.constraints:
+            start_x = coordinates[constraint.variables[0]][0]
+            start_y = coordinates[constraint.variables[0]][1]
+            end_x = coordinates[constraint.variables[1]][0]
+            end_y = coordinates[constraint.variables[1]][1]
 
             self.canvas.create_line(start_x+7.5, start_y+7.5, end_x+7.5, end_y+7.5)
 
-        for i in self.csp.coordinates:
-            self.canvas.create_oval(self.csp.coordinates[i][0], self.csp.coordinates[i][1],
-                                    self.csp.coordinates[i][0] + 15, self.csp.coordinates[i][1] + 15,
-                                    fill=self.colors[self.csp.nodes[i][1]])
+        for i in final_node.coordinates:
+            self.canvas.create_oval(coordinates[i][0], coordinates[i][1],
+                                    coordinates[i][0] + 15, coordinates[i][1] + 15,
+                                    fill=self.colors[final_node.node_domain_map[i][0]])
 
-    def get_graph_dims(self):
+    def paint_error(self):
+        pass
+
+    def paint_graph(self, vcp):
+        self.csp.coordinates = self.scale_coords(self.get_graph_dims(self.csp), self.csp)
+
+        for i in range(0, len(vcp.constraints)):
+            start_x = vcp.coordinates[int(vcp.constraints[i].variables[0])][0]
+            start_y = vcp.coordinates[int(vcp.constraints[i].variables[0])][1]
+            end_x = vcp.coordinates[int(vcp.constraints[i].variables[1])][0]
+            end_y = vcp.coordinates[int(vcp.constraints[i].variables[1])][1]
+
+            self.canvas.create_line(start_x+7.5, start_y+7.5, end_x+7.5, end_y+7.5)
+
+        for i in vcp.coordinates:
+            self.canvas.create_oval(vcp.coordinates[i][0], vcp.coordinates[i][1],
+                                    vcp.coordinates[i][0] + 15, vcp.coordinates[i][1] + 15,
+                                    fill=self.colors[vcp.get_domain(i)[0]])
+
+    def get_graph_dims(self, vcp):
         x_positions, y_positions = [], []
-        for i in self.csp.coordinates:
-            x_positions.append(self.csp.coordinates[i][0])
-            y_positions.append(self.csp.coordinates[i][1])
+        for i in vcp.coordinates:
+            x_positions.append(vcp.coordinates[i][0])
+            y_positions.append(vcp.coordinates[i][1])
 
         max_x = max(x_positions)
         max_y = max(y_positions)
@@ -88,7 +118,7 @@ class Gui(Frame):
                       "c_width": canvas_width, "c_height": canvas_height}
         return dimensions
 
-    def scale_cords(self, dim):
+    def scale_coords(self, dim, vcp):
         dim = dim
         x_scale, y_scale = 1, 1
         x_offset, y_offset = 0, 0
@@ -102,9 +132,12 @@ class Gui(Frame):
         if (10 + (y_offset + dim['max_y']) * 15) > (int(self.canvas['height']) - 10):
             y_scale = (int(self.canvas['height'])-20) / (10 + (y_offset + dim['max_y']) * 15)
 
-        for i in self.csp.coordinates:
-            self.csp.coordinates[i][0] = (10 + (x_offset + self.csp.coordinates[i][0]) * 15) * x_scale
-            self.csp.coordinates[i][1] = (10 + (y_offset + self.csp.coordinates[i][1]) * 15) * y_scale
+        scaled_coordinates = {}
+        for i in vcp.coordinates:
+            scaled_coordinates[i] = [(10 + (x_offset + vcp.coordinates[i][0]) * 15) * x_scale,
+                                     (10 + (y_offset + vcp.coordinates[i][1]) * 15) * y_scale]
+
+        return scaled_coordinates
 
 
 

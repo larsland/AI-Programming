@@ -40,26 +40,12 @@ class Board(Problem):
         self.width = 0
         self.height = 0
 
-        # Holds several solution related data instances
-        self.solution = Bunch(path=[], length=0, found=False, steps=0, states=[])
-
         # Initialize super class
         Problem.__init__(self, self.state, self.goal)
 
     def __repr__(self):
         """Representation method for printing a Board with valuable information"""
-        representation = '<Board ([\n'
-        for line in list(self.board):
-            representation += line + '\n'
-        representation += '], \n'
-
-        representation += 'initial node:  ' + str(self.initial) + '\n'
-        representation += 'goal node:     ' + str(self.goal) + '\n)'
-        representation += 'open:          ' + str(self.open) + '\n'
-        representation += 'counter:       ' + str(next(self.counter)) + '\n'
-        representation += 'solution path: ' + str(self.solution['path']) + '\n'
-
-        return representation
+        return '<Board (board:%s, goal:%s, open:%s, path:%s' % (self.board, self.goal, self.open, self.solution['path'])
 
     def initialize(self):
         """Initialize the problem state by feeding the problem through a set of rules """
@@ -161,7 +147,7 @@ class Board(Problem):
         return self.solution['states']
 
     def pretty_print(self):
-        """Helper method for beautiful printing of the problem solution"""
+        """Helper method for pretty printing the problem solution"""
         if self.solution['found']:
             print(
                 "Solution found in %s steps, solution length is %s" % (self.solution['steps'], self.solution['length']))

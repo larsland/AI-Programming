@@ -1,55 +1,89 @@
-from algorithms.csp import Constraint, GAC
+from algorithms.csp import Constraint, GAC, CSP
+from algorithms.search import Problem
 from algorithms.utils import UniversalDict
 import copy
 
 
 # PriorityNode
 class VCGACNode(GAC):
-    def __init__(self, nodes, problem, constraints, coordinates):
+    def __init__(self, csp, node_domain_map, problem, constraints, coordinates):
+        self.csp = csp
         self.coordinates = coordinates
         self.problem = problem
         self.f = 0
-        self.value = 1
 
-        GAC.__init__(self, nodes, nodes, constraints)
+        GAC.__init__(self, csp)
 
     def __lt__(self, other):
         return self.f < other.f
 
 
-class VCProblem:
+class VertexColoringProblem(CSP):
     def __init__(self):
         self.coordinates = {}
-        self.nodes = {}
+        self.node_domain_map = {}
         self.constraints = []
-        self.get_input()
 
-        self._constraints = UniversalDict(lambda x, y: x != y)
+        self.start = VCGACNode(self, self.node_domain_map, self, self.constraints, self.coordinates)
+        self.start.initialize()
+        self.start.domain_filtering()
+        self.open = [self.start]
 
-        self.initialize()
+        CSP.__init__(self, self.node_domain_map, self.constraints)
+
+    def set_graph(self, graph=open('modul2/graph1.txt'), dom_size=4):
+        ls = graph.read().splitlines()
+        nv, ne = map(int, ls[0].split())
+
+        for s in ls[1:nv+1]:
+            index, x, y = map(eval, s.split())
+            self.coordinates[index] = [x, y]
+            self.node_domain_map[index] = [i for i in range(dom_size)]
+
+        for s in ls[nv+1:]:
+            n, m = map(int, s.split())
+            self.constraints.append(Constraint([n, m], lambda x, y: x != y))
 
     def initialize(self):
-        root = VCGACNode(self.nodes, self, self.constraints, self.coordinates)
-        root.initialize()
-        root.domain_filtering()
-        self.start = root
-
-        self.open = [root]
+        self.set_graph()
 
     def save_state(self):
         pass
+
+    '''
+    def save_state2(self):
+        """For storing states as the algorithm traverses the problem.
+        Saves the open nodes, the current path and the difference between the current state and the previous one."""
+        temp_state = set()
+        for nodes in self.state:
+            temp_set = set()
+            for node in nodes:
+                # Deep copy of node
+                temp_set.add(copy.copy(node))
+            # Freeze the set so it becomes hashable
+            temp_set = frozenset(temp_set)
+            temp_state.add(temp_set)
+
+        if self.solution['states']:
+            diff_state = list(temp_state.difference(self.solution['states'][-1]))
+        else:
+            diff_state = list(temp_state)
+
+        state = {'state': diff_state, 'open': list(self.open), 'path': list(self.board)}
+        self.solution.states.append(state)
+    '''
 
     def path_cost(self, movement):
         return 1
 
     def actions(self, state):
-        " Generates children and runs the rerun method. "
+        # Generates children and runs the rerun method.
         actions = []
-        for node, dom in state.nodes.items():
+        for node, dom in state.node_domain_map.items():
             if len(dom) > 1:
                 for j in range(len(dom)):
                     child = copy.deepcopy(state)
-                    child.nodes[node] = [dom[j]]
+                    child.node_domain_map[node] = [dom[j]]
                     child.rerun(node)
                     if not child.contradiction:
                         actions.append(child)
@@ -57,13 +91,10 @@ class VCProblem:
         return actions
 
     def h(self, state):
-        return sum(len(d)-1 for d in state.nodes.values())
+        return sum(len(d)-1 for d in state.node_domain_map.values())
 
     def is_goal(self, state):
-        return all(map(lambda d: len(d) == 1, state.nodes.values()))
-
-    def goal_test(self, state):
-        return all(map(lambda d: len(d) == 1, state.nodes.values()))
+        return all(map(lambda d: len(d) == 1, state.node_domain_map.values()))
 
     def make_func(self, var_names, expression):
         args = ""
@@ -82,7 +113,7 @@ class VCProblem:
         for s in ls[1:nv+1]:
             index, x, y = map(eval, s.split())
             self.coordinates[index] = [x, y]
-            self.nodes[index] = [i for i in range(K)]
+            self.node_domain_map[index] = [i for i in range(K)]
 
         for s in ls[nv+1:]:
             n, m = map(int, s.split())
@@ -90,32 +121,3 @@ class VCProblem:
 
     def solve(self, algorithm):
         print(algorithm(self))
-
-    """
-    def make_var(self, l, s):
-        " Create variable and adds to list. "
-        index, x, y = map(eval, s.split())
-        self.points[index] = (x, y)
-        self.nodes[index] = [range(self.K)]
-        return l
-
-    def make_con(self, l, s):
-        " Create constraint and add to list. "
-        n, m = map(int, s.split())
-        l.append(Constraint([n, m], lambda n: n[0] != n[1]))
-        return l
-
-
-    def create_nodes(self, num_vertices, graph, k=4):
-        for i in range(1, num_vertices + 1):
-            id, x, y = map(eval, graph[i].split())
-            self.points[id] = (x, y)
-            rang = [i for i in range(k)]
-            self.nodes[id] = [rang]
-
-    def set_constraints(self, num_vertices, graph, con, description):
-        for i in range(num_vertices + 1, len(graph)):
-            n, m = map(int, graph[i].split())
-            constraint = Constraint([n, m], lambda n: n[0] != n[1], description)
-            self.constraints.append(constraint)
-    """
