@@ -3,6 +3,7 @@ from modul2.vcgraph_problem import VertexColoringProblem
 from modul2.search import GraphSearch, Agenda
 from copy import deepcopy
 import threading
+import time
 
 class Gui(Frame):
     def __init__(self,  master=None):
@@ -38,9 +39,9 @@ class Gui(Frame):
         self.canvas = Canvas(group_state, width=600, height=600, bg="#F0F0F0", highlightbackground="black",
                              highlightthickness=1)
         graph_menu = OptionMenu(group_options, self.selected_graph, "graph1.txt", "graph2.txt",
-                                "graph3.txt", "graph4.txt", "graph5.txt", "graph6.txt", command=self.change_graph)
+                                "graph3.txt", "graph4.txt", "graph5.txt", "graph6.txt", command=self.change)
 
-        k_value_menu = OptionMenu(group_options, self.selected_k_value, 3, 4, 5, 6, 7, 8, 9, 10)
+        k_value_menu = OptionMenu(group_options, self.selected_k_value, 3, 4, 5, 6, 7, 8, 9, 10, command=self.change)
         label_colored_nodes = Label(group_stats, text="0/0")
         btn_start = Button(group_options, text="Start", padx=5, pady=5, bg="light green", command=self.search)
         btn_exit = Button(group_options, text="Exit", padx=5, pady=5, bg="red", command=self.quit)
@@ -61,11 +62,17 @@ class Gui(Frame):
 
         self.create_grid()
 
-    def change_graph(self, woot):
+    def change(self, woot):
         print(woot)
+        self.canvas.delete("all")
+        self.vcp = VertexColoringProblem()
+        self.vcp.set_graph(self.selected_graph.get(), self.selected_k_value.get())
         self.create_grid()
+        self.create_graph()
+        self.gs = GraphSearch(problem=self.vcp, frontier=Agenda)
 
     def clear_grid(self):
+        self.canvas.delete("all")
         for edge in self.edges:
             self.canvas.delete(edge)
         for node in self.graph_nodes:
@@ -76,7 +83,8 @@ class Gui(Frame):
 
         # if is_file:
         #    vcp = VertexColoringProblem()
-        print('wat?', int(self.selected_k_value.get()))
+        print('wat?', self.selected_k_value.get())
+        print('wait wat?', self.selected_graph.get())
         self.vcp.set_graph(self.selected_graph.get(), int(self.selected_k_value.get()))
 
         self.graph_nodes = list(self.vcp.node_domain_map.keys())
@@ -107,14 +115,19 @@ class Gui(Frame):
         t1.join()
 
     def search(self):
-        self.vcp.set_graph(self.selected_graph.get(), self.selected_k_value.get())
-        print(self.selected_graph.get())
-        print(self.selected_k_value.get())
-        self.gs = GraphSearch(self.vcp, frontier=Agenda)
-
         vc_nodes, found = self.gs.search()
+        t4 = time.time()
+        #self.vcp = VertexColoringProblem()
+        #self.vcp.set_graph(self.selected_graph.get(), self.selected_k_value.get())
+        #print(self.selected_graph.get())
+        #print(self.selected_k_value.get())
+        #self.gs = GraphSearch(self.vcp, frontier=Agenda)
+
+        #vc_nodes, found = self.gs.search()
 
         print(vc_nodes, found)
+
+        #print("Times: VC_init: %s, GraphSearch_init: %s, search: %s" % (t2-t1, t3-t2, t4-t3))
 
         if found:
             self.paint_solution(vc_nodes)
@@ -123,7 +136,7 @@ class Gui(Frame):
             print("Fant ikke løsning, kis (jeg er i gui.py)")
 
     def update_graph_node(self, vcp, node):
-        self.canvas.itemconfig(self.graph_nodes[node], fill=self.colors[vcp.node_domain_map[node][0]])
+        self.canvas.itemconfig(self.graph_nodes[node], fill=self.colors[vcp.get_domain(node)[0]])
 
     def paint_solution(self, vc_nodes, ani_step=-1):
         vc_node = vc_nodes[ani_step]
