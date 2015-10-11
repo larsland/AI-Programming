@@ -2,26 +2,90 @@ from tkinter import *
 from modul2.vcgraph_problem import VertexColoringProblem
 from modul2.search import GraphSearch, Agenda
 from copy import deepcopy
-import threading
 import time
 
+import threading
+from queue import Queue, Empty
+
+
+class ThreadedDrawer(threading.Thread):
+    def __init__(self, frame, queue):
+        threading.Thread.__init__(self)
+        self.queue = queue
+        self.frame = frame
+
+    def run(self):
+        """
+        temp_state = set()
+        for nodes in self.state:
+            temp_set = set()
+            for node in nodes:
+                # Deep copy of node
+                temp_set.add(copy.copy(node))
+            # Freeze the set so it becomes hashable
+            temp_set = frozenset(temp_set)
+            temp_state.add(temp_set)
+
+        if self.solution['states']:
+            diff_state = list(temp_state.difference(self.solution['states'][-1]))
+        else:
+            diff_state = list(temp_state)
+        """
+        prev_set = set()
+        while True:
+            temp_set = set()
+            vc_node = self.queue.get()
+            if vc_node == 'stop':
+                print('done.')
+                self.frame.btn_start.config(state='normal')
+                break
+
+            for node, domain in vc_node.node_domain_map.items():
+                temp_set.add((node, frozenset(domain)))
+            temp_set = frozenset(temp_set)
+
+            node_domain = temp_set.difference(prev_set)
+            prev_set = temp_set
+            node_domain = [(gac_node, domain) for gac_node, domain in node_domain if len(domain) > 1]
+            for gac_node, domain in node_domain:
+                self.frame.update_graph_node(gac_node, domain[0])
+
+
+class ThreadedSearch(threading.Thread):
+    def __init__(self, queue, search):
+        threading.Thread.__init__(self)
+        self.queue = queue
+        self.search = search
+
+    def run(self):
+        for node in self.search:
+            print('jesus, fuck')
+            if node:
+                self.queue.put(node)
+            else:
+                self.queue.put('stop')
+
+
 class Gui(Frame):
-    def __init__(self,  master=None):
+    def __init__(self, master=None):
         Frame.__init__(self, master)
         self.vcp = VertexColoringProblem()
         self.vcp.set_graph()
         self.gs = GraphSearch(self.vcp, frontier=Agenda)
 
+        self.solution_queue = Queue()
+
         self.master.title("VC problem")
         self.pack()
         self.canvas = None
         self.colors = {0: "#FF0000", 1: "#33CC33", 2: "#3366CC", 3: "#FFFF00", 4: "#FF6600", 5: "#FF3399",
-                       6: "#993300", 7: "#990033", 8: "#808080", 9: "#99FFCC", 10: "#000000"}
+                       6: "#993300", 7: "#990033", 8: "#808080", 9: "#99FFCC", 10: "#9900DD", 11: "#000000"}
+
+        self.btn_start = None
 
         self.graph_nodes = []
         self.edges = []
         self.create_gui()
-
 
     def create_gui(self):
         # Initializing the variables the option menus will use
@@ -43,24 +107,24 @@ class Gui(Frame):
 
         k_value_menu = OptionMenu(group_options, self.selected_k_value, 3, 4, 5, 6, 7, 8, 9, 10, command=self.change)
         label_colored_nodes = Label(group_stats, text="0/0")
-        btn_start = Button(group_options, text="Start", padx=5, pady=5, bg="light green", command=self.search)
+        self.btn_start = Button(group_options, text="Start", padx=5, pady=5, bg="light green", command=self.thready_search)
         btn_exit = Button(group_options, text="Exit", padx=5, pady=5, bg="red", command=self.quit)
 
         # Placing GUI components in a grid
-        group_options.grid(row=0, column=0, columnspan=2, sticky=W+E)
+        group_options.grid(row=0, column=0, columnspan=2, sticky=W + E)
         group_state.grid(row=1, column=0)
-        group_stats.grid(row=1, column=1, sticky=N+S)
+        group_stats.grid(row=1, column=1, sticky=N + S)
 
         group_options.grid_columnconfigure(1, weight=1)
 
-        graph_menu.grid(row=0, column=0, sticky=N+E+S+W)
+        graph_menu.grid(row=0, column=0, sticky=N + E + S + W)
         k_value_menu.grid(row=0, column=1, sticky=W)
         self.canvas.grid(row=0, column=0)
         label_colored_nodes.grid(row=0, column=0)
-        btn_start.grid(row=0, column=5, sticky=E)
+        self.btn_start.grid(row=0, column=5, sticky=E)
         btn_exit.grid(row=0, column=6, sticky=E)
 
-        self.create_grid()
+        self.change('nutnut')
 
     def change(self, woot):
         print(woot)
@@ -82,7 +146,7 @@ class Gui(Frame):
         self.clear_grid()
 
         # if is_file:
-        #    vcp = VertexColoringProblem()
+        # vcp = VertexColoringProblem()
         print('wat?', self.selected_k_value.get())
         print('wait wat?', self.selected_graph.get())
         self.vcp.set_graph(self.selected_graph.get(), int(self.selected_k_value.get()))
@@ -102,22 +166,29 @@ class Gui(Frame):
             end_x = vcp.coordinates[int(vcp.constraints[i].variables[1])][0]
             end_y = vcp.coordinates[int(vcp.constraints[i].variables[1])][1]
 
-            self.edges.append(self.canvas.create_line(start_x+7.5, start_y+7.5, end_x+7.5, end_y+7.5))
+            self.edges.append(self.canvas.create_line(start_x + 7.5, start_y + 7.5, end_x + 7.5, end_y + 7.5))
 
         for i in vcp.coordinates:
+            c = 11 if len(vcp.get_domain(i)) > 1 else vcp.get_domain(i)[0]
+            if len(vcp.get_domain(i)) > 1 and c == 11:
+                print(c, vcp.get_domain(i))
             self.graph_nodes[i] = self.canvas.create_oval(vcp.coordinates[i][0], vcp.coordinates[i][1],
                                                           vcp.coordinates[i][0] + 15, vcp.coordinates[i][1] + 15,
-                                                          fill=self.colors[vcp.get_domain(i)[0]])
+                                                          fill=self.colors[c])
 
-    def start_search(self):
-        t1 = threading.Thread(target=self.search)
-        t1.start()
-        t1.join()
+    def thready_search(self):
+
+        self.solution_queue = Queue()
+        td = ThreadedDrawer(self, self.solution_queue)
+        ts = ThreadedSearch(self.solution_queue, self.gs.search_yieldie())
+        self.btn_start.config(state='disabled')
+        td.start()
+        ts.start()
 
     def search(self):
         vc_nodes, found = self.gs.search()
         t4 = time.time()
-        #self.vcp = VertexColoringProblem()
+        # self.vcp = VertexColoringProblem()
         #self.vcp.set_graph(self.selected_graph.get(), self.selected_k_value.get())
         #print(self.selected_graph.get())
         #print(self.selected_k_value.get())
@@ -129,14 +200,17 @@ class Gui(Frame):
 
         #print("Times: VC_init: %s, GraphSearch_init: %s, search: %s" % (t2-t1, t3-t2, t4-t3))
 
-        if found:
-            self.paint_solution(vc_nodes)
-        else:
-            self.paint_error()
-            print("Fant ikke løsning, kis (jeg er i gui.py)")
+        #if found:
+        #    self.paint_solution(vc_nodes)
+        #else:
+        #    self.paint_error()
+        #    print("Fant ikke løsning, kis (jeg er i gui.py)")
 
-    def update_graph_node(self, vcp, node):
-        self.canvas.itemconfig(self.graph_nodes[node], fill=self.colors[vcp.get_domain(node)[0]])
+    def update_graph_node(self, node, domain):
+        self.canvas.itemconfig(self.graph_nodes[node], fill=self.colors[domain])
+
+    def update_graph_node_2(self, node_domain_map, node):
+        self.canvas.itemconfig(self.graph_nodes[node], fill=self.colors[node_domain_map[node][0]])
 
     def paint_solution(self, vc_nodes, ani_step=-1):
         vc_node = vc_nodes[ani_step]
@@ -165,7 +239,7 @@ class Gui(Frame):
             end_x = vcp.coordinates[int(vcp.constraints[i].variables[1])][0]
             end_y = vcp.coordinates[int(vcp.constraints[i].variables[1])][1]
 
-            self.canvas.create_line(start_x+7.5, start_y+7.5, end_x+7.5, end_y+7.5)
+            self.canvas.create_line(start_x + 7.5, start_y + 7.5, end_x + 7.5, end_y + 7.5)
 
         for i in vcp.coordinates:
             self.graph_nodes[i] = self.canvas.create_oval(vcp.coordinates[i][0], vcp.coordinates[i][1],
@@ -198,9 +272,9 @@ class Gui(Frame):
             y_offset = -dim['min_y']
 
         if (10 + (x_offset + dim['max_x']) * 15) > (int(self.canvas['width']) - 10):
-            x_scale = (int(self.canvas['width'])-20) / (10 + (x_offset + dim['max_x']) * 15)
+            x_scale = (int(self.canvas['width']) - 20) / (10 + (x_offset + dim['max_x']) * 15)
         if (10 + (y_offset + dim['max_y']) * 15) > (int(self.canvas['height']) - 10):
-            y_scale = (int(self.canvas['height'])-20) / (10 + (y_offset + dim['max_y']) * 15)
+            y_scale = (int(self.canvas['height']) - 20) / (10 + (y_offset + dim['max_y']) * 15)
 
         scaled_coordinates = {}
         for i in vcp.coordinates:

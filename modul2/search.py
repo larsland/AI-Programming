@@ -101,6 +101,43 @@ class GraphSearch:
 
         return [], False
 
+    def search_yieldie(self):
+        """
+        A general algorithm for A*, dfs and bfs search.
+        :param problem: The problem instance that this graph searcher will try to solve
+        :param frontier: Class which holds methods to interact with the data structure of open nodes
+        :return: Path to goal and indicator of success
+        """
+        _open, closed, path = self.open, self.closed, self.path
+        problem, g, frontier = self.problem, self.g, self.frontier
+        is_closed = self.is_closed
+        solved = False
+
+        while _open:
+            node, _open = frontier.pop(_open)
+            closed.append(node)
+            #problem.save_state(node)
+            yield node
+            if problem.is_goal(node):
+                solved = True
+                break
+            for child in problem.actions(node):
+                new_g = g[node] + problem.path_cost((node, child))
+                if is_closed(child):
+                    continue
+                in_open = frontier.contains(child, _open)
+                if not in_open or (child in g and new_g < g[child]):
+                    g[child] = new_g
+                    child.f = new_g + problem.h(child)
+                    self.came_from[child] = node
+                    if not in_open:
+                        frontier.add(_open, child)
+
+        return solved
+
+
+
+
     def reconstruct_path(self, path):
         " Reconstructs path from goal to start node. "
         while path[-1] != self.problem.start:
