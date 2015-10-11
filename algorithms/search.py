@@ -5,7 +5,7 @@ import math
 from abc import abstractclassmethod
 
 
-class Problem():
+class Problem:
     def __init__(self, state, goal=None):
         """The constructor specifies the initial state, and possibly a goal
         state, if there is a unique goal.  Your subclass's constructor can add
@@ -33,7 +33,7 @@ class Problem():
         pass
 
     @abstractclassmethod
-    def is_goal(self, other):
+    def goal_test(self, other):
         """General goal test to see if goal has been achieved"""
         return self.goal == other
 
@@ -141,7 +141,7 @@ def graph_search(problem, frontier):
     problem.initialize()                            # Initialize problem state
     while problem.open:                             # While there are still nodes in the queue
         node = frontier.pop(problem.open)           # Pop start node
-        if problem.goal(node):                 # Is current node the goal node? Then
+        if problem.goal_test(node):                 # Is current node the goal node? Then
             return node.path(), True                # end algorithm and return result
 
         if node.closed:

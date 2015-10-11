@@ -18,6 +18,7 @@ class ThreadedDrawer(threading.Thread):
     def run(self):
         prev_set = set()
         while True:
+            t = time.time()
             if self.stopper.is_set():
                 print("wooohoooooo!!!!")
                 break
@@ -25,6 +26,17 @@ class ThreadedDrawer(threading.Thread):
             vc_node = self.queue.get()
             if vc_node == 'stop':
                 print('done.')
+
+                top = Toplevel()
+                top.geometry("%dx%d%+d%+d" % (300, 200, 250, 200))
+                top.title("Success!")
+                msg = Message(top, text="Graph successfully solved in: ")
+                msg.pack()
+                msg_time = Message(top, text=t)
+                msg_time.pack()
+                btn_ok = Button(top, text="Ok", command=top.destroy)
+                btn_ok.pack()
+
                 self.frame.btn_start.config(state='normal')
                 break
 
