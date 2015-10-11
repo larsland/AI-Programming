@@ -84,11 +84,12 @@ class GAC:
         self.node_domain_map[node] = domain
 
     def initialize(self):
-        #print(self)
-        print(len(self.constraints))
         if len(self.constraints) > 1:
+            print('Constraint!', self.constraints[0])
+            print('VARIABLES!', self.constraints[0].variables)
             print('DOMAIN!', self.get_domain(self.constraints[0].variables[0]))
         self.queue = [(node, cons) for cons in self.constraints for node in cons.variables]
+        print('QUEUEUEUEUE', self.queue)
 
     def domain_filtering(self):
         while self.queue:
