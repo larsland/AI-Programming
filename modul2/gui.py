@@ -7,6 +7,8 @@ import time
 import threading
 from queue import Queue, Empty
 
+global cancel_clock_id
+
 
 class ThreadedDrawer(threading.Thread):
     def __init__(self, frame, queue, stopper):
@@ -19,7 +21,8 @@ class ThreadedDrawer(threading.Thread):
         prev_set = set()
         while True:
             if self.stopper.is_set():
-                print("wooohoooooo!!!!")
+                self.frame.recreate()
+                self.frame.btn_start.config(state='normal')
                 break
             temp_set = set()
             vc_node = self.queue.get()
@@ -45,22 +48,27 @@ class ThreadedDrawer(threading.Thread):
 
 
 class ThreadedSearch(threading.Thread):
-    def __init__(self, queue, search, stopper):
+    def __init__(self, queue, search, stopper, frame):
         threading.Thread.__init__(self)
         self.queue = queue
         self.search = search
         self.stopper = stopper
+        self.frame = frame
 
     def run(self):
         while True:
             if self.stopper.is_set():
-                print("WHAPADIDLDUUUU!!!!")
+                self.queue.put('stop')
+                self.frame.cancel_clock()
                 break
             try:
                 node = next(self.search)
                 self.queue.put(node)
             except StopIteration:
                 self.queue.put('stop')
+                self.frame.cancel_clock()
+                break
+
 
 class Gui(Frame):
     def __init__(self, master=None):
@@ -78,14 +86,34 @@ class Gui(Frame):
                        6: "#993300", 7: "#990033", 8: "#808080", 9: "#99FFCC", 10: "#9900DD", 11: "#000000"}
 
         self.btn_start = None
+        self.timer = None
 
         self.graph_nodes = {}
         self.edges = []
 
         self.thread_stopper = threading.Event()
+        self.thread_stopper.set()
 
+        global cancel_clock_id
+        cancel_clock_id = None
 
         self.create_gui()
+
+    def cancel_clock(self):
+        global cancel_clock_id
+        if cancel_clock_id is not None:
+            self.after_cancel(cancel_clock_id)
+            cancel_clock_id = None
+            return
+
+    def begin_clock(self, original=time.time()):
+        global cancel_clock_id
+        cancel_clock_id = self.after(1000, self.update_clock, original)
+
+    def update_clock(self, original):
+        self.timer.configure(text='%.2f' % (time.time() - original))
+        global cancel_clock_id
+        cancel_clock_id = self.after(1000, self.update_clock, original)
 
     def create_gui(self):
         # Initializing the variables the option menus will use
@@ -94,7 +122,7 @@ class Gui(Frame):
 
         # Setting default values for option menu variables
         self.selected_graph.set("graph1.txt")
-        self.selected_k_value.set(3)
+        self.selected_k_value.set(4)
 
         # Creating the GUI components
         group_state = LabelFrame(self, text="State", padx=5, pady=5)
@@ -107,6 +135,7 @@ class Gui(Frame):
 
         k_value_menu = OptionMenu(group_options, self.selected_k_value, 3, 4, 5, 6, 7, 8, 9, 10, command=self.change)
         label_colored_nodes = Label(group_stats, text="0/0")
+        self.timer = Label(group_stats, text="poop")
         self.btn_start = Button(group_options, text="Start", padx=5, pady=5, bg="light green", command=self.thready_search)
         btn_exit = Button(group_options, text="Exit", padx=5, pady=5, bg="red", command=self.quit)
 
@@ -121,13 +150,21 @@ class Gui(Frame):
         k_value_menu.grid(row=0, column=1, sticky=W)
         self.canvas.grid(row=0, column=0)
         label_colored_nodes.grid(row=0, column=0)
+        self.timer.grid(row=1, column=0)
         self.btn_start.grid(row=0, column=5, sticky=E)
         btn_exit.grid(row=0, column=6, sticky=E)
 
-        self.change('nutnut')
 
-    def change(self, woot):
-        self.thread_stopper.set()
+
+        self.change()
+
+    def change(self, woot=None):
+        if self.thread_stopper.is_set():
+            self.recreate()
+        else:
+            self.thread_stopper.set()
+
+    def recreate(self):
         self.clear_grid()
         self.vcp = VertexColoringProblem()
         self.vcp.set_graph(self.selected_graph.get(), self.selected_k_value.get())
@@ -181,8 +218,9 @@ class Gui(Frame):
         self.thread_stopper.clear()
         self.solution_queue = Queue()
         ThreadedDrawer(self, self.solution_queue, self.thread_stopper).start()
-        ThreadedSearch(self.solution_queue, self.gs.search_yieldie(), self.thread_stopper).start()
+        ThreadedSearch(self.solution_queue, self.gs.search_yieldie(), self.thread_stopper, self).start()
         self.btn_start.config(state='disabled')
+        #self.begin_clock(time.time())
 
     def update_graph_node(self, node, domain):
         self.canvas.itemconfig(self.graph_nodes[node], fill=self.colors[domain])

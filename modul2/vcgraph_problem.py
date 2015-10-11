@@ -30,7 +30,7 @@ class VertexColoringProblem(CSP):
 
         CSP.__init__(self, self.node_domain_map, self.constraints)
 
-    def set_graph(self, graph='graph6.txt', dom_size=4):
+    def set_graph(self, graph='graph1.txt', dom_size=4):
         dom_size = int(dom_size)
         lines = open('modul2/' + graph).read().splitlines()
         nv, ne = map(int, lines[0].split())
@@ -101,7 +101,7 @@ class VertexColoringProblem(CSP):
         for n in var_names:
             args += "," + n
         return eval("(lambda " + args[1:] + ": " + expression + ")")
-
+    """
     def get_input(self):
         " From file and asks K from user. "
         f = open('modul2/graph2.txt', "r")
@@ -118,6 +118,6 @@ class VertexColoringProblem(CSP):
         for s in ls[nv+1:]:
             n, m = map(int, s.split())
             self.constraints.append(Constraint([n, m], lambda x, y: x != y))
-
+    """
     def solve(self, algorithm):
         print(algorithm(self))
