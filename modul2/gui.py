@@ -94,7 +94,7 @@ class Gui(Frame):
 
         # Setting default values for option menu variables
         self.selected_graph.set("graph1.txt")
-        self.selected_k_value.set(3)
+        self.selected_k_value.set(4)
 
         # Creating the GUI components
         group_state = LabelFrame(self, text="State", padx=5, pady=5)
@@ -107,7 +107,7 @@ class Gui(Frame):
 
         k_value_menu = OptionMenu(group_options, self.selected_k_value, 3, 4, 5, 6, 7, 8, 9, 10, command=self.change)
         label_colored_nodes = Label(group_stats, text="0/0")
-        self.btn_start = Button(group_options, text="Start", padx=5, pady=5, bg="light green", command=self.thready_search)
+        self.btn_start = Button(group_options, text="Solve", padx=5, pady=5, bg="light green", command=self.thready_search)
         btn_exit = Button(group_options, text="Exit", padx=5, pady=5, bg="red", command=self.quit)
 
         # Placing GUI components in a grid
@@ -128,6 +128,7 @@ class Gui(Frame):
 
     def change(self, woot):
         print(woot)
+        self.solution_queue.put('stop')
         self.canvas.delete("all")
         self.vcp = VertexColoringProblem()
         self.vcp.set_graph(self.selected_graph.get(), self.selected_k_value.get())
@@ -154,7 +155,7 @@ class Gui(Frame):
         self.graph_nodes = list(self.vcp.node_domain_map.keys())
         print(self.vcp)
 
-        self.create_graph()
+        #self.create_graph()
 
     def create_graph(self):
         vcp = self.vcp
@@ -184,6 +185,7 @@ class Gui(Frame):
         self.btn_start.config(state='disabled')
         td.start()
         ts.start()
+
 
     def search(self):
         vc_nodes, found = self.gs.search()

@@ -141,7 +141,7 @@ def graph_search(problem, frontier):
     problem.initialize()                            # Initialize problem state
     while problem.open:                             # While there are still nodes in the queue
         node = frontier.pop(problem.open)           # Pop start node
-        if problem.goal_test(node):                 # Is current node the goal node? Then
+        if problem.goal(node):                 # Is current node the goal node? Then
             return node.path(), True                # end algorithm and return result
 
         if node.closed:
