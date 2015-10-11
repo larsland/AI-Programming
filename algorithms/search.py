@@ -33,7 +33,7 @@ class Problem:
         pass
 
     @abstractclassmethod
-    def goal_test(self, other):
+    def goal_test   (self, other):
         """General goal test to see if goal has been achieved"""
         return self.goal == other
 
