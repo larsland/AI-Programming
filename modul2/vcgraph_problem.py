@@ -30,16 +30,17 @@ class VertexColoringProblem(CSP):
 
         CSP.__init__(self, self.node_domain_map, self.constraints)
 
-    def set_graph(self, graph=open('modul2/graph5.txt'), dom_size=4):
-        ls = graph.read().splitlines()
-        nv, ne = map(int, ls[0].split())
+    def set_graph(self, graph='graph.txt', dom_size=4):
+        dom_size = int(dom_size)
+        lines = open('modul2/' + graph).read().splitlines()
+        nv, ne = map(int, lines[0].split())
 
-        for s in ls[1:nv+1]:
+        for s in lines[1:nv+1]:
             index, x, y = map(eval, s.split())
             self.coordinates[index] = [x, y]
             self.node_domain_map[index] = [i for i in range(dom_size)]
 
-        for s in ls[nv+1:]:
+        for s in lines[nv+1:]:
             n, m = map(int, s.split())
             self.constraints.append(Constraint([n, m], lambda x, y: x != y))
 

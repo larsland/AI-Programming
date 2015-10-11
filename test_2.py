@@ -10,9 +10,10 @@ def ms_to_s(ms):
     return s
 
 if __name__ == '__main__':
+    """
     t1 = time.time()
     VC = VertexColoringProblem()
-    VC.set_graph()
+    VC.set_graph(graph='graph3.txt', dom_size=4)
     t2 = time.time()
     GS = GraphSearch(problem=VC, frontier=Agenda)
     t3 = time.time()
@@ -26,7 +27,7 @@ if __name__ == '__main__':
         print('-----------------------------------', i)
         i+=1
         print(VCGACNode.node_domain_map)
-
+    """
     root = Tk()
-    app = Gui(VC, master=root)
+    app = Gui(master=root)
     app.mainloop()
