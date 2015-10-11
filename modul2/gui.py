@@ -9,30 +9,18 @@ from queue import Queue, Empty
 
 
 class ThreadedDrawer(threading.Thread):
-    def __init__(self, frame, queue):
+    def __init__(self, frame, queue, stopper):
         threading.Thread.__init__(self)
         self.queue = queue
         self.frame = frame
+        self.stopper = stopper
 
     def run(self):
-        """
-        temp_state = set()
-        for nodes in self.state:
-            temp_set = set()
-            for node in nodes:
-                # Deep copy of node
-                temp_set.add(copy.copy(node))
-            # Freeze the set so it becomes hashable
-            temp_set = frozenset(temp_set)
-            temp_state.add(temp_set)
-
-        if self.solution['states']:
-            diff_state = list(temp_state.difference(self.solution['states'][-1]))
-        else:
-            diff_state = list(temp_state)
-        """
         prev_set = set()
         while True:
+            if self.stopper.is_set():
+                print("wooohoooooo!!!!")
+                break
             temp_set = set()
             vc_node = self.queue.get()
             if vc_node == 'stop':
@@ -44,27 +32,35 @@ class ThreadedDrawer(threading.Thread):
                 temp_set.add((node, frozenset(domain)))
             temp_set = frozenset(temp_set)
 
+            #graph_nodes = deepcopy(self.frame.graph_nodes)
+            #print(int(self.frame.canvas.gettags(graph_nodes[0])[0]))
+            #break
+
             node_domain = temp_set.difference(prev_set)
             prev_set = temp_set
-            node_domain = [(gac_node, domain) for gac_node, domain in node_domain if len(domain) > 1]
+            #node_domain = [(gac_node, domain) if len(domain) > 1 else
+            #               (gac_node, [11]) for gac_node, domain in node_domain]
             for gac_node, domain in node_domain:
                 self.frame.update_graph_node(gac_node, list(domain)[0])
 
 
 class ThreadedSearch(threading.Thread):
-    def __init__(self, queue, search):
+    def __init__(self, queue, search, stopper):
         threading.Thread.__init__(self)
         self.queue = queue
         self.search = search
+        self.stopper = stopper
 
     def run(self):
-        for node in self.search:
-            print('jesus, fuck')
-            if node:
+        while True:
+            if self.stopper.is_set():
+                print("WHAPADIDLDUUUU!!!!")
+                break
+            try:
+                node = next(self.search)
                 self.queue.put(node)
-            else:
+            except StopIteration:
                 self.queue.put('stop')
-
 
 class Gui(Frame):
     def __init__(self, master=None):
@@ -83,8 +79,12 @@ class Gui(Frame):
 
         self.btn_start = None
 
-        self.graph_nodes = []
+        self.graph_nodes = {}
         self.edges = []
+
+        self.thread_stopper = threading.Event()
+
+
         self.create_gui()
 
     def create_gui(self):
@@ -127,9 +127,9 @@ class Gui(Frame):
         self.change('nutnut')
 
     def change(self, woot):
-        print(woot)
-        self.solution_queue.put('stop')
-        self.canvas.delete("all")
+
+        self.thread_stopper.set()
+        self.clear_grid()
         self.vcp = VertexColoringProblem()
         self.vcp.set_graph(self.selected_graph.get(), self.selected_k_value.get())
         self.create_grid()
@@ -138,24 +138,25 @@ class Gui(Frame):
 
     def clear_grid(self):
         self.canvas.delete("all")
+
+        """
         for edge in self.edges:
             self.canvas.delete(edge)
+        self.edges = []
         for node in self.graph_nodes:
             self.canvas.delete(node)
+        self.graph_nodes = []
+        """
 
     def create_grid(self):
         self.clear_grid()
 
         # if is_file:
-        # vcp = VertexColoringProblem()
-        print('wat?', self.selected_k_value.get())
-        print('wait wat?', self.selected_graph.get())
+        self.vcp = VertexColoringProblem()
         self.vcp.set_graph(self.selected_graph.get(), int(self.selected_k_value.get()))
 
-        self.graph_nodes = list(self.vcp.node_domain_map.keys())
-        print(self.vcp)
+        self.graph_nodes = deepcopy(self.vcp.node_domain_map)
 
-        #self.create_graph()
 
     def create_graph(self):
         vcp = self.vcp
@@ -171,20 +172,17 @@ class Gui(Frame):
 
         for i in vcp.coordinates:
             c = 11 if len(vcp.get_domain(i)) > 1 else vcp.get_domain(i)[0]
-            if len(vcp.get_domain(i)) > 1 and c == 11:
-                print(c, vcp.get_domain(i))
             self.graph_nodes[i] = self.canvas.create_oval(vcp.coordinates[i][0], vcp.coordinates[i][1],
                                                           vcp.coordinates[i][0] + 15, vcp.coordinates[i][1] + 15,
-                                                          fill=self.colors[c])
+                                                          fill=self.colors[c],
+                                                          tags=c)
 
     def thready_search(self):
-
+        self.thread_stopper.clear()
         self.solution_queue = Queue()
-        td = ThreadedDrawer(self, self.solution_queue)
-        ts = ThreadedSearch(self.solution_queue, self.gs.search_yieldie())
+        ThreadedDrawer(self, self.solution_queue, self.thread_stopper).start()
+        ThreadedSearch(self.solution_queue, self.gs.search_yieldie(), self.thread_stopper).start()
         self.btn_start.config(state='disabled')
-        td.start()
-        ts.start()
 
 
     def search(self):
@@ -207,6 +205,7 @@ class Gui(Frame):
         #else:
         #    self.paint_error()
         #    print("Fant ikke løsning, kis (jeg er i gui.py)")
+
 
     def update_graph_node(self, node, domain):
         self.canvas.itemconfig(self.graph_nodes[node], fill=self.colors[domain])
