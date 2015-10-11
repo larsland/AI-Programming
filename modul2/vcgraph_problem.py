@@ -38,7 +38,7 @@ class VertexColoringProblem(CSP):
         for s in lines[1:nv+1]:
             index, x, y = map(eval, s.split())
             self.coordinates[index] = [x, y]
-            self.node_domain_map[index] = [i for i in range(dom_size)]
+            self.node_domain_map[index] = [int(i) for i in range(dom_size)]
 
         for s in lines[nv+1:]:
             n, m = map(int, s.split())
