@@ -76,6 +76,12 @@ class GAC:
     def __repr__(self):
         return "<GAC(n:%s, q:%s, c:%s)>" % (self.node_domain_map, self.queue, self.constraints)
 
+    def get_domain(self, node):
+        return self.node_domain_map[node]
+
+    def set_domain(self, node, domain):
+        self.node_domain_map[node] = domain
+
     def initialize(self):
         self.queue = [(node, cons) for cons in self.constraints for node in cons.variables]
 

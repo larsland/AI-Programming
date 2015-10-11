@@ -12,7 +12,7 @@ def ms_to_s(ms):
 if __name__ == '__main__':
     t1 = time.time()
     VC = VertexColoringProblem()
-    VC.set_graph(graph=open('modul2/graph1.txt'), dom_size=4)
+    VC.set_graph()
     t2 = time.time()
     GS = GraphSearch(problem=VC, frontier=Agenda)
     t3 = time.time()

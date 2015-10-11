@@ -1,21 +1,27 @@
 from tkinter import *
+from modul2.vcgraph_problem import VertexColoringProblem
 from modul2.search import GraphSearch, Agenda
+from copy import deepcopy
 
 
 class Gui(Frame):
     def __init__(self, vcp,  master=None):
         Frame.__init__(self, master)
         self.csp = vcp
+        self.vcp = VertexColoringProblem()
+        self.vcp.set_graph()
         self.gs = GraphSearch(vcp, frontier=Agenda)
+
         self.master.title("VC problem")
         self.pack()
         self.canvas = None
-        self.selected_graph = None
-        self.selected_k_value = None
         self.colors = {0: "#FF0000", 1: "#33CC33", 2: "#3366CC", 3: "#FFFF00", 4: "#FF6600", 5: "#FF3399",
                        6: "#993300", 7: "#990033", 8: "#808080", 9: "#99FFCC", 10: "#000000"}
+
+        self.graph_nodes = []
         self.create_gui()
         self.csp = None
+
 
     def create_gui(self):
         # Initializing the variables the option menus will use
@@ -23,8 +29,8 @@ class Gui(Frame):
         self.selected_k_value = StringVar(self)
 
         # Setting default values for option menu variables
-        self.selected_graph.set("graph1.txt")
-        self.selected_k_value.set(4)
+        self.selected_graph.set("modul2/graph1.txt")
+        self.selected_k_value.set(3)
 
         # Creating the GUI components
         group_state = LabelFrame(self, text="State", padx=5, pady=5)
@@ -32,12 +38,12 @@ class Gui(Frame):
         group_options = LabelFrame(self, text="Options", padx=5, pady=5)
         self.canvas = Canvas(group_state, width=600, height=600, bg="#F0F0F0", highlightbackground="black",
                              highlightthickness=1)
-        graph_menu = OptionMenu(group_options, self.selected_graph, "graph1.txt", "graph2.txt",
-                                "graph3.txt", "graph4.txt", "graph5.txt", "graph6.txt",)
+        graph_menu = OptionMenu(group_options, self.selected_graph, "modul2/graph1.txt", "modul2/graph2.txt",
+                                "modul2/graph3.txt", "modul2/graph4.txt", "modul2/graph5.txt", "modul2/graph6.txt",)
 
         k_value_menu = OptionMenu(group_options, self.selected_k_value, 4, 5, 6)
         label_colored_nodes = Label(group_stats, text="0/0")
-        btn_start = Button(group_options, text="Start", padx=5, pady=5, bg="light green")
+        btn_start = Button(group_options, text="Start", padx=5, pady=5, bg="light green", command=self.search)
         btn_exit = Button(group_options, text="Exit", padx=5, pady=5, bg="red", command=self.quit)
 
         # Placing GUI components in a grid
@@ -54,10 +60,14 @@ class Gui(Frame):
         btn_start.grid(row=0, column=5, sticky=E)
         btn_exit.grid(row=0, column=6, sticky=E)
 
-        #self.paint_graph(self.csp)
-        self.search()
+        self.graph_nodes = list(self.csp.node_domain_map.keys())
+        print(self.graph_nodes)
+        self.paint_graph(self.csp)
 
     def search(self):
+        self.vcp.set_graph(open(self.selected_graph.get()), int(self.selected_k_value.get()))
+        self.paint_graph(self.vcp)
+
         vc_nodes, found = self.gs.search()
 
         if found:
@@ -66,10 +76,13 @@ class Gui(Frame):
             self.paint_error()
             print("Fant ikke løsning, kis (jeg er i gui.py)")
 
-    def paint_solution(self, vc_nodes):
-        final_node = vc_nodes[-1]
-        coordinates = self.scale_coords(self.get_graph_dims(final_node), final_node)
+    def update_graph_node(self, vcp, node):
+        self.canvas.itemconfig(self.graph_nodes[node], fill=self.colors[vcp.node_domain_map[node][0]])
 
+    def paint_solution(self, vc_nodes, ani_step=-1):
+        vc_node = vc_nodes[ani_step]
+        # coordinates = self.scale_coords(self.get_graph_dims(final_node), final_node)
+        """
         for constraint in final_node.constraints:
             start_x = coordinates[constraint.variables[0]][0]
             start_y = coordinates[constraint.variables[0]][1]
@@ -77,11 +90,14 @@ class Gui(Frame):
             end_y = coordinates[constraint.variables[1]][1]
 
             self.canvas.create_line(start_x+7.5, start_y+7.5, end_x+7.5, end_y+7.5)
+        """
+        for node_id in vc_node.coordinates:
+            print('cooooordinates', node_id)
+            self.update_graph_node(vc_node, node_id)
 
-        for i in final_node.coordinates:
-            self.canvas.create_oval(coordinates[i][0], coordinates[i][1],
-                                    coordinates[i][0] + 15, coordinates[i][1] + 15,
-                                    fill=self.colors[final_node.node_domain_map[i][0]])
+            #self.canvas.create_oval(coordinates[node][0], coordinates[node][1],
+            #                        coordinates[node][0] + 15, coordinates[node][1] + 15,
+            #                        fill=self.colors[final_node.node_domain_map[node][0]])
 
     def paint_error(self):
         pass
@@ -98,7 +114,7 @@ class Gui(Frame):
             self.canvas.create_line(start_x+7.5, start_y+7.5, end_x+7.5, end_y+7.5)
 
         for i in vcp.coordinates:
-            self.canvas.create_oval(vcp.coordinates[i][0], vcp.coordinates[i][1],
+            self.graph_nodes[i] = self.canvas.create_oval(vcp.coordinates[i][0], vcp.coordinates[i][1],
                                     vcp.coordinates[i][0] + 15, vcp.coordinates[i][1] + 15,
                                     fill=self.colors[vcp.get_domain(i)[0]])
 

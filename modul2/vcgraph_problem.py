@@ -6,10 +6,9 @@ import copy
 
 # PriorityNode
 class VCGACNode(GAC):
-    def __init__(self, csp, node_domain_map, problem, constraints, coordinates):
+    def __init__(self, csp, coordinates):
         self.csp = csp
         self.coordinates = coordinates
-        self.problem = problem
         self.f = 0
 
         GAC.__init__(self, csp)
@@ -24,14 +23,14 @@ class VertexColoringProblem(CSP):
         self.node_domain_map = {}
         self.constraints = []
 
-        self.start = VCGACNode(self, self.node_domain_map, self, self.constraints, self.coordinates)
+        self.start = VCGACNode(self, self.coordinates)
         self.start.initialize()
         self.start.domain_filtering()
         self.open = [self.start]
 
         CSP.__init__(self, self.node_domain_map, self.constraints)
 
-    def set_graph(self, graph=open('modul2/graph1.txt'), dom_size=4):
+    def set_graph(self, graph=open('modul2/graph5.txt'), dom_size=4):
         ls = graph.read().splitlines()
         nv, ne = map(int, ls[0].split())
 
