@@ -24,8 +24,8 @@ class NonogramProblem(CSP):
 
         self.nono_cons = None
         self.grid = [[]]
-        self.total_cols = []
-        self.total_rows = []
+        self.total_cols = 0
+        self.total_rows = 0
 
         self.start = NonoGACNode(self)
         self.start.initialize()
@@ -58,7 +58,7 @@ class NonogramProblem(CSP):
             c, domain_b = b
             return self.get_domain(c) == self.get_domain(r)
 
-        self.nono_cons = lambda a, b: cf(a, b)
+        self.nono_cons = lambda x, y: print(x, y) # self.get_domain(tuple(x)) == self.get_domain(tuple(y))
 
         with open(nonogram) as f:
             cols, rows = map(int, f.readline().split())
@@ -77,6 +77,9 @@ class NonogramProblem(CSP):
                 counts = list(map(int, f.readline().split()))
                 self.node_domain_map[rows + col] = [p for p in self.gen_patterns(counts, rows)]
 
+            for node in self.node_domain_map.keys():
+                print("wtf", node)
+
         if DEBUG:
             for x in range(rows + cols):
                 print(self.node_domain_map[x])
@@ -84,14 +87,12 @@ class NonogramProblem(CSP):
         self.constraints = []
         self.generate_constraints()
 
-
-
         self.start = NonoGACNode(self)
         self.start.initialize()
         self.start.domain_filtering()
         self.open = [self.start]
 
-        # print('NonogramProblem initialized with %dx%d grid' % (rows, cols))
+        print('NonogramProblem initialized with %dx%d grid' % (rows, cols))
 
 
     @staticmethod
