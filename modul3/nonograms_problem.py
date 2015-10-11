@@ -1,18 +1,66 @@
 import copy
 from algorithms.search import Problem
-from algorithms.csp import GAC, CSP
-DEBUG = True
+from algorithms.csp import GAC, CSP, Constraint
+DEBUG = False
 
 
-class NonogramProblem:
-    def __init__(self, path):
+class NonoGACNode(GAC):
+    def __init__(self, csp):
+        GAC.__init__(self, csp)
+        self.f = 0
+
+    def __lt__(self, other):
+        return self.f < other.f
+
+
+class NonogramProblem(CSP):
+    def __init__(self):
         """
         Constructor for the NonogramProblem
         Will set up the grid and create all nodes with all possible permutations as domains
         """
+        self.node_domain_map = {}
+        self.constraints = []
 
-        self.nodes = {}
-        with open(path) as f:
+        self.nono_cons = None
+        self.grid = [[]]
+        self.total_cols = []
+        self.total_rows = []
+
+        self.start = NonoGACNode(self)
+        self.start.initialize()
+        self.start.domain_filtering()
+        self.open = [self.start]
+
+        CSP.__init__(self, self.node_domain_map, self.constraints)
+
+
+    def set_graph(self, graph='graph1.txt', dom_size=4):
+        dom_size = int(dom_size)
+        lines = open('modul2/' + graph).read().splitlines()
+        nv, ne = map(int, lines[0].split())
+
+        coordinates = {}
+        for s in lines[1:nv+1]:
+            index, x, y = map(eval, s.split())
+            coordinates[index] = [x, y]
+            self.node_domain_map[index] = [int(i) for i in range(dom_size)]
+
+        for s in lines[nv+1:]:
+            n, m = map(int, s.split())
+            self.constraints.append(Constraint([n, m], lambda x, y: x != y))
+
+    def set_scenario(self, nonogram='modul3/scenario.txt'):
+        def cf(a, b):
+            print('aaaaaaaaaaaa', a)
+            print('bbbbbbbbbbbb', b)
+            r, domain_a = a
+            c, domain_b = b
+            return self.get_domain(c) == self.get_domain(r)
+
+        self.nono_cons = lambda a, b: cf(a, b)
+
+        with open(nonogram) as f:
             cols, rows = map(int, f.readline().split())
 
             self.grid = [[False]*cols]*rows
@@ -23,29 +71,28 @@ class NonogramProblem:
             for row in range(rows):
                 r_reversed.append(list(map(int, f.readline().split())))
             for row, counts in enumerate(reversed(r_reversed)):
-                self.nodes[row] = [(row, p) for p in self.gen_patterns(counts, cols)]
+                self.node_domain_map[row] = [p for p in self.gen_patterns(counts, cols)]
+            print(self.node_domain_map)
             for col in range(cols):
                 counts = list(map(int, f.readline().split()))
-                self.nodes[rows + col] = [(col, p) for p in self.gen_patterns(counts, rows)]
+                self.node_domain_map[rows + col] = [p for p in self.gen_patterns(counts, rows)]
 
         if DEBUG:
             for x in range(rows + cols):
-                print(self.nodes[x])
+                print(self.node_domain_map[x])
 
-        self.constraints = {}
+        self.constraints = []
         self.generate_constraints()
 
-        def cf(a, b):
-            r, domain_a = a
-            c, domain_b = b
-            return domain_a[c] == domain_b[r]
 
-        root = GAC(self.nodes, self, self.constraints)
-        root.initialize()
-        root.domain_filtering()
-        self.start = root
 
-        print('NonogramProblem initialized with %dx%d grid' % (rows, cols))
+        self.start = NonoGACNode(self)
+        self.start.initialize()
+        self.start.domain_filtering()
+        self.open = [self.start]
+
+        # print('NonogramProblem initialized with %dx%d grid' % (rows, cols))
+
 
     @staticmethod
     def gen_patterns(counts, cols):
@@ -96,9 +143,11 @@ class NonogramProblem:
         """
 
         for row in range(self.total_rows):
-            self.constraints[row] = [i for i in range(self.total_rows, self.total_rows + self.total_cols)]
+            self.constraints.append(Constraint([i for i in range(self.total_rows, self.total_rows + self.total_cols)],
+                                               self.nono_cons))
         for col in range(self.total_cols):
-            self.constraints[self.total_rows + col] = [i for i in range(0, self.total_rows)]
+            self.constraints.append(Constraint([i for i in range(self.total_rows, self.total_rows + self.total_cols)],
+                                               self.nono_cons))
 
     def get_start_node(self):
         """
@@ -118,22 +167,6 @@ class NonogramProblem:
         if h == 0:
             state.is_goal = True
         return h
-
-    def arc_cost(self, node):
-        """
-        Returns the arc cost for a given node
-        :param node: The node to get arc cost for
-        :return: The arc cost, 1 in this implementation
-        """
-        return 1
-
-    def get_goal_node(self):
-        """
-        Returns the goal node for the problem instance
-        Not implemented for this problem
-        :return: None in this instance
-        """
-        return None
 
     def actions(self, state):
         """

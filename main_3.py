@@ -1,5 +1,6 @@
 from tkinter import Tk
 from modul3.gui import Gui
+from modul3.nonograms_problem import NonogramProblem
 
 
 class Variable:
@@ -88,4 +89,9 @@ def init():
     app.mainloop()
     '''
 
-init()
+#init()
+
+if __name__ == '__main__':
+    Nono = NonogramProblem()
+    print(Nono)
+    Nono.set_scenario()

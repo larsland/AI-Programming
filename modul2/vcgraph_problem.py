@@ -7,7 +7,6 @@ import copy
 # PriorityNode
 class VCGACNode(GAC):
     def __init__(self, csp, coordinates):
-        self.csp = csp
         self.coordinates = coordinates
         self.f = 0
 
