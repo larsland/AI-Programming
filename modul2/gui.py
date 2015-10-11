@@ -48,7 +48,7 @@ class ThreadedDrawer(threading.Thread):
             prev_set = temp_set
             node_domain = [(gac_node, domain) for gac_node, domain in node_domain if len(domain) > 1]
             for gac_node, domain in node_domain:
-                self.frame.update_graph_node(gac_node, domain[0])
+                self.frame.update_graph_node(gac_node, list(domain)[0])
 
 
 class ThreadedSearch(threading.Thread):
