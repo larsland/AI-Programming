@@ -146,6 +146,7 @@ class NonogramProblem(CSP):
         for row in range(self.total_rows):
             self.constraints.append(Constraint([i for i in range(self.total_rows, self.total_rows + self.total_cols)],
                                                self.nono_cons))
+
         for col in range(self.total_cols):
             self.constraints.append(Constraint([i for i in range(self.total_rows, self.total_rows + self.total_cols)],
                                                self.nono_cons))

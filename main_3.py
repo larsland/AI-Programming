@@ -95,3 +95,4 @@ if __name__ == '__main__':
     Nono = NonogramProblem()
     print(Nono)
     Nono.set_scenario()
+    print(Nono.constraints)
