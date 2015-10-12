@@ -157,6 +157,9 @@ class NonogramProblem(CSP):
         """
         return self.start
 
+    def is_goal(self, other):
+        return sum((len(domains) - 1) for domains in other.node_domain_map.values()) == 0
+
     def h(self, state):
         """
         Calculates the heuristic for a given state
@@ -164,10 +167,7 @@ class NonogramProblem(CSP):
         :param astar_state: The state to calculate h for
         :return: The h value
         """
-        h = sum((len(domains) - 1) for domains in state.state.nodes.values())
-        if h == 0:
-            state.is_goal = True
-        return h
+        return sum((len(domains) - 1) for domains in state.node_domain_map.values())
 
     def actions(self, state):
         """
@@ -176,19 +176,18 @@ class NonogramProblem(CSP):
         length greater than 1 for a random node
         :return: The generated successor nodes
         """
-
+        # Generates children and runs the rerun method.
         actions = []
-        for node, dom in state.nodes.items():
+        for node, dom in state.node_domain_map.items():
             if len(dom) > 1:
                 for j in range(len(dom)):
-                    child = copy.deepcopy(node)
-                    child.nodes[node] = [dom[j]]
+                    child = copy.deepcopy(state)
+                    child.node_domain_map[node] = [dom[j]]
                     child.rerun(node)
-
-                    if DEBUG:
-                        print("Domain for %s is now %s" % (node, str(state.nodes[node])))
-
                     if not child.contradiction:
                         actions.append(child)
-
                 return actions
+        return actions
+
+    def path_cost(self, movement):
+        return 1
