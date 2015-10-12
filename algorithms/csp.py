@@ -84,16 +84,12 @@ class GAC:
         self.node_domain_map[node] = domain
 
     def initialize(self):
-        if len(self.constraints) > 1:
-            print('Constraint!', self.constraints[0])
-            print('VARIABLES!', self.constraints[0].variables)
-            print('DOMAIN!', self.get_domain(self.constraints[0].variables[0]))
         self.queue = [(node, cons) for cons in self.constraints for node in cons.variables]
-        print('QUEUEUEUEUE', self.queue)
 
     def domain_filtering(self):
         while self.queue:
             node, cons = self.queue.pop()
+            print('I dont get it', (node, cons))
             if self.revise(node, cons):
                 self.push_pairs(node, cons)
 
@@ -104,10 +100,16 @@ class GAC:
             return any(map(lambda vs: cons.method(vs, [x]), var_combs))
 
         old_len = len(self.csp.get_domain(node))
+        print('------------------------------------------------------------------------------')
+        print('Old: ', self.csp.get_domain(node))
+        # print('woot', (node, [item for item in self.csp.get_domain(node) if constraint_cmp(item)]))
         self.csp.set_domain(node, [item for item in self.csp.get_domain(node) if constraint_cmp(item)])
         if not self.csp.get_domain(node):
             self.contradiction = True
             return False
+
+        print('New: ', self.csp.get_domain(node))
+
         return old_len > len(self.csp.get_domain(node))
 
     def rerun(self, i):
