@@ -117,7 +117,15 @@ class GraphSearch:
             node, _open = frontier.pop(_open)
             closed.append(node)
             #problem.save_state(node)
-            yield node
+
+            yield {
+                'node': node,
+                'open': len(self.open),
+                'closed': len(self.closed),
+                'solved': None
+            }
+
+            # yield node
             if problem.is_goal(node):
                 solved = True
                 break
@@ -133,8 +141,9 @@ class GraphSearch:
                     if not in_open:
                         frontier.add(_open, child)
 
-        return solved
-
+        yield {
+            'solved': solved
+        }
 
 
 

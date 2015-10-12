@@ -5,9 +5,7 @@ from copy import deepcopy
 import time
 
 import threading
-from queue import Queue, Empty
-
-global cancel_clock_id
+from queue import Queue
 
 
 class ThreadedDrawer(threading.Thread):
@@ -19,37 +17,39 @@ class ThreadedDrawer(threading.Thread):
 
     def run(self):
         prev_set = set()
+        i = 0
         while True:
-            t = time.time()
             if self.stopper.is_set():
                 self.frame.recreate()
                 self.frame.btn_start.config(state='normal')
                 break
             temp_set = set()
-            vc_node = self.queue.get()
-            if vc_node == 'stop':
+            state = self.queue.get()
+            i += 1
+
+            if state['solved']:
                 print('done.')
 
                 top = Toplevel()
-                top.geometry("%dx%d%+d%+d" % (300, 200, 250, 200))
+                top.geometry("%dx%d%+d%+d" % (250, 100, 250, 200))
                 top.title("Success!")
-                msg = Message(top, text="Graph successfully solved in: ")
+                msg = Message(top, text="Graph successfully solved!")
                 msg.pack()
-                msg_time = Message(top, text=t)
-                msg_time.pack()
                 btn_ok = Button(top, text="Ok", command=top.destroy)
                 btn_ok.pack()
 
                 self.frame.btn_start.config(state='normal')
+
+                self.stopper.set()
                 break
 
-            for node, domain in vc_node.node_domain_map.items():
+            self.frame.steps.configure(text='%i' % i)
+            self.frame.open_c.configure(text='%s' % state['open'])
+            self.frame.closed_c.configure(text='%s' % state['closed'])
+
+            for node, domain in state["node"].node_domain_map.items():
                 temp_set.add((node, frozenset(domain)))
             temp_set = frozenset(temp_set)
-
-            #graph_nodes = deepcopy(self.frame.graph_nodes)
-            #print(int(self.frame.canvas.gettags(graph_nodes[0])[0]))
-            #break
 
             node_domain = temp_set.difference(prev_set)
             prev_set = temp_set
@@ -71,14 +71,14 @@ class ThreadedSearch(threading.Thread):
         while True:
             if self.stopper.is_set():
                 self.queue.put('stop')
-                self.frame.timer.configure(text='%.2f' % (time.time() - self.timeywimey))
+                self.frame.timer.configure(text='%.2f s' % (time.time() - self.timeywimey))
                 break
             try:
-                node = next(self.search)
-                self.queue.put(node)
+                state = next(self.search)
+                self.queue.put(state)
             except StopIteration:
                 self.queue.put('stop')
-                self.frame.timer.configure(text='%.2f' % (time.time() - self.timeywimey))
+                self.frame.timer.configure(text='%.2f s' % (time.time() - self.timeywimey))
                 break
 
 
@@ -99,6 +99,13 @@ class Gui(Frame):
 
         self.btn_start = None
         self.timer = None
+        self.steps = None
+        self.open_c = None
+        self.closed_c = None
+        self.label_timer = None
+        self.label_steps = None
+        self.label_open = None
+        self.label_closed = None
 
         self.graph_nodes = {}
         self.edges = []
@@ -106,29 +113,13 @@ class Gui(Frame):
         self.td = None
         self.ts = None
 
+        self.selected_graph = None
+        self.selected_k_value = None
+
         self.thread_stopper = threading.Event()
         self.thread_stopper.set()
 
-        global cancel_clock_id
-        cancel_clock_id = None
-
         self.create_gui()
-
-    def cancel_clock(self):
-        global cancel_clock_id
-        if cancel_clock_id is not None:
-            self.after_cancel(cancel_clock_id)
-            cancel_clock_id = None
-            return
-
-    def begin_clock(self, original=time.time()):
-        global cancel_clock_id
-        cancel_clock_id = self.after(100, self.update_clock, original)
-
-    def update_clock(self, original):
-        self.timer.configure(text='%.2f' % (time.time() - original))
-        global cancel_clock_id
-        cancel_clock_id = self.after(100, self.update_clock, original)
 
     def create_gui(self):
         # Initializing the variables the option menus will use
@@ -149,13 +140,21 @@ class Gui(Frame):
                                 "graph3.txt", "graph4.txt", "graph5.txt", "graph6.txt", command=self.change)
 
         k_value_menu = OptionMenu(group_options, self.selected_k_value, 3, 4, 5, 6, 7, 8, 9, 10, command=self.change)
-        label_colored_nodes = Label(group_stats, text="0/0")
 
         self.timer = Label(group_stats, text="0.00")
 
         self.btn_start = Button(group_options, text="Start", padx=5, pady=5, bg="light green", command=self.thready_search)
 
         btn_exit = Button(group_options, text="Exit", padx=5, pady=5, bg="red", command=self.exit)
+
+        # Stats
+        self.label_timer = Label(group_stats, text="Time:")
+        self.label_steps = Label(group_stats, text="Steps:")
+        self.label_open = Label(group_stats, text="Opened GAC nodes:")
+        self.label_closed = Label(group_stats, text="Closed GAC nodes:")
+        self.steps = Label(group_stats, text="0")
+        self.open_c = Label(group_stats, text="0")
+        self.closed_c = Label(group_stats, text="0")
 
         # Placing GUI components in a grid
         group_options.grid(row=0, column=0, columnspan=2, sticky=W + E)
@@ -167,8 +166,16 @@ class Gui(Frame):
         graph_menu.grid(row=0, column=0, sticky=N + E + S + W)
         k_value_menu.grid(row=0, column=1, sticky=W)
         self.canvas.grid(row=0, column=0)
-        label_colored_nodes.grid(row=0, column=0)
-        self.timer.grid(row=1, column=0)
+
+        self.label_timer.grid(row=1, column=0, sticky=W)
+        self.label_steps.grid(row=2, column=0, sticky=W)
+        self.label_open.grid(row=3, column=0, sticky=W)
+        self.label_closed.grid(row=4, column=0, sticky=W)
+
+        self.timer.grid(row=1, column=1, sticky=E)
+        self.steps.grid(row=2, column=1, sticky=E)
+        self.open_c.grid(row=3, column=1, sticky=E)
+        self.closed_c.grid(row=4, column=1, sticky=E)
         self.btn_start.grid(row=0, column=5, sticky=E)
         btn_exit.grid(row=0, column=6, sticky=E)
 
@@ -192,15 +199,6 @@ class Gui(Frame):
     def clear_grid(self):
         self.canvas.delete("all")
 
-        """
-        for edge in self.edges:
-            self.canvas.delete(edge)
-        self.edges = []
-        for node in self.graph_nodes:
-            self.canvas.delete(node)
-        self.graph_nodes = []
-        """
-
     def create_grid(self):
         self.clear_grid()
 
@@ -209,7 +207,6 @@ class Gui(Frame):
         self.vcp.set_graph(self.selected_graph.get(), int(self.selected_k_value.get()))
 
         self.graph_nodes = deepcopy(self.vcp.node_domain_map)
-
 
     def create_graph(self):
         vcp = self.vcp
@@ -231,6 +228,7 @@ class Gui(Frame):
                                                           tags=c)
 
     def thready_search(self):
+        self.change()
         self.timer.config(text="0.00")
         self.thread_stopper.clear()
         self.solution_queue = Queue()
@@ -240,57 +238,11 @@ class Gui(Frame):
         self.ts.start()
         self.btn_start.config(state='disabled')
 
-
-
-    def search(self):
-        vc_nodes, found = self.gs.search()
-        t4 = time.time()
-        # self.vcp = VertexColoringProblem()
-        #self.vcp.set_graph(self.selected_graph.get(), self.selected_k_value.get())
-        #print(self.selected_graph.get())
-        #print(self.selected_k_value.get())
-        #self.gs = GraphSearch(self.vcp, frontier=Agenda)
-
-        #vc_nodes, found = self.gs.search()
-
-        print(vc_nodes, found)
-
-        #print("Times: VC_init: %s, GraphSearch_init: %s, search: %s" % (t2-t1, t3-t2, t4-t3))
-
-        #if found:
-        #    self.paint_solution(vc_nodes)
-        #else:
-        #    self.paint_error()
-        #    print("Fant ikke løsning, kis (jeg er i gui.py)")
-
-
     def update_graph_node(self, node, domain):
         self.canvas.itemconfig(self.graph_nodes[node], fill=self.colors[domain])
 
-    def update_graph_node_2(self, node_domain_map, node):
-        self.canvas.itemconfig(self.graph_nodes[node], fill=self.colors[node_domain_map[node][0]])
-
-    def paint_solution(self, vc_nodes, ani_step=-1):
-        vc_node = vc_nodes[ani_step]
-        # coordinates = self.scale_coords(self.get_graph_dims(final_node), final_node)
-        """
-        for constraint in final_node.constraints:
-            start_x = coordinates[constraint.variables[0]][0]
-            start_y = coordinates[constraint.variables[0]][1]
-            end_x = coordinates[constraint.variables[1]][0]
-            end_y = coordinates[constraint.variables[1]][1]
-
-            self.canvas.create_line(start_x+7.5, start_y+7.5, end_x+7.5, end_y+7.5)
-        """
-        for node_id in vc_node.coordinates:
-            self.update_graph_node(vc_node, node_id)
-
-    def paint_error(self):
-        pass
-
     def paint_graph(self, vcp):
         vcp.coordinates = self.scale_coords(self.get_graph_dims(vcp), vcp)
-
 
         for i in vcp.coordinates:
             self.graph_nodes[i] = self.canvas.create_oval(vcp.coordinates[i][0], vcp.coordinates[i][1],
