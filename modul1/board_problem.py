@@ -1,5 +1,6 @@
 import copy, math, random
-from algorithms.search import Problem, PriorityNode
+from algorithms.old_search import PriorityNode
+from algorithms.search import Problem
 from algorithms.utils import memoize, Bunch
 
 
@@ -101,7 +102,7 @@ class Board(Problem):
         path[node.y] = "".join(path_line)
         return path
 
-    def goal_test   (self, other):
+    def is_goal(self, other):
         """General goal test to see if goal has been achieved"""
         return self.goal == other
 

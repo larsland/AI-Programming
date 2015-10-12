@@ -1,61 +1,13 @@
 from algorithms.csp import Constraint, GAC, CSP
-from algorithms.search import Problem
 from algorithms.utils import UniversalDict
+from algorithms.search import PriorityNode
 import copy
-
-
-class Node:
-    def __init__(self, state, problem, parent=None, action=None, path_cost=0):
-        self.state = state
-        self.problem = problem
-        self.parent = parent
-        self.action = action
-        self.path_cost = path_cost
-        self.closed = False     # Use this to check if the node has been traversed.
-
-    def __hash__(self):
-        return hash(str(self.state))
-
-    def __repr__(self):
-        """Representation method for printing a Node with valuable information"""
-        return "<Node (state:%s, action:%s, path_cost:%s, c:%s)>" % (self.state, self.action, self.path_cost,
-                                                                     self.closed)
-
-    def path(self):
-        path = []
-        node = self
-        while node.parent:
-            path.append(node)
-            node = node.parent
-        return path
-
-
-# PriorityNode
-class PriorityNode(Node):
-    """This node is specialized to be used in the context of a priority heap (or queue).
-    The order of nodes is derived from the comparison method __lt__, based on priority, as seen below.
-    For the purpose of this task the priority is calculated from f(n) = g(n) + h(n).
-    """
-    def __init__(self, state, problem, path_cost=1):
-        self.g = path_cost
-        self.f = 0
-
-        Node.__init__(self, state, problem, path_cost=path_cost)
-
-    def __lt__(self, other):
-        """Comparison method for priority queue"""
-        return self.f < other.f
-
-    def __repr__(self):
-        """Representation method for printing a Node with valuable information"""
-        return "<PriorityNode (f:%s, g:%s, h:%s, state:%s, closed:%s)>" % \
-               (self.f, self.g, self.problem.h(self), self.state, self.closed)
 
 
 class GACPriorityNode(GAC, PriorityNode):
     def __init__(self, csp):
         GAC.__init__(self, csp)
-        PriorityNode.__init__(self, None, csp)
+        PriorityNode.__init__(self, csp, csp)
 
 
 class VertexColoringProblem(CSP):

@@ -1,4 +1,4 @@
-from algorithms.search import a_star, breadth_first_search, depth_first_search
+from algorithms.old_search import a_star, breadth_first_search, depth_first_search
 from modul1.board_problem import Board
 from tkinter import *
 import math
@@ -337,7 +337,7 @@ class Astar_program(Frame):
 def main():
     root = Tk()
     app = Astar_program(master=root)
-    root.eval('tk::PlaceWindow %s center' % root.winfo_pathname(root.winfo_id()))
+    # root.eval('tk::PlaceWindow %s center' % root.winfo_pathname(root.winfo_id()))
     app.mainloop()
 
 main()

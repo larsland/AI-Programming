@@ -1,7 +1,7 @@
 from tkinter import *
 from tkinter import filedialog
 from modul2.vcgraph_problem import VertexColoringProblem
-from modul2.search import GraphSearch, Agenda
+from algorithms.search import GraphSearch, Agenda
 from copy import deepcopy
 import time
 

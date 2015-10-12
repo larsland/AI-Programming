@@ -1,7 +1,7 @@
 from tkinter import Tk
 from modul3.gui import Gui
 from modul3.nonograms_problem import NonogramProblem
-from modul2.search import GraphSearch, Agenda
+from algorithms.search import GraphSearch, Agenda
 
 """
 class Variable:
