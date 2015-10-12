@@ -1,4 +1,5 @@
 from tkinter import *
+from tkinter import filedialog
 from modul2.vcgraph_problem import VertexColoringProblem
 from algorithms.search import GraphSearch, Agenda
 from copy import deepcopy
@@ -106,6 +107,7 @@ class Gui(Frame):
         self.label_steps = None
         self.label_open = None
         self.label_closed = None
+        self.btn_load = None
 
         self.graph_nodes = {}
         self.edges = []
@@ -120,6 +122,7 @@ class Gui(Frame):
         self.thread_stopper.set()
 
         self.create_gui()
+
 
     def create_gui(self):
         # Initializing the variables the option menus will use
@@ -146,6 +149,8 @@ class Gui(Frame):
         self.btn_start = Button(group_options, text="Start", padx=5, pady=5, bg="light green", command=self.thready_search)
 
         btn_exit = Button(group_options, text="Exit", padx=5, pady=5, bg="red", command=self.exit)
+        self.btn_load = Button(group_options, text="Load graph", padx=5, pady=5, command=self.load_graph)
+
 
         # Stats
         self.label_timer = Label(group_stats, text="Time:")
@@ -165,6 +170,7 @@ class Gui(Frame):
 
         graph_menu.grid(row=0, column=0, sticky=N + E + S + W)
         k_value_menu.grid(row=0, column=1, sticky=W)
+        self.btn_load.grid(row=0, column=2, sticky=W)
         self.canvas.grid(row=0, column=0)
 
         self.label_timer.grid(row=1, column=0, sticky=W)
@@ -188,10 +194,13 @@ class Gui(Frame):
             self.thread_stopper.set()
             self.recreate()
 
-    def recreate(self):
+    def recreate(self, graph=None):
         self.clear_grid()
         self.vcp = VertexColoringProblem()
-        self.vcp.set_graph(self.selected_graph.get(), self.selected_k_value.get())
+        if not graph:
+            graph = self.selected_graph.get()
+        self.vcp.set_graph(graph, self.selected_k_value.get())
+
         self.create_grid()
         self.create_graph()
         self.gs = GraphSearch(problem=self.vcp, frontier=Agenda)
@@ -203,8 +212,8 @@ class Gui(Frame):
         self.clear_grid()
 
         # if is_file:
-        self.vcp = VertexColoringProblem()
-        self.vcp.set_graph(self.selected_graph.get(), int(self.selected_k_value.get()))
+       # self.vcp = VertexColoringProblem()
+       # self.vcp.set_graph(self.selected_graph.get(), int(self.selected_k_value.get()))
 
         self.graph_nodes = deepcopy(self.vcp.node_domain_map)
 
@@ -218,17 +227,17 @@ class Gui(Frame):
             end_x = vcp.coordinates[int(vcp.constraints[i].variables[1])][0]
             end_y = vcp.coordinates[int(vcp.constraints[i].variables[1])][1]
 
-            self.edges.append(self.canvas.create_line(start_x + 7.5, start_y + 7.5, end_x + 7.5, end_y + 7.5))
+            self.edges.append(self.canvas.create_line(start_x + 3.75, start_y + 3.75, end_x + 3.75, end_y + 3.75))
 
         for i in vcp.coordinates:
             c = 11 if len(vcp.get_domain(i)) > 1 else vcp.get_domain(i)[0]
             self.graph_nodes[i] = self.canvas.create_oval(vcp.coordinates[i][0], vcp.coordinates[i][1],
-                                                          vcp.coordinates[i][0] + 15, vcp.coordinates[i][1] + 15,
+                                                          vcp.coordinates[i][0] + 7.5, vcp.coordinates[i][1] + 7.5,
                                                           fill=self.colors[c],
                                                           tags=c)
 
     def thready_search(self):
-        self.change()
+        #self.change()
         self.timer.config(text="0.00")
         self.thread_stopper.clear()
         self.solution_queue = Queue()
@@ -293,9 +302,20 @@ class Gui(Frame):
 
         return scaled_coordinates
 
+    def load_graph(self):
+        file = filedialog.askopenfilename(parent=self, filetypes=[('Text Files', '.txt')],
+                                          title='Select a graph file')
+
+        file = file.split('/')[-1]
+        print(file)
+        self.recreate(file)
+
+
     def exit(self):
         self.change()
         self.after(500, self.quit)
+
+
 
 
 

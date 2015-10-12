@@ -23,8 +23,8 @@ class NonogramProblem(CSP):
 
         self.nono_cons = None
         self.grid = [[]]
-        self.total_cols = []
-        self.total_rows = []
+        self.total_cols = 0
+        self.total_rows = 0
 
         self.start = NonoGACNode(self)
         self.start.initialize()
