@@ -103,6 +103,9 @@ class Gui(Frame):
         self.graph_nodes = {}
         self.edges = []
 
+        self.td = None
+        self.ts = None
+
         self.thread_stopper = threading.Event()
         self.thread_stopper.set()
 
@@ -149,10 +152,10 @@ class Gui(Frame):
         label_colored_nodes = Label(group_stats, text="0/0")
 
         self.timer = Label(group_stats, text="0.00")
-        
+
         self.btn_start = Button(group_options, text="Start", padx=5, pady=5, bg="light green", command=self.thready_search)
 
-        btn_exit = Button(group_options, text="Exit", padx=5, pady=5, bg="red", command=self.quit)
+        btn_exit = Button(group_options, text="Exit", padx=5, pady=5, bg="red", command=self.exit)
 
         # Placing GUI components in a grid
         group_options.grid(row=0, column=0, columnspan=2, sticky=W + E)
@@ -231,8 +234,10 @@ class Gui(Frame):
         self.timer.config(text="0.00")
         self.thread_stopper.clear()
         self.solution_queue = Queue()
-        ThreadedDrawer(self, self.solution_queue, self.thread_stopper).start()
-        ThreadedSearch(self, self.solution_queue, self.gs.search_yieldie(), self.thread_stopper, time.time()).start()
+        self.td = ThreadedDrawer(self, self.solution_queue, self.thread_stopper)
+        self.td.start()
+        self.ts = ThreadedSearch(self, self.solution_queue, self.gs.search_yieldie(), self.thread_stopper, time.time())
+        self.ts.start()
         self.btn_start.config(state='disabled')
 
 
@@ -286,6 +291,11 @@ class Gui(Frame):
     def paint_graph(self, vcp):
         vcp.coordinates = self.scale_coords(self.get_graph_dims(vcp), vcp)
 
+
+        for i in vcp.coordinates:
+            self.graph_nodes[i] = self.canvas.create_oval(vcp.coordinates[i][0], vcp.coordinates[i][1],
+                                                          vcp.coordinates[i][0] + 15, vcp.coordinates[i][1] + 15,
+                                                          fill=self.colors[vcp.get_domain(i)[0]])
         for i in range(0, len(vcp.constraints)):
             start_x = vcp.coordinates[int(vcp.constraints[i].variables[0])][0]
             start_y = vcp.coordinates[int(vcp.constraints[i].variables[0])][1]
@@ -293,11 +303,6 @@ class Gui(Frame):
             end_y = vcp.coordinates[int(vcp.constraints[i].variables[1])][1]
 
             self.canvas.create_line(start_x + 7.5, start_y + 7.5, end_x + 7.5, end_y + 7.5)
-
-        for i in vcp.coordinates:
-            self.graph_nodes[i] = self.canvas.create_oval(vcp.coordinates[i][0], vcp.coordinates[i][1],
-                                                          vcp.coordinates[i][0] + 15, vcp.coordinates[i][1] + 15,
-                                                          fill=self.colors[vcp.get_domain(i)[0]])
 
     def get_graph_dims(self, vcp):
         x_positions, y_positions = [], []
@@ -336,6 +341,9 @@ class Gui(Frame):
 
         return scaled_coordinates
 
+    def exit(self):
+        self.change()
+        self.after(500, self.quit)
 
 
 

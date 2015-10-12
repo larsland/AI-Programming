@@ -54,10 +54,10 @@ class Gui(Frame):
             y += 1
             for item in line:
                 x += 1
-                if item == '0':
+                if not item:
                     self.canvas.create_rectangle(x*30, y*30, (x+1)*30, (y+1)*30, fill="white",
                                                                     tags='rectangle')
-                elif item == 'X':
+                elif item:
                     self.canvas.create_rectangle(x*30, y*30, (x+1)*30, (y+1)*30, fill="blue",
                                                                     tags='rectangle')
 

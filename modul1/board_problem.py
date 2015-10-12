@@ -101,6 +101,10 @@ class Board(Problem):
         path[node.y] = "".join(path_line)
         return path
 
+    def goal_test   (self, other):
+        """General goal test to see if goal has been achieved"""
+        return self.goal == other
+
     def solve(self, algorithm):
         """Solve the problem with the selected algorithm and
         formats the solution with a dictionary"""
