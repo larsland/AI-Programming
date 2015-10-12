@@ -3,8 +3,10 @@ from tkinter import filedialog
 
 
 class Gui(Frame):
-    def __init__(self, matrix,  master=None):
+    def __init__(self, nono, gs,  matrix,  master=None):
         Frame.__init__(self, master)
+        self.nono = nono
+        self.gs = gs
         self.matrix = matrix
         self.master.title("Nonogram Solver")
         self.pack()

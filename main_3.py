@@ -104,11 +104,12 @@ if __name__ == '__main__':
 
 
     gs = GraphSearch(Nono, Agenda)
-    node = None
+    matrix = []
     for node in gs.search_yieldie():
         pp.pprint(node)
+        matrix.append(node)
+
 
     root = Tk()
-    app = Gui(node, master=root)
+    app = Gui(Nono, gs, matrix, master=root)
     app.mainloop()
-
