@@ -38,8 +38,7 @@ class NonogramProblem(CSP):
 
         CSP.__init__(self, self.node_domain_map, self.constraints)
 
-
-    def set_scenario(self, nonogram='modul3/scenarioes/sweet-one.txt'):
+    def set_scenario(self, nonogram='modul3/scenarioes/scenario3.txt'):
 
         with open(nonogram) as f:
             cols, rows = map(int, f.readline().split())
@@ -58,9 +57,6 @@ class NonogramProblem(CSP):
                 counts = list(map(int, f.readline().split()))
                 self.node_domain_map[rows + col] = [(col, p) for p in self.gen_patterns(counts, rows)]
 
-            #for node in self.node_domain_map.keys():
-            #    print("wtf", node)
-
         if DEBUG:
             for x in range(rows + cols):
                 print(self.node_domain_map[x])
@@ -72,9 +68,6 @@ class NonogramProblem(CSP):
         self.start.initialize()
         self.start.domain_filtering()
         self.open = [self.start]
-
-        #print('NonogramProblem initialized with %dx%d grid' % (rows, cols))
-
 
     @staticmethod
     def gen_patterns(counts, cols):
