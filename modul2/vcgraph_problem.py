@@ -7,7 +7,7 @@ import copy
 class GACPriorityNode(GAC, PriorityNode):
     def __init__(self, csp):
         GAC.__init__(self, csp)
-        PriorityNode.__init__(self, None, csp)
+        PriorityNode.__init__(self, csp, csp)
 
 
 class VertexColoringProblem(CSP):

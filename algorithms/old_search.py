@@ -5,49 +5,6 @@ import math
 from abc import abstractclassmethod
 
 
-class Problem:
-    def __init__(self, state, goal=None):
-        """The constructor specifies the initial state, and possibly a goal
-        state, if there is a unique goal.  Your subclass's constructor can add
-        other arguments."""
-        self.state = state
-        self.goal = goal
-        # Holds several solution related data instances
-        self.solution = Bunch(path=[], length=0, found=False, steps=0, states=[])
-
-    @abstractclassmethod
-    def initialize(self):
-        """Initialization method for the state of the problem,
-        can be a list, matrix, tree or any other data structure that fits the problem"""
-        pass
-
-    @abstractclassmethod
-    def actions(self, state):
-        """Returns all actions that can be performed from current state,
-        either as a data structure or a generator"""
-        pass
-
-    @abstractclassmethod
-    def solve(self, algorithm):
-        """Solve the problem with the given algorithm"""
-        pass
-
-    @abstractclassmethod
-    def goal_test   (self, other):
-        """General goal test to see if goal has been achieved"""
-        return self.goal == other
-
-    @abstractclassmethod
-    def save_state(self):
-        """Useful when you want to review the states your algorithm created"""
-        pass
-
-    @abstractclassmethod
-    def path_cost(self, movement):
-        """Cost of a movement"""
-        pass
-
-
 class Node:
     def __init__(self, state, problem, parent=None, action=None, path_cost=0):
         self.state = state
@@ -141,7 +98,7 @@ def graph_search(problem, frontier):
     problem.initialize()                            # Initialize problem state
     while problem.open:                             # While there are still nodes in the queue
         node = frontier.pop(problem.open)           # Pop start node
-        if problem.goal_test(node):                 # Is current node the goal node? Then
+        if problem.is_goal(node):                 # Is current node the goal node? Then
             return node.path(), True                # end algorithm and return result
 
         if node.closed:

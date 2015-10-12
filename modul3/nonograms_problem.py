@@ -1,16 +1,13 @@
 import copy
-from algorithms.search import Problem
+from algorithms.search import Problem, PriorityNode
 from algorithms.csp import GAC, CSP, Constraint
 DEBUG = False
 
 
-class NonoGACNode(GAC):
+class NonoGACNode(GAC, PriorityNode):
     def __init__(self, csp):
         GAC.__init__(self, csp)
-        self.f = 0
-
-    def __lt__(self, other):
-        return self.f < other.f
+        PriorityNode.__init__(self, csp, csp)
 
 
 class NonogramProblem(CSP):

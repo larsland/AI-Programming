@@ -31,7 +31,7 @@ class Problem:
         pass
 
     @abstractclassmethod
-    def goal_test   (self, other):
+    def is_goal(self, other):
         """General goal test to see if goal has been achieved"""
         return self.goal == other
 
@@ -54,6 +54,9 @@ class Node:
         self.action = action
         self.path_cost = path_cost
         self.closed = False     # Use this to check if the node has been traversed.
+
+    def __eq__(self, other):
+        return isinstance(other, Node) and self.state == other.state
 
     def __hash__(self):
         return hash(str(self.state))
