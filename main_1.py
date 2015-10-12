@@ -337,6 +337,7 @@ class Astar_program(Frame):
 def main():
     root = Tk()
     app = Astar_program(master=root)
+    root.eval('tk::PlaceWindow %s center' % root.winfo_pathname(root.winfo_id()))
     app.mainloop()
 
 main()

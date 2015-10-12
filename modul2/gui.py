@@ -218,12 +218,12 @@ class Gui(Frame):
             end_x = vcp.coordinates[int(vcp.constraints[i].variables[1])][0]
             end_y = vcp.coordinates[int(vcp.constraints[i].variables[1])][1]
 
-            self.edges.append(self.canvas.create_line(start_x + 7.5, start_y + 7.5, end_x + 7.5, end_y + 7.5))
+            self.edges.append(self.canvas.create_line(start_x + 3.75, start_y + 3.75, end_x + 3.75, end_y + 3.75))
 
         for i in vcp.coordinates:
             c = 11 if len(vcp.get_domain(i)) > 1 else vcp.get_domain(i)[0]
             self.graph_nodes[i] = self.canvas.create_oval(vcp.coordinates[i][0], vcp.coordinates[i][1],
-                                                          vcp.coordinates[i][0] + 15, vcp.coordinates[i][1] + 15,
+                                                          vcp.coordinates[i][0] + 7.5, vcp.coordinates[i][1] + 7.5,
                                                           fill=self.colors[c],
                                                           tags=c)
 
