@@ -1,5 +1,5 @@
 import copy, math, random
-from algorithms.search import Problem, PriorityNode
+from algorithms.old_search import Problem, PriorityNode
 from algorithms.utils import memoize, Bunch
 
 

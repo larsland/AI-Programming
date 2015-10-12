@@ -1,4 +1,4 @@
-from algorithms.search import a_star, breadth_first_search, depth_first_search
+from algorithms.old_search import a_star, breadth_first_search, depth_first_search
 from modul1.board_problem import Board
 from tkinter import *
 import math

@@ -3,7 +3,6 @@ from algorithms.search import Problem
 from algorithms.csp import GAC, CSP, Constraint
 DEBUG = False
 
-
 class NonoGACNode(GAC):
     def __init__(self, csp):
         GAC.__init__(self, csp)
