@@ -99,16 +99,17 @@ from pprint import PrettyPrinter
 if __name__ == '__main__':
     pp = PrettyPrinter(indent=4)
     Nono = NonogramProblem()
-    print(Nono)
     Nono.set_scenario()
 
 
     gs = GraphSearch(Nono, Agenda)
     node = None
-    for node in gs.search_yieldie():
-        pp.pprint(node)
+    matrix = []
+    #for node in gs.search_yieldie():
+    #    #pp.pprint(node)
+    #    matrix.append(node)
 
     root = Tk()
-    app = Gui(node, master=root)
+    app = Gui(Nono, gs, matrix, master=root)
     app.mainloop()
 

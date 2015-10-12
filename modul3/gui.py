@@ -3,8 +3,10 @@ from tkinter import filedialog
 
 
 class Gui(Frame):
-    def __init__(self, matrix,  master=None):
+    def __init__(self, nono, gs, matrix,  master=None):
         Frame.__init__(self, master)
+        self.nono = nono
+        self.gs = gs
         self.matrix = matrix
         self.master.title("Nonogram Solver")
         self.pack()
@@ -32,7 +34,7 @@ class Gui(Frame):
 
         btn_start = Button(group_options, text="Start", padx=5, pady=5, bg="light green")
         btn_exit = Button(group_options, text="Exit", padx=5, pady=5, bg="red", command=self.quit)
-        self.btn_load = Button(group_options, text="Load graph", padx=5, pady=5, command=self.load_scenario)
+        #self.btn_load = Button(group_options, text="Load graph", padx=5, pady=5, command=self.load_scenario)
 
         # Placing GUI components in a grid
         group_options.grid(row=0, column=0, columnspan=2, sticky=W+E)
@@ -46,21 +48,30 @@ class Gui(Frame):
         btn_start.grid(row=0, column=5, sticky=E)
         btn_exit.grid(row=0, column=6, sticky=E)
 
-        self.paint_scenario(self.matrix)
+        self.paint_scenario(self.gs.search_yieldie())
 
-    def paint_scenario(self, matrix):
-        y = -1
-        for line in matrix:
-            x = -1
-            y += 1
-            for item in line:
-                x += 1
-                if not item:
-                    self.canvas.create_rectangle(x*30, y*30, (x+1)*30, (y+1)*30, fill="white",
-                                                                    tags='rectangle')
-                elif item:
-                    self.canvas.create_rectangle(x*30, y*30, (x+1)*30, (y+1)*30, fill="blue",
-                                                                    tags='rectangle')
+
+
+
+    def paint_scenario(self, gs_gen):
+        for solution in gs_gen:
+            if solution['solved']:
+                print("SOLVED")
+                break
+
+            print("Solving!")
+            y = -1
+            for i in range(self.nono.total_rows):
+                domain = solution['node'].get_domain(i)[0]
+                #print(domain[1])
+                x = -1
+                y += 1
+                for item in domain[1]:
+                    x += 1
+                    if not item:
+                        self.canvas.create_rectangle(x*30, y*30, (x+1)*30, (y+1)*30, fill="white", tags='rectangle')
+                    elif item:
+                        self.canvas.create_rectangle(x*30, y*30, (x+1)*30, (y+1)*30, fill="blue", tags='rectangle')
     '''
     def load_scenario(self):
         file = filedialog.askopenfilename(parent=self, filetypes=[('Text Files', '.txt')],

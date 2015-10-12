@@ -17,12 +17,19 @@ class NonogramProblem(CSP):
         Will set up the grid and create all nodes with all possible permutations as domains
         """
         self.node_domain_map = {}
-        self.constraints = []
+        self.constraints = {}
 
-        self.nono_cons = None
         self.grid = [[]]
         self.total_cols = 0
         self.total_rows = 0
+
+        def cf(a, b):
+            r, domain_a = a
+            c, domain_b = b
+
+            return domain_a[c] == domain_b[r]
+
+        self.cons = lambda x, y: cf(x, y)
 
         self.start = NonoGACNode(self)
         self.start.initialize()
@@ -32,30 +39,7 @@ class NonogramProblem(CSP):
         CSP.__init__(self, self.node_domain_map, self.constraints)
 
 
-    def set_graph(self, graph='graph1.txt', dom_size=4):
-        dom_size = int(dom_size)
-        lines = open('modul2/' + graph).read().splitlines()
-        nv, ne = map(int, lines[0].split())
-
-        coordinates = {}
-        for s in lines[1:nv+1]:
-            index, x, y = map(eval, s.split())
-            coordinates[index] = [x, y]
-            self.node_domain_map[index] = [int(i) for i in range(dom_size)]
-
-        for s in lines[nv+1:]:
-            n, m = map(int, s.split())
-            self.constraints.append(Constraint([n, m], lambda x, y: x != y))
-
-    def set_scenario(self, nonogram='modul3/scenario.txt'):
-        def cf(a, b):
-            print('aaaaaaaaaaaa', a)
-            print('bbbbbbbbbbbb', b)
-            r, domain_a = a
-            c, domain_b = b
-            return self.get_domain(c) == self.get_domain(r)
-
-        self.nono_cons = lambda x, y: True  # print(x, y)  # self.get_domain(tuple(x)) == self.get_domain(tuple(y))
+    def set_scenario(self, nonogram='modul3/scenarioes/sweet-one.txt'):
 
         with open(nonogram) as f:
             cols, rows = map(int, f.readline().split())
@@ -68,11 +52,11 @@ class NonogramProblem(CSP):
             for row in range(rows):
                 r_reversed.append(list(map(int, f.readline().split())))
             for row, counts in enumerate(reversed(r_reversed)):
-                self.node_domain_map[row] = [p for p in self.gen_patterns(counts, cols)]
+                self.node_domain_map[row] = [(row, p) for p in self.gen_patterns(counts, cols)]
 
             for col in range(cols):
                 counts = list(map(int, f.readline().split()))
-                self.node_domain_map[rows + col] = [p for p in self.gen_patterns(counts, rows)]
+                self.node_domain_map[rows + col] = [(col, p) for p in self.gen_patterns(counts, rows)]
 
             #for node in self.node_domain_map.keys():
             #    print("wtf", node)
@@ -81,7 +65,7 @@ class NonogramProblem(CSP):
             for x in range(rows + cols):
                 print(self.node_domain_map[x])
 
-        self.constraints = []
+        self.constraints = {}
         self.generate_constraints()
 
         self.start = NonoGACNode(self)
@@ -89,7 +73,7 @@ class NonogramProblem(CSP):
         self.start.domain_filtering()
         self.open = [self.start]
 
-        print('NonogramProblem initialized with %dx%d grid' % (rows, cols))
+        #print('NonogramProblem initialized with %dx%d grid' % (rows, cols))
 
 
     @staticmethod
@@ -141,12 +125,10 @@ class NonogramProblem(CSP):
         """
 
         for row in range(self.total_rows):
-            self.constraints.append(Constraint([i for i in range(self.total_rows, self.total_rows + self.total_cols)],
-                                               self.nono_cons))
+            self.constraints[row] = Constraint([i for i in range(self.total_rows, self.total_rows + self.total_cols)])
 
         for col in range(self.total_cols):
-            self.constraints.append(Constraint([i for i in range(0, self.total_rows)],
-                                               self.nono_cons))
+            self.constraints[self.total_rows + col] = Constraint([i for i in range(0, self.total_rows)])
 
     def get_start_node(self):
         """
@@ -165,7 +147,8 @@ class NonogramProblem(CSP):
         :param astar_state: The state to calculate h for
         :return: The h value
         """
-        return sum((len(domains) - 1) for domains in state.node_domain_map.values())
+        h = sum((len(domains) - 1) for domains in state.node_domain_map.values())
+        return h
 
     def actions(self, state):
         """
