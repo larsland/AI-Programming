@@ -34,7 +34,7 @@ class Gui(Frame):
 
         btn_start = Button(group_options, text="Start", padx=5, pady=5, bg="light green")
         btn_exit = Button(group_options, text="Exit", padx=5, pady=5, bg="red", command=self.quit)
-        self.btn_load = Button(group_options, text="Load graph", padx=5, pady=5, command=self.load_scenario)
+        #self.btn_load = Button(group_options, text="Load graph", padx=5, pady=5, command=self.load_scenario)
 
         # Placing GUI components in a grid
         group_options.grid(row=0, column=0, columnspan=2, sticky=W+E)
@@ -51,18 +51,23 @@ class Gui(Frame):
         self.paint_scenario(self.matrix)
 
     def paint_scenario(self, matrix):
+        solution = matrix[-2]
         y = -1
-        for line in matrix:
+        print('hello?', solution)
+
+        for i in range(self.nono.total_rows):
+            node, domain = i, solution['node'].get_domain(i)
+            print(node, domain[0])
             x = -1
             y += 1
-            for item in line:
+            for item in domain[0]:
                 x += 1
                 if not item:
-                    self.canvas.create_rectangle(x*30, y*30, (x+1)*30, (y+1)*30, fill="white",
-                                                                    tags='rectangle')
+                    self.canvas.create_rectangle(x*30, y*30, (x+1)*30, (y+1)*30, fill="white", tags='rectangle')
                 elif item:
-                    self.canvas.create_rectangle(x*30, y*30, (x+1)*30, (y+1)*30, fill="blue",
-                                                                    tags='rectangle')
+                    self.canvas.create_rectangle(x*30, y*30, (x+1)*30, (y+1)*30, fill="blue", tags='rectangle')
+
+
     '''
     def load_scenario(self):
         file = filedialog.askopenfilename(parent=self, filetypes=[('Text Files', '.txt')],
