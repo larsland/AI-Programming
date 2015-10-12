@@ -6,23 +6,32 @@ import math
 
 class Astar_program(Frame):
     def __init__(self, master=None):
+        Frame.__init__(self, master)
         self.problem = None
         self.custom_map_field = None
         self.selected_mode = None
         self.selected_map = None
-        self.solutions = []
-        self.solution_path = []
         self.map_data = None
         self.board = None
-        self.step = 0
-        Frame.__init__(self, master)
         self.master.title("A* Search")
         self.pack()
         self.group_view = LabelFrame(self, text="View", padx=5, pady=5)
         self.canvas = Canvas(self.group_view, width=600, height=600, highlightbackground='black', highlightthickness=1)
+
+        self.label_time = None
+        self.label_steps = None
+        self.label_open = None
+        self.label_closed = None
+        self.display_time = None
+        self.display_steps = None
+        self.display_open = None
+        self.display_closed = None
+
+        self.solutions = []
+        self.solution_path = []
         self.cells = [[]]
         self.texts = [[]]
-        self.create_gui()
+        self.step = 0
 
         # 64 length green to yellow to red gradient
         self.heat_gradient = ['#79FE48', '#7EFE47', '#83FE47', '#88FE46', '#8DFE46', '#92FE45', '#96FE45', '#9BFE44',
@@ -33,6 +42,8 @@ class Astar_program(Frame):
                               '#FEAE34', '#FEA933', '#FEA333', '#FE9D32', '#FE9732', '#FE9131', '#FE8B31', '#FE8530',
                               '#FE7F30', '#FE792F', '#FE732F', '#FE6C2E', '#FE662E', '#FE602D', '#FE5A2D', '#FE542C',
                               '#FE4D2C', '#FE472B', '#FE412B', '#FE3A2A', '#FE342A', '#FE2D29', '#FE292B', '#FF2830']
+
+        self.create_gui()
 
         global cancel_animation_id
         cancel_animation_id = None
@@ -52,37 +63,55 @@ class Astar_program(Frame):
         # Creating the GUI components
         group_options = LabelFrame(self, text="Options", padx=5, pady=5)
         group_custom_map = LabelFrame(self, text="Custom Map Input", padx=5, pady=5)
-        group_stats = LabelFrame(self, text="Stats", padx=5, pady=5)
+        group_stats = LabelFrame(self, text="Stats", padx=5, pady=190)
 
         mode_menu = OptionMenu(group_options, self.selected_mode, "A*", "Breadth-first", "Depth-first",
                                command=self.reset_grid(matrix=None))
 
-        map_menu = OptionMenu(group_options, self.selected_map, "map1.txt", "map2.txt", "map3.txt", "map4.txt", "map5.txt",
-                              command=lambda matrix: self.reset_grid(open("modul1/"+matrix).readlines()))
+        map_menu = OptionMenu(group_options, self.selected_map, "map1.txt", "map2.txt", "map3.txt", "map4.txt",
+                              "map5.txt", command=lambda matrix: self.reset_grid(open("modul1/"+matrix).readlines()))
 
         # Buttons
         start_btn = Button(group_options, text="Solve", fg="green", command=self.start_program)
         exit_btn = Button(group_options, text="Exit", fg="red", command=self.quit)
-        next_step_btn = Button(group_options, text="Next", fg="green", command=self.next_solution_grid)
-        prev_step_btn = Button(group_options, text="Back", fg="red", command=self.prev_solution_grid)
         load_custom_map_btn = Button(group_custom_map, text="Load custom map", command=self.load_custom_map)
 
-        self.custom_map_field = Text(group_custom_map, width=20, height=10, highlightbackground='black', highlightthickness=1)
+        self.custom_map_field = Text(group_custom_map, width=20, height=10, highlightbackground='black',
+                                     highlightthickness=1)
+
+        # Stats and numbers
+        self.label_time = Label(group_stats, text="Time:")
+        self.label_steps = Label(group_stats, text="Steps:")
+        self.label_open = Label(group_stats, text="Opened nodes:")
+        self.label_closed = Label(group_stats, text="Closed nodes:")
+        self.display_time = Label(group_stats, text="0.00")
+        self.display_steps = Label(group_stats, text="0")
+        self.display_open = Label(group_stats, text="0")
+        self.display_closed = Label(group_stats, text="0")
 
         # Placing components in a grid
         group_options.grid(row=0, column=0, sticky=W+E)
-        self.group_view.grid(row=1, column=0)
-        group_custom_map.grid(row=0, column=1, rowspan=2, sticky=N)
-        group_stats.grid(row=1, column=1, sticky=E+S+W)
-        mode_menu.grid(row=0, column=0, padx=0, sticky=W)
         map_menu.grid(row=0, column=1, padx=0)
-        prev_step_btn.grid(row=0, column=3)
-        next_step_btn.grid(row=0, column=4)
+        mode_menu.grid(row=0, column=0, padx=0, sticky=W)
         start_btn.grid(row=0, column=2)
         exit_btn.grid(row=0, column=5, sticky=E)
+
+        self.group_view.grid(row=1, column=0)
         self.canvas.grid(row=0, column=0)
+
+        group_custom_map.grid(row=0, column=1, rowspan=2, sticky=N)
         self.custom_map_field.grid(row=0, column=0, sticky=N)
         load_custom_map_btn.grid(row=1, column=0, sticky=E+W)
+
+        group_stats.grid(row=1, column=1, sticky=E+S+W)
+        self.label_time.grid(row=0, column=0, sticky=W)
+        self.label_steps.grid(row=1, column=0, sticky=W)
+        self.label_open.grid(row=2, column=0, sticky=W)
+        self.label_closed.grid(row=3, column=0, sticky=W)
+        self.display_time.grid(row=0, column=1, sticky=E)
+        self.display_steps.grid(row=1, column=1, sticky=E)
+        self.display_open.grid(row=2, column=1, sticky=E)
+        self.display_closed.grid(row=3, column=1, sticky=E)
 
         # Configuring components
         mode_menu.configure(width=15)
@@ -166,27 +195,16 @@ class Astar_program(Frame):
         except Exception as e:
             print("Invalid map data:", e)
 
-    def next_solution_grid(self):
-        if self.step < len(self.solutions):
-            self.step += 1
-            self.create_solution_grid(self.solutions[self.step-1])
-        elif self.step == 0:
-            self.start_program()
-
-    def prev_solution_grid(self):
-        print(self.step)
-        if self.step > 0:
-            self.step -= 1
-            self.create_solution_grid(self.solutions[self.step-1])
-
     def create_solution_grid(self, solution):
         if type(solution) == str:
             self.create_grid(solution)
             return
 
         matrix = solution['state']
-        min_f = self.problem.h(min([min(node_list, key=lambda n: self.problem.h(n)) for node_list in matrix], key=lambda n: self.problem.h(n))) or 1
-        max_f = self.problem.h(max([max(node_list, key=lambda n: self.problem.h(n)) for node_list in matrix], key=lambda n: self.problem.h(n))) or 1
+        min_f = self.problem.h(min([min(node_list, key=lambda n: self.problem.h(n)) for node_list in matrix],
+                                   key=lambda n: self.problem.h(n))) or 1
+        max_f = self.problem.h(max([max(node_list, key=lambda n: self.problem.h(n)) for node_list in matrix],
+                                   key=lambda n: self.problem.h(n))) or 1
         max_f -= min_f
 
         open_nodes = solution['open']
@@ -206,8 +224,7 @@ class Astar_program(Frame):
             if self.canvas.gettags(self.cells[node.x][node.y]) != 'oval':
                 self.canvas.delete(self.cells[node.x][node.y])
                 self.cells[node.x][node.y] = self.canvas.create_oval(node.x*30, node.y*30, (node.x+1)*30, (node.y+1)*30,
-                                                                     fill=self.get_heat_color(node, max_f),
-                                                                     tags='oval')
+                                                                     fill=self.get_heat_color(node, max_f), tags='oval')
 
                 if len(self.texts) > node.x:
                     if len(self.texts[node.x]) > node.y:
@@ -246,6 +263,11 @@ class Astar_program(Frame):
             ms_delay, self.update_solution_animation, None, self.solutions, ms_delay, 0)
 
     def update_solution_animation(self, label, ani_step, ms_delay, frame_num):
+
+        self.display_steps.configure(text=self.step)
+        #self.display_open.configure(text='%s' % state['open'])
+        #self.display_closed.configure(text='%s' % state['closed'])
+
         global cancel_animation_id
         if frame_num == len(ani_step):
             if self.problem.solution.found:
