@@ -13,8 +13,8 @@ global cancel_clock_id
 class ThreadedDrawer(threading.Thread):
     def __init__(self, frame, queue, stopper):
         threading.Thread.__init__(self)
-        self.queue = queue
         self.frame = frame
+        self.queue = queue
         self.stopper = stopper
 
     def run(self):
@@ -41,32 +41,32 @@ class ThreadedDrawer(threading.Thread):
 
             node_domain = temp_set.difference(prev_set)
             prev_set = temp_set
-            #node_domain = [(gac_node, domain) if len(domain) > 1 else
-            #               (gac_node, [11]) for gac_node, domain in node_domain]
+
             for gac_node, domain in node_domain:
                 self.frame.update_graph_node(gac_node, list(domain)[0])
 
 
 class ThreadedSearch(threading.Thread):
-    def __init__(self, queue, search, stopper, frame):
+    def __init__(self, frame, queue, search, stopper, timeywimey):
         threading.Thread.__init__(self)
+        self.frame = frame
         self.queue = queue
         self.search = search
         self.stopper = stopper
-        self.frame = frame
+        self.timeywimey = timeywimey
 
     def run(self):
         while True:
             if self.stopper.is_set():
                 self.queue.put('stop')
-                self.frame.cancel_clock()
+                self.frame.timer.configure(text='%.2f' % (time.time() - self.timeywimey))
                 break
             try:
                 node = next(self.search)
                 self.queue.put(node)
             except StopIteration:
                 self.queue.put('stop')
-                self.frame.cancel_clock()
+                self.frame.timer.configure(text='%.2f' % (time.time() - self.timeywimey))
                 break
 
 
@@ -108,12 +108,12 @@ class Gui(Frame):
 
     def begin_clock(self, original=time.time()):
         global cancel_clock_id
-        cancel_clock_id = self.after(1000, self.update_clock, original)
+        cancel_clock_id = self.after(100, self.update_clock, original)
 
     def update_clock(self, original):
         self.timer.configure(text='%.2f' % (time.time() - original))
         global cancel_clock_id
-        cancel_clock_id = self.after(1000, self.update_clock, original)
+        cancel_clock_id = self.after(100, self.update_clock, original)
 
     def create_gui(self):
         # Initializing the variables the option menus will use
@@ -135,7 +135,7 @@ class Gui(Frame):
 
         k_value_menu = OptionMenu(group_options, self.selected_k_value, 3, 4, 5, 6, 7, 8, 9, 10, command=self.change)
         label_colored_nodes = Label(group_stats, text="0/0")
-        self.timer = Label(group_stats, text="poop")
+        self.timer = Label(group_stats, text="0.00")
         self.btn_start = Button(group_options, text="Start", padx=5, pady=5, bg="light green", command=self.thready_search)
         btn_exit = Button(group_options, text="Exit", padx=5, pady=5, bg="red", command=self.quit)
 
@@ -154,15 +154,14 @@ class Gui(Frame):
         self.btn_start.grid(row=0, column=5, sticky=E)
         btn_exit.grid(row=0, column=6, sticky=E)
 
-
-
         self.change()
 
-    def change(self, woot=None):
+    def change(self, _=None):
         if self.thread_stopper.is_set():
             self.recreate()
         else:
             self.thread_stopper.set()
+            self.recreate()
 
     def recreate(self):
         self.clear_grid()
@@ -215,12 +214,13 @@ class Gui(Frame):
                                                           tags=c)
 
     def thready_search(self):
+        self.timer.config(text="0.00")
         self.thread_stopper.clear()
         self.solution_queue = Queue()
         ThreadedDrawer(self, self.solution_queue, self.thread_stopper).start()
-        ThreadedSearch(self.solution_queue, self.gs.search_yieldie(), self.thread_stopper, self).start()
+        ThreadedSearch(self, self.solution_queue, self.gs.search_yieldie(), self.thread_stopper, time.time()).start()
         self.btn_start.config(state='disabled')
-        #self.begin_clock(time.time())
+
 
     def update_graph_node(self, node, domain):
         self.canvas.itemconfig(self.graph_nodes[node], fill=self.colors[domain])

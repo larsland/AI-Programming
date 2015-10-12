@@ -58,7 +58,7 @@ class NonogramProblem(CSP):
             c, domain_b = b
             return self.get_domain(c) == self.get_domain(r)
 
-        self.nono_cons = lambda x, y: print(x, y) # self.get_domain(tuple(x)) == self.get_domain(tuple(y))
+        self.nono_cons = lambda x, y: True  # print(x, y)  # self.get_domain(tuple(x)) == self.get_domain(tuple(y))
 
         with open(nonogram) as f:
             cols, rows = map(int, f.readline().split())
@@ -72,13 +72,13 @@ class NonogramProblem(CSP):
                 r_reversed.append(list(map(int, f.readline().split())))
             for row, counts in enumerate(reversed(r_reversed)):
                 self.node_domain_map[row] = [p for p in self.gen_patterns(counts, cols)]
-            print(self.node_domain_map)
+
             for col in range(cols):
                 counts = list(map(int, f.readline().split()))
                 self.node_domain_map[rows + col] = [p for p in self.gen_patterns(counts, rows)]
 
-            for node in self.node_domain_map.keys():
-                print("wtf", node)
+            #for node in self.node_domain_map.keys():
+            #    print("wtf", node)
 
         if DEBUG:
             for x in range(rows + cols):
@@ -147,7 +147,7 @@ class NonogramProblem(CSP):
             self.constraints.append(Constraint([i for i in range(self.total_rows, self.total_rows + self.total_cols)],
                                                self.nono_cons))
         for col in range(self.total_cols):
-            self.constraints.append(Constraint([i for i in range(self.total_rows, self.total_rows + self.total_cols)],
+            self.constraints.append(Constraint([i for i in range(0, self.total_rows)],
                                                self.nono_cons))
 
     def get_start_node(self):
