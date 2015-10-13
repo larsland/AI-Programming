@@ -93,7 +93,6 @@ class Astar_program(Frame):
         mode_menu.grid(row=0, column=0, padx=0, sticky=W)
         map_menu.grid(row=0, column=1, padx=0)
         start_btn.grid(row=0, column=4)
-        #self.input_function_field.grid(row=0, column=2)
         exit_btn.grid(row=0, column=5, sticky=E)
 
         self.group_view.grid(row=1, column=0)
@@ -156,6 +155,10 @@ class Astar_program(Frame):
                     self.cells[x][y] = self.canvas.create_rectangle(x*30, y*30, (x+1)*30, (y+1)*30, fill="green",
                                                                     tags='rectangle')
 
+        for line in matrix:
+            print(line)
+
+
     def get_blocks(self, blockade):
         blocks = []
         x, y = blockade[0], blockade[1]
@@ -186,8 +189,12 @@ class Astar_program(Frame):
             matrix[start_node[1]][start_node[0]] = 'A'
             matrix[goal_node[1]][goal_node[0]] = 'B'
 
+            temp = []
             matrix.reverse()
-            self.board = matrix
+            for line in matrix:
+                temp.append(''.join(line) + '\n')
+
+            self.board = temp
             self.reset_grid(self.board)
 
         except Exception as e:
@@ -316,6 +323,7 @@ class Astar_program(Frame):
         if not self.board:
             self.board = list(open('modul1/maps/'+self.selected_map.get()).readlines())
         self.problem = Board(list(self.board))
+
 
         if self.selected_mode.get() == 'A*':
             self.problem.solve(a_star)
