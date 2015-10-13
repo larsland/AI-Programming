@@ -93,12 +93,11 @@ class GAC:
 
     def initialize(self):
         self.queue = [(node, con) for node, con in self.constraints.items()]
-        #print(self.queue)
 
     def domain_filtering(self):
         while self.queue:
             node, cons = self.queue.pop()
-            #print('Node bro', (node, cons))
+            # print('Node bro', (node, cons))
             if self.revise(node, cons):
                 self.push_pairs(node, cons)
 
