@@ -37,30 +37,38 @@ class NonogramProblem(CSP):
         c, col = y
         return row[c] == col[r]
 
-    def set_scenario(self, scenario):
+    def set_scenario(self, scenario_filepath):
+        """
+        Sets scenario for Nonogram problem using a file path as input.
+        :param scenario_filepath:
+        :return:
+        """
         self.init_time = time.time()
-        with open(scenario) as f:
-            cols, rows = map(int, f.readline().split())
+        with open(scenario_filepath) as f:
+            columns, rows = map(int, f.readline().split())
 
-            self.grid = [[False]*cols]*rows
+            self.grid = [[False]*columns]*rows
             self.total_rows = rows
-            self.total_cols = cols
+            self.total_cols = columns
 
             r_reversed = []
             for row in range(rows):
                 r_reversed.append(list(map(int, f.readline().split())))
             for row, counts in enumerate(reversed(r_reversed)):
-                self.node_domain[row] = [(row, p) for p in self.generate_perm_patterns(counts, cols)]
+                self.node_domain[row] = [(row, p) for p in self.generate_perm_patterns(counts, columns)]
 
-            for col in range(cols):
+            for col in range(columns):
                 counts = list(map(int, f.readline().split()))
 
                 self.node_domain[rows + col] = [(col, p) for p in self.generate_perm_patterns(counts, rows)]
 
-        if DEBUG:
-            for x in range(rows + cols):
-                print(self.node_domain[x])
+        self.initialize()
 
+    def initialize(self):
+        """
+        Initializes problem by setting constraints, and adding an initialized GACNode to the open queue.
+        :return:
+        """
         self.constraints = {}
         self.set_constraints()
 
@@ -72,42 +80,41 @@ class NonogramProblem(CSP):
             self.init_time = time.time() - self.init_time
             print("GOOOOOOOOAAAAAAl", self.init_time)
 
-
         self.open = [self.start]
 
-    def generate_perm_patterns(self, counts, cols):
+    def generate_perm_patterns(self, series, columns):
         """
-        Generates pattern permutations for a given number of segments
-        :param counts: A sequence of segment sizes
-        :param cols: The number of columns in the matrix
+        Generates pattern permutations for a given number of segments and columns
+        :param series: A seies of segment lengths
+        :param columns: The number of columns in the nonogram
         :return: A pattern matrix
         """
 
-        if len(counts) == 0:
-            return [[False for _ in range(cols)]]
+        # If the length of the series is 0, then False * len(column) will be returned
+        if len(series) == 0:
+            return [[False for _ in range(columns)]]
 
         permutations = []
-
-        for start in range(cols - counts[0] + 1):
+        for start in range(columns - series[0] + 1):
             permutation = []
 
             permutation += [False for _ in range(start)]
-            permutation += [True for _ in range(start, start + counts[0])]
+            permutation += [True for _ in range(start, start + series[0])]
 
-            sub_start = start + counts[0]
-            if sub_start < cols:
+            sub_start = start + series[0]
+            if sub_start < columns:
                 permutation.append(False)
                 sub_start += 1
 
-            if sub_start == cols and len(counts) == 0:
+            if sub_start == columns and len(series) == 0:
                 permutations.append(permutation)
                 break
 
-            sub_rows = self.generate_perm_patterns(counts[1:len(counts)], cols - sub_start)
+            sub_rows = self.generate_perm_patterns(series[1:len(series)], columns - sub_start)
 
             for sub_row in sub_rows:
                 sub_permutation = copy.deepcopy(permutation)
-                sub_permutation += [sub_row[x - sub_start] for x in range(sub_start, cols)]
+                sub_permutation += [sub_row[x - sub_start] for x in range(sub_start, columns)]
                 permutations.append(sub_permutation)
 
         return permutations
