@@ -154,9 +154,6 @@ class Astar_program(Frame):
                     self.cells[x][y] = self.canvas.create_rectangle(x*30, y*30, (x+1)*30, (y+1)*30, fill="green",
                                                                     tags='rectangle')
 
-        for line in matrix:
-            print(line)
-
 
     def get_blocks(self, blockade):
         blocks = []

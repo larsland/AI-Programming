@@ -139,7 +139,6 @@ class Gui(Frame):
         self.label_missing_colors = None
         self.label_unsatisfied_cons = None
 
-
         self.thread_stopper = threading.Event()
         self.thread_stopper.set()
 
