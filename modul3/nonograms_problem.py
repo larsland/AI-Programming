@@ -1,4 +1,5 @@
 import copy
+import time
 from algorithms.search import Problem, PriorityNode
 from algorithms.csp import GAC, CSP, Constraint
 DEBUG = False
@@ -26,9 +27,11 @@ class NonogramProblem(CSP):
         self.start = None
         self.open = []
 
+        self.init_time = 0
+
         CSP.__init__(self, self.node_domain, self.constraints)
 
-    def cons(self, x, y):
+    def nono_cf(self, x, y):
         """
         Constraint for the Nonogram constraint satisfaction problem.
         The contents of a cell must be the same in both row and column - otherwise it is not a valid constraint.
@@ -41,6 +44,7 @@ class NonogramProblem(CSP):
         return row[c] == col[r]
 
     def set_scenario(self, scenario):
+        self.init_time = time.time()
         with open(scenario) as f:
             cols, rows = map(int, f.readline().split())
 
@@ -59,7 +63,6 @@ class NonogramProblem(CSP):
 
                 self.node_domain[rows + col] = [(col, p) for p in self.generate_perm_patterns(counts, rows)]
 
-
         if DEBUG:
             for x in range(rows + cols):
                 print(self.node_domain[x])
@@ -72,7 +75,8 @@ class NonogramProblem(CSP):
         self.start.domain_filtering()
 
         if self.is_goal(self.start):
-            print("GOOOOOOOOAAAAAAl")
+            self.init_time = time.time() - self.init_time
+            print("GOOOOOOOOAAAAAAl", self.init_time)
 
 
         self.open = [self.start]
@@ -123,12 +127,12 @@ class NonogramProblem(CSP):
         """
         for row in range(self.total_rows):
             self.constraints[row] = Constraint([i for i in range(self.total_rows, self.total_rows + self.total_cols)],
-                                               self.cons)
+                                               self.nono_cf)
         for col in range(self.total_cols):
-            self.constraints[self.total_rows + col] = Constraint([i for i in range(0, self.total_rows)], self.cons)
+            self.constraints[self.total_rows + col] = Constraint([i for i in range(0, self.total_rows)], self.nono_cf)
 
     def is_goal(self, other):
-        return sum((len(domains) - 1) for domains in other.node_domain.values()) == 0
+        return self.h(other) == 0
 
     def h(self, state):
         """
