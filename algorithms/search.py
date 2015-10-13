@@ -239,7 +239,9 @@ class GraphSearch:
                         frontier.add(_open, child)
 
         yield {
-            'solved': solved
+            'solved': solved,
+            'open': len(self.open),
+            'closed': len(self.closed)
         }
 
 
