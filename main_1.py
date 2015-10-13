@@ -24,7 +24,6 @@ class Astar_program(Frame):
         self.display_path_length = None
         self.display_generated_nodes = None
         self.input_function_field = None
-
         self.solutions = []
         self.solution_path = []
         self.cells = [[]]
