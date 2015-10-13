@@ -11,8 +11,8 @@ class Gui(Frame):
         self.master.title("Nonogram Solver")
         self.pack()
         self.nono = NonogramProblem()
-        #self.nono.set_scenario('modul3/scenarioes/scenario1.txt')
-        self.gs = None
+        self.nono.set_scenario('modul3/scenarioes/scenario1.txt')
+        self.gs = GraphSearch(self.nono, Agenda)
 
         self.canvas = None
         self.selected_scenario = None
@@ -113,6 +113,8 @@ class Gui(Frame):
         self.canvas.delete('all')
         self.nono.set_scenario('modul3/scenarioes/' + self.selected_scenario.get())
         self.gs = GraphSearch(self.nono, Agenda)
+
+
 
 
 
