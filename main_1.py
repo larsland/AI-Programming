@@ -178,8 +178,18 @@ class Astar_program(Frame):
             matrix[start_node[1]][start_node[0]] = 'A'
             matrix[goal_node[1]][goal_node[0]] = 'B'
 
-            self.board = matrix.reverse()
-            self.reset_grid(matrix)
+
+            for line in matrix:
+                print(line)
+
+            matrix.reverse()
+
+            for line in matrix:
+                print(line)
+
+
+            self.board = matrix
+            self.reset_grid(self.board)
 
         except Exception as e:
             print("Invalid map data:", e)
@@ -246,7 +256,6 @@ class Astar_program(Frame):
         self.canvas.itemconfig(self.cells[node.x][node.y], fill='blue')
         self.display_path_length.configure(text='%s' % len(self.solution_path))
         self.display_generated_nodes.configure(text=self.open + self.step)
-
 
     def begin_solution_animation(self):
         global cancel_animation_id
