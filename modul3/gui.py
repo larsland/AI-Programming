@@ -112,6 +112,12 @@ class Gui(Frame):
 
         self.gs = GraphSearch(self.nono, Agenda)
 
+    def load_scenario(self):
+        file = filedialog.askopenfilename(parent=self, filetypes=[('Text Files', '.txt')],
+                                          title='Select a scenario file')
+        file = file.split('/')[-1]
+        self.set_map(file)
+
 
 
 
