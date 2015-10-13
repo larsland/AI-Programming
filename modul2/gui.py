@@ -114,6 +114,8 @@ class Gui(Frame):
         self.label_closed = None
         self.label_path_length = None
         self.btn_load = None
+        self.input_function = None
+        self.input_function_field = None
 
         self.graph_nodes = {}
         self.edges = []
@@ -133,9 +135,11 @@ class Gui(Frame):
         # Initializing the variables the option menus will use
         self.selected_graph = StringVar(self)
         self.selected_k_value = StringVar(self)
+        self.input_function = StringVar(self)
 
         # Setting default values for option menu variables
         self.selected_graph.set("graph1.txt")
+        self.input_function.set("x!=y")
         self.selected_k_value.set(4)
 
         # Creating the GUI components
@@ -146,6 +150,9 @@ class Gui(Frame):
                              highlightthickness=1)
         graph_menu = OptionMenu(group_options, self.selected_graph, "graph1.txt", "graph2.txt",
                                 "graph3.txt", "graph4.txt", "graph5.txt", "graph6.txt", command=self.change)
+        self.input_function_field = Entry(group_options)
+        self.input_function_field.insert(0, 'x!=y')
+        label_input_function = Label(group_options, text="Input function:")
 
         k_value_menu = OptionMenu(group_options, self.selected_k_value, 3, 4, 5, 6, 7, 8, 9, 10, command=self.change)
 
@@ -177,9 +184,11 @@ class Gui(Frame):
 
         graph_menu.grid(row=0, column=0, sticky=N + E + S + W)
         k_value_menu.grid(row=0, column=1, sticky=W)
-        self.btn_load.grid(row=0, column=2, sticky=W)
-        self.canvas.grid(row=0, column=0)
+        label_input_function.grid(row=0, column=2)
+        self.input_function_field.grid(row=0, column=3)
+        self.btn_load.grid(row=0, column=4, sticky=W)
 
+        self.canvas.grid(row=0, column=0)
         self.label_timer.grid(row=1, column=0, sticky=W)
         self.label_steps.grid(row=2, column=0, sticky=W)
         #self.label_open.grid(row=3, column=0, sticky=W)
@@ -193,6 +202,8 @@ class Gui(Frame):
         self.path_length.grid(row=5, column=1, sticky=E)
         self.btn_start.grid(row=0, column=5, sticky=E)
         btn_exit.grid(row=0, column=6, sticky=E)
+
+
 
         self.change()
 

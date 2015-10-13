@@ -93,7 +93,7 @@ class Astar_program(Frame):
         mode_menu.grid(row=0, column=0, padx=0, sticky=W)
         map_menu.grid(row=0, column=1, padx=0)
         start_btn.grid(row=0, column=4)
-        self.input_function_field.grid(row=0, column=2)
+        #self.input_function_field.grid(row=0, column=2)
         exit_btn.grid(row=0, column=5, sticky=E)
 
         self.group_view.grid(row=1, column=0)
@@ -102,6 +102,7 @@ class Astar_program(Frame):
         group_custom_map.grid(row=0, column=1, rowspan=2, sticky=N)
         self.custom_map_field.grid(row=0, column=0, sticky=N)
         load_custom_map_btn.grid(row=1, column=0, sticky=E+W)
+
 
         group_stats.grid(row=1, column=1, sticky=E+S+W)
         self.label_path_length.grid(row=4, column=0, sticky=W)
