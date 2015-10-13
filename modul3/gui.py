@@ -1,5 +1,6 @@
 from tkinter import *
 from tkinter import filedialog
+import time
 from algorithms.search import GraphSearch, Agenda
 from modul3.nonograms_problem import NonogramProblem
 
@@ -10,8 +11,8 @@ class Gui(Frame):
         self.master.title("Nonogram Solver")
         self.pack()
         self.nono = NonogramProblem()
-        self.nono.set_scenario('modul3/scenarioes/scenario1.txt')
-        self.gs = GraphSearch(self.nono, Agenda)
+        #self.nono.set_scenario('modul3/scenarioes/scenario1.txt')
+        self.gs = None
 
         self.canvas = None
         self.selected_scenario = None
@@ -43,6 +44,7 @@ class Gui(Frame):
                              highlightthickness=1)
         scenario_menu = OptionMenu(group_options, self.selected_scenario, "scenario0.txt", "scenario1.txt",
                                    "scenario2.txt", "scenario3.txt", "scenario4.txt", "scenario5.txt", "scenario6.txt",
+                                   "sweet-one.txt",
                                    command=self.set_map)
 
         btn_start = Button(group_options, text="Solve", padx=5, pady=5, bg="light green", command=self.paint_scenario)
@@ -83,11 +85,14 @@ class Gui(Frame):
         #self.paint_scenario(self.gs.search_yieldie())
 
     def paint_scenario(self):
+        self.set_map()
         gs_gen = self.gs.search_yieldie()
+        start = time.time()
 
         for solution in gs_gen:
             if solution['solved']:
                 print("SOLVED")
+                self.display_time.configure(text="%.2f" % (time.time() - start))
                 break
 
             print("Solving!")
