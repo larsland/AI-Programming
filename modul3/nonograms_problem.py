@@ -38,9 +38,8 @@ class NonogramProblem(CSP):
 
         CSP.__init__(self, self.node_domain_map, self.constraints)
 
-    def set_scenario(self, nonogram='modul3/scenarioes/scenario3.txt'):
-
-        with open(nonogram) as f:
+    def set_scenario(self, scenario):
+        with open(scenario) as f:
             cols, rows = map(int, f.readline().split())
 
             self.grid = [[False]*cols]*rows

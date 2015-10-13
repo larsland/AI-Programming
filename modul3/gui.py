@@ -1,14 +1,17 @@
 from tkinter import *
 from tkinter import filedialog
+from algorithms.search import GraphSearch, Agenda
+from modul3.nonograms_problem import NonogramProblem
 
 
 class Gui(Frame):
-    def __init__(self, nono, gs, master=None):
+    def __init__(self, master=None):
         Frame.__init__(self, master)
         self.master.title("Nonogram Solver")
         self.pack()
-        self.nono = nono
-        self.gs = gs
+        self.nono = NonogramProblem()
+        self.nono.set_scenario('modul3/scenarioes/scenario1.txt')
+        self.gs = GraphSearch(self.nono, Agenda)
 
         self.canvas = None
         self.selected_scenario = None
@@ -39,9 +42,10 @@ class Gui(Frame):
         self.canvas = Canvas(group_state, width=600, height=600, bg="#F0F0F0", highlightbackground="black",
                              highlightthickness=1)
         scenario_menu = OptionMenu(group_options, self.selected_scenario, "scenario0.txt", "scenario1.txt",
-                                   "scenario2.txt", "scenario3.txt", "scenario4.txt", "scenario5.txt", "scenario6.txt",)
+                                   "scenario2.txt", "scenario3.txt", "scenario4.txt", "scenario5.txt", "scenario6.txt",
+                                   command=self.set_map)
 
-        btn_start = Button(group_options, text="Start", padx=5, pady=5, bg="light green")
+        btn_start = Button(group_options, text="Solve", padx=5, pady=5, bg="light green", command=self.paint_scenario)
         btn_exit = Button(group_options, text="Exit", padx=5, pady=5, bg="red", command=self.quit)
         #self.btn_load = Button(group_options, text="Load graph", padx=5, pady=5, command=self.load_scenario)
 
@@ -76,9 +80,10 @@ class Gui(Frame):
         self.display_open.grid(row=2, column=1, sticky=E)
         self.display_closed.grid(row=3, column=1, sticky=E)
 
-        self.paint_scenario(self.gs.search_yieldie())
+        #self.paint_scenario(self.gs.search_yieldie())
 
-    def paint_scenario(self, gs_gen):
+    def paint_scenario(self):
+        gs_gen = self.gs.search_yieldie()
 
         for solution in gs_gen:
             if solution['solved']:
@@ -97,6 +102,16 @@ class Gui(Frame):
                         self.canvas.create_rectangle(x*30, y*30, (x+1)*30, (y+1)*30, fill="white", tags='rectangle')
                     elif item:
                         self.canvas.create_rectangle(x*30, y*30, (x+1)*30, (y+1)*30, fill="blue", tags='rectangle')
+
+    def set_map(self, scenario=None):
+        print("Changed map")
+        self.canvas.delete('all')
+        self.nono.set_scenario('modul3/scenarioes/' + self.selected_scenario.get())
+        self.gs = GraphSearch(self.nono, Agenda)
+
+
+
+
     '''
     def load_scenario(self):
         file = filedialog.askopenfilename(parent=self, filetypes=[('Text Files', '.txt')],
