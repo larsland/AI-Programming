@@ -70,7 +70,7 @@ class Astar_program(Frame):
                                command=self.reset_grid(matrix=None))
 
         map_menu = OptionMenu(group_options, self.selected_map, "map1.txt", "map2.txt", "map3.txt", "map4.txt",
-                              "map5.txt", command=lambda matrix: self.reset_grid(open("modul1/"+matrix).readlines()))
+                              "map5.txt", command=lambda matrix: self.reset_grid(open("modul1/maps/"+matrix).readlines()))
         self.input_function_field = Entry(group_options)
         self.input_function_field.insert(0, 'x!=y')
 
@@ -128,7 +128,7 @@ class Astar_program(Frame):
                 self.canvas.delete(text)
 
         if is_file:
-            matrix = list(open('modul1/'+matrix).readlines())
+            matrix = list(open('modul1/maps/'+matrix).readlines())
 
         width = len(matrix)
         height = len(matrix[0])
@@ -314,7 +314,7 @@ class Astar_program(Frame):
     # Method for starting the application with the chosen algorithm
     def start_program(self):
         if not self.board:
-            self.board = list(open('modul1/'+self.selected_map.get()).readlines())
+            self.board = list(open('modul1/maps/'+self.selected_map.get()).readlines())
         self.problem = Board(list(self.board))
 
         if self.selected_mode.get() == 'A*':

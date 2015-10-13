@@ -19,7 +19,7 @@ class VertexColoringProblem(CSP):
 
     def set_graph(self, graph='graph.txt', dom_size=4):
         dom_size = int(dom_size)
-        lines = open('modul2/' + graph).read().splitlines()
+        lines = open('modul2/graphs/' + graph).read().splitlines()
         nv, ne = map(int, lines[0].split())
 
         for s in lines[1:nv+1]:
