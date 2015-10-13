@@ -29,7 +29,6 @@ class ThreadedDrawer(threading.Thread):
             i += 1
 
             if state['solved']:
-                print('done.')
 
                 top = Toplevel()
                 top.geometry("%dx%d%+d%+d" % (250, 100, 250, 200))
@@ -44,11 +43,29 @@ class ThreadedDrawer(threading.Thread):
                 self.stopper.set()
                 break
 
-            self.frame.steps.configure(text='%i' % i)
-            self.frame.open_c.configure(text='%s' % state['open'])
-            self.frame.closed_c.configure(text='%s' % state['closed'])
+            # Calculating stats and numbers for the solved / not solved graph
+            unsatisfied = []
+            u_counter = 0
+            m_counter = 0
+            for t in state['node'].node_domain:
+                unsatisfied.append(state['node'].node_domain[t])
+            for value in unsatisfied:
+                if not value:
+                    u_counter += 1
+                elif len(value) > 1:
+                    m_counter += 1
 
-            for node, domain in state["node"].node_domain_map.items():
+            total_nodes = state['open'] + state['closed']
+            closed = state['closed'] - 1
+
+            self.frame.steps.configure(text='%i' % total_nodes)
+            self.frame.open_c.configure(text='%s' % state['open'])
+            self.frame.closed_c.configure(text='%s' % closed)
+            self.frame.path_length.configure(text='%s' % state['closed'])
+            self.frame.missing_colors.configure(text='%s' % m_counter)
+            self.frame.unsatisfied_cons.configure(text='%s' % u_counter)
+
+            for node, domain in state["node"].node_domain.items():
                 temp_set.add((node, frozenset(domain)))
             temp_set = frozenset(temp_set)
 
@@ -86,31 +103,37 @@ class ThreadedSearch(threading.Thread):
 class Gui(Frame):
     def __init__(self, master=None):
         Frame.__init__(self, master)
+        self.master.title("Vertex Color Problem")
+        self.pack()
         self.vcp = VertexColoringProblem()
         self.vcp.set_graph()
         self.gs = GraphSearch(self.vcp, frontier=Agenda)
-
         self.solution_queue = Queue()
+        self.graph_nodes = {}
+        self.edges = []
 
-        self.master.title("VC problem")
-        self.pack()
-        self.canvas = None
         self.colors = {0: "#FF0000", 1: "#33CC33", 2: "#3366CC", 3: "#FFFF00", 4: "#FF6600", 5: "#FF3399",
                        6: "#993300", 7: "#990033", 8: "#808080", 9: "#99FFCC", 10: "#9900DD", 11: "#000000"}
 
+        self.canvas = None
         self.btn_start = None
         self.timer = None
         self.steps = None
         self.open_c = None
         self.closed_c = None
+        self.path_length = None
+        self.missing_colors = None
         self.label_timer = None
         self.label_steps = None
         self.label_open = None
         self.label_closed = None
+        self.label_path_length = None
+        self.label_unsatisfied_cons = None
+        self.unsatisfied_cons = None
         self.btn_load = None
-
-        self.graph_nodes = {}
-        self.edges = []
+        self.input_function = None
+        self.input_function_field = None
+        self.label_missing_colors = None
 
         self.td = None
         self.ts = None
@@ -123,26 +146,31 @@ class Gui(Frame):
 
         self.create_gui()
 
-
     def create_gui(self):
         # Initializing the variables the option menus will use
         self.selected_graph = StringVar(self)
         self.selected_k_value = StringVar(self)
+        self.input_function = StringVar(self)
 
         # Setting default values for option menu variables
         self.selected_graph.set("graph1.txt")
+        self.input_function.set("x!=y")
         self.selected_k_value.set(4)
 
         # Creating the GUI components
         group_state = LabelFrame(self, text="State", padx=5, pady=5)
         group_stats = LabelFrame(self, text="Stats", padx=40, pady=5)
         group_options = LabelFrame(self, text="Options", padx=5, pady=5)
+
         self.canvas = Canvas(group_state, width=600, height=600, bg="#F0F0F0", highlightbackground="black",
                              highlightthickness=1)
         graph_menu = OptionMenu(group_options, self.selected_graph, "graph1.txt", "graph2.txt",
                                 "graph3.txt", "graph4.txt", "graph5.txt", "graph6.txt", command=self.change)
-
         k_value_menu = OptionMenu(group_options, self.selected_k_value, 3, 4, 5, 6, 7, 8, 9, 10, command=self.change)
+
+        self.input_function_field = Entry(group_options)
+        self.input_function_field.insert(0, 'x!=y')
+        label_input_function = Label(group_options, text="Input function:")
 
         self.timer = Label(group_stats, text="0.00")
 
@@ -154,12 +182,18 @@ class Gui(Frame):
 
         # Stats
         self.label_timer = Label(group_stats, text="Time:")
-        self.label_steps = Label(group_stats, text="Steps:")
+        self.label_steps = Label(group_stats, text="Total GAC-nodes in tree:")
         self.label_open = Label(group_stats, text="Opened GAC nodes:")
-        self.label_closed = Label(group_stats, text="Closed GAC nodes:")
+        self.label_closed = Label(group_stats, text="Popped and expanded nodes:")
+        self.label_path_length = Label(group_stats, text="Path length:")
+        self.label_missing_colors = Label(group_stats, text="Vertices missing color:")
+        self.label_unsatisfied_cons = Label(group_stats, text="Unsatisfied constraints:")
         self.steps = Label(group_stats, text="0")
         self.open_c = Label(group_stats, text="0")
         self.closed_c = Label(group_stats, text="0")
+        self.path_length = Label(group_stats, text="0")
+        self.missing_colors = Label(group_stats, text="0")
+        self.unsatisfied_cons = Label(group_stats, text="0")
 
         # Placing GUI components in a grid
         group_options.grid(row=0, column=0, columnspan=2, sticky=W + E)
@@ -170,18 +204,24 @@ class Gui(Frame):
 
         graph_menu.grid(row=0, column=0, sticky=N + E + S + W)
         k_value_menu.grid(row=0, column=1, sticky=W)
-        self.btn_load.grid(row=0, column=2, sticky=W)
-        self.canvas.grid(row=0, column=0)
+        label_input_function.grid(row=0, column=2)
+        self.input_function_field.grid(row=0, column=3)
+        self.btn_load.grid(row=0, column=4, sticky=W)
 
+        self.canvas.grid(row=0, column=0)
         self.label_timer.grid(row=1, column=0, sticky=W)
         self.label_steps.grid(row=2, column=0, sticky=W)
-        self.label_open.grid(row=3, column=0, sticky=W)
-        self.label_closed.grid(row=4, column=0, sticky=W)
+        self.label_closed.grid(row=3, column=0, sticky=W)
+        self.label_path_length.grid(row=4, column=0, sticky=W)
+        self.label_missing_colors.grid(row=5, column=0, sticky=W)
+        self.label_unsatisfied_cons.grid(row=6, column=0, sticky=W)
 
         self.timer.grid(row=1, column=1, sticky=E)
         self.steps.grid(row=2, column=1, sticky=E)
-        self.open_c.grid(row=3, column=1, sticky=E)
-        self.closed_c.grid(row=4, column=1, sticky=E)
+        self.missing_colors.grid(row=5, column=1, sticky=E)
+        self.unsatisfied_cons.grid(row=6, column=1, sticky=E)
+        self.closed_c.grid(row=3, column=1, sticky=E)
+        self.path_length.grid(row=4, column=1, sticky=E)
         self.btn_start.grid(row=0, column=5, sticky=E)
         btn_exit.grid(row=0, column=6, sticky=E)
 
@@ -210,12 +250,7 @@ class Gui(Frame):
 
     def create_grid(self):
         self.clear_grid()
-
-        # if is_file:
-       # self.vcp = VertexColoringProblem()
-       # self.vcp.set_graph(self.selected_graph.get(), int(self.selected_k_value.get()))
-
-        self.graph_nodes = deepcopy(self.vcp.node_domain_map)
+        self.graph_nodes = deepcopy(self.vcp.node_domain)
 
     def create_graph(self):
         vcp = self.vcp
@@ -266,6 +301,12 @@ class Gui(Frame):
             self.canvas.create_line(start_x + 7.5, start_y + 7.5, end_x + 7.5, end_y + 7.5)
 
     def get_graph_dims(self, vcp):
+        """
+        Method to get the maximum and minimum coordinates of the vertices in the graph
+        for scaling the graph to the Tkinter canvas
+        :param vcp: Takes in a complete vcp problem
+        :return: A dictionary with required values to scale the graph
+        """
         x_positions, y_positions = [], []
         for i in vcp.coordinates:
             x_positions.append(vcp.coordinates[i][0])
@@ -282,6 +323,12 @@ class Gui(Frame):
         return dimensions
 
     def scale_coords(self, dim, vcp):
+        """
+        Method to do the actual scaling
+        :param dim: Dictionary with max and min coordinates for vertices, and canvas size
+        :param vcp: Complete vcp problem
+        :return:
+        """
         dim = dim
         x_scale, y_scale = 1, 1
         x_offset, y_offset = 0, 0
@@ -307,9 +354,7 @@ class Gui(Frame):
                                           title='Select a graph file')
 
         file = file.split('/')[-1]
-        print(file)
         self.recreate(file)
-
 
     def exit(self):
         self.change()
