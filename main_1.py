@@ -18,20 +18,17 @@ class Astar_program(Frame):
         self.group_view = LabelFrame(self, text="View", padx=5, pady=5)
         self.canvas = Canvas(self.group_view, width=600, height=600, highlightbackground='black', highlightthickness=1)
 
-        self.label_time = None
-        self.label_steps = None
-        self.label_open = None
-        self.label_closed = None
-        self.display_time = None
-        self.display_steps = None
-        self.display_open = None
-        self.display_closed = None
+        self.label_path_length = None
+        self.label_generated_nodes = None
+        self.display_path_length = None
+        self.display_generated_nodes = None
 
         self.solutions = []
         self.solution_path = []
         self.cells = [[]]
         self.texts = [[]]
         self.step = 0
+        self.open = 0
 
         # 64 length green to yellow to red gradient
         self.heat_gradient = ['#79FE48', '#7EFE47', '#83FE47', '#88FE46', '#8DFE46', '#92FE45', '#96FE45', '#9BFE44',
@@ -80,14 +77,10 @@ class Astar_program(Frame):
                                      highlightthickness=1)
 
         # Stats and numbers
-        self.label_time = Label(group_stats, text="Time:")
-        self.label_steps = Label(group_stats, text="Steps:")
-        self.label_open = Label(group_stats, text="Opened nodes:")
-        self.label_closed = Label(group_stats, text="Closed nodes:")
-        self.display_time = Label(group_stats, text="0.00")
-        self.display_steps = Label(group_stats, text="0")
-        self.display_open = Label(group_stats, text="0")
-        self.display_closed = Label(group_stats, text="0")
+        self.label_path_length = Label(group_stats, text="Solution path length:")
+        self.label_generated_nodes = Label(group_stats, text="Generated search nodes:")
+        self.display_path_length = Label(group_stats, text="0")
+        self.display_generated_nodes = Label(group_stats, text="0")
 
         # Placing components in a grid
         group_options.grid(row=0, column=0, sticky=W+E)
@@ -104,14 +97,10 @@ class Astar_program(Frame):
         load_custom_map_btn.grid(row=1, column=0, sticky=E+W)
 
         group_stats.grid(row=1, column=1, sticky=E+S+W)
-        self.label_time.grid(row=0, column=0, sticky=W)
-        self.label_steps.grid(row=1, column=0, sticky=W)
-        self.label_open.grid(row=2, column=0, sticky=W)
-        self.label_closed.grid(row=3, column=0, sticky=W)
-        self.display_time.grid(row=0, column=1, sticky=E)
-        self.display_steps.grid(row=1, column=1, sticky=E)
-        self.display_open.grid(row=2, column=1, sticky=E)
-        self.display_closed.grid(row=3, column=1, sticky=E)
+        self.label_path_length.grid(row=4, column=0, sticky=W)
+        self.label_generated_nodes.grid(row=2, column=0, sticky=W)
+        self.display_path_length.grid(row=4, column=1, sticky=E)
+        self.display_generated_nodes.grid(row=2, column=1, sticky=E)
 
         # Configuring components
         mode_menu.configure(width=15)
@@ -208,6 +197,7 @@ class Astar_program(Frame):
         max_f -= min_f
 
         open_nodes = solution['open']
+        self.open = len(open_nodes)
 
         for node_list in matrix:
             for node in node_list:
@@ -254,6 +244,9 @@ class Astar_program(Frame):
 
     def draw_solution_path(self, node):
         self.canvas.itemconfig(self.cells[node.x][node.y], fill='blue')
+        self.display_path_length.configure(text='%s' % len(self.solution_path))
+        self.display_generated_nodes.configure(text=self.open + self.step)
+
 
     def begin_solution_animation(self):
         global cancel_animation_id
@@ -263,11 +256,6 @@ class Astar_program(Frame):
             ms_delay, self.update_solution_animation, None, self.solutions, ms_delay, 0)
 
     def update_solution_animation(self, label, ani_step, ms_delay, frame_num):
-
-        self.display_steps.configure(text=self.step)
-        #self.display_open.configure(text='%s' % state['open'])
-        #self.display_closed.configure(text='%s' % state['closed'])
-
         global cancel_animation_id
         if frame_num == len(ani_step):
             if self.problem.solution.found:
@@ -303,6 +291,8 @@ class Astar_program(Frame):
             self.cancel_animation()
             self.create_grid(matrix)
             self.board = matrix
+            self.display_generated_nodes.configure(text="0")
+            self.display_path_length.configure(text="0")
         else:
             self.create_grid(self.selected_map.get(), is_file=True)
 
