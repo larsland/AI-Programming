@@ -44,9 +44,13 @@ class ThreadedDrawer(threading.Thread):
                 self.stopper.set()
                 break
 
-            self.frame.steps.configure(text='%i' % i)
+            total_nodes = state['open'] + state['closed']
+            closed = state['closed'] - 1
+
+            self.frame.steps.configure(text='%i' % total_nodes)
             self.frame.open_c.configure(text='%s' % state['open'])
-            self.frame.closed_c.configure(text='%s' % state['closed'])
+            self.frame.closed_c.configure(text='%s' % closed)
+            self.frame.path_length.configure(text='%s' % state['closed'])
 
             for node, domain in state["node"].node_domain.items():
                 temp_set.add((node, frozenset(domain)))
@@ -103,10 +107,12 @@ class Gui(Frame):
         self.steps = None
         self.open_c = None
         self.closed_c = None
+        self.path_length = None
         self.label_timer = None
         self.label_steps = None
         self.label_open = None
         self.label_closed = None
+        self.label_path_length = None
         self.btn_load = None
 
         self.graph_nodes = {}
@@ -122,7 +128,6 @@ class Gui(Frame):
         self.thread_stopper.set()
 
         self.create_gui()
-
 
     def create_gui(self):
         # Initializing the variables the option menus will use
@@ -154,12 +159,14 @@ class Gui(Frame):
 
         # Stats
         self.label_timer = Label(group_stats, text="Time:")
-        self.label_steps = Label(group_stats, text="Steps:")
+        self.label_steps = Label(group_stats, text="Total GAC-nodes in tree:")
         self.label_open = Label(group_stats, text="Opened GAC nodes:")
-        self.label_closed = Label(group_stats, text="Closed GAC nodes:")
+        self.label_closed = Label(group_stats, text="Popped and expanded nodes:")
+        self.label_path_length = Label(group_stats, text="Path length:")
         self.steps = Label(group_stats, text="0")
         self.open_c = Label(group_stats, text="0")
         self.closed_c = Label(group_stats, text="0")
+        self.path_length = Label(group_stats, text="0")
 
         # Placing GUI components in a grid
         group_options.grid(row=0, column=0, columnspan=2, sticky=W + E)
@@ -175,13 +182,15 @@ class Gui(Frame):
 
         self.label_timer.grid(row=1, column=0, sticky=W)
         self.label_steps.grid(row=2, column=0, sticky=W)
-        self.label_open.grid(row=3, column=0, sticky=W)
+        #self.label_open.grid(row=3, column=0, sticky=W)
         self.label_closed.grid(row=4, column=0, sticky=W)
+        self.label_path_length.grid(row=5, column=0, sticky=W)
 
         self.timer.grid(row=1, column=1, sticky=E)
         self.steps.grid(row=2, column=1, sticky=E)
-        self.open_c.grid(row=3, column=1, sticky=E)
+        #self.open_c.grid(row=3, column=1, sticky=E)
         self.closed_c.grid(row=4, column=1, sticky=E)
+        self.path_length.grid(row=5, column=1, sticky=E)
         self.btn_start.grid(row=0, column=5, sticky=E)
         btn_exit.grid(row=0, column=6, sticky=E)
 

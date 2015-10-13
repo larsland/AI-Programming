@@ -11,6 +11,7 @@ class Astar_program(Frame):
         self.custom_map_field = None
         self.selected_mode = None
         self.selected_map = None
+        self.input_function = None
         self.map_data = None
         self.board = None
         self.master.title("A* Search")
@@ -22,6 +23,7 @@ class Astar_program(Frame):
         self.label_generated_nodes = None
         self.display_path_length = None
         self.display_generated_nodes = None
+        self.input_function_field = None
 
         self.solutions = []
         self.solution_path = []
@@ -52,10 +54,12 @@ class Astar_program(Frame):
         self.selected_mode = StringVar(self)
         self.selected_map = StringVar(self)
         self.map_data = StringVar(self)
+        self.input_function = StringVar(self)
 
         # Setting default values
         self.selected_mode.set("A*")
         self.selected_map.set("map1.txt")
+        self.input_function.set("x!=y")
 
         # Creating the GUI components
         group_options = LabelFrame(self, text="Options", padx=5, pady=5)
@@ -67,6 +71,8 @@ class Astar_program(Frame):
 
         map_menu = OptionMenu(group_options, self.selected_map, "map1.txt", "map2.txt", "map3.txt", "map4.txt",
                               "map5.txt", command=lambda matrix: self.reset_grid(open("modul1/"+matrix).readlines()))
+        self.input_function_field = Entry(group_options)
+        self.input_function_field.insert(0, 'x!=y')
 
         # Buttons
         start_btn = Button(group_options, text="Solve", fg="green", command=self.start_program)
@@ -84,9 +90,10 @@ class Astar_program(Frame):
 
         # Placing components in a grid
         group_options.grid(row=0, column=0, sticky=W+E)
-        map_menu.grid(row=0, column=1, padx=0)
         mode_menu.grid(row=0, column=0, padx=0, sticky=W)
-        start_btn.grid(row=0, column=2)
+        map_menu.grid(row=0, column=1, padx=0)
+        start_btn.grid(row=0, column=4)
+        self.input_function_field.grid(row=0, column=2)
         exit_btn.grid(row=0, column=5, sticky=E)
 
         self.group_view.grid(row=1, column=0)
@@ -109,6 +116,7 @@ class Astar_program(Frame):
 
         # Calls the method which creates the GUI grid based on the default map
         self.create_grid(self.selected_map.get(), is_file=True)
+        print(self.input_function.get())
 
     def create_grid(self, matrix, is_file=False):
         for cell_row in self.cells:
