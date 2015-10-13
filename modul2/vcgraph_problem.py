@@ -14,7 +14,7 @@ class VertexColoringProblem(CSP):
     def __init__(self):
         self.coordinates = {}
         self.node_domain_map = {}
-        self.constraints = []
+        self.constraints = {}
 
         self.start = GACPriorityNode(self)
         self.start.initialize()
@@ -33,9 +33,22 @@ class VertexColoringProblem(CSP):
             self.coordinates[index] = [x, y]
             self.node_domain_map[index] = [int(i) for i in range(dom_size)]
 
+        i = 0
         for s in lines[nv+1:]:
             n, m = map(int, s.split())
-            self.constraints.append(Constraint([n, m], lambda x, y: x != y))
+            self.constraints[i] = Constraint([n, m], lambda x, y: x != y)
+            i += 1
+
+        """
+        self.constraints = {}
+        for from_node, to_node in edges:
+            if from_node not in self.constraints:
+                self.constraints[from_node] = []
+            self.constraints[from_node].append(to_node)
+            if to_node not in self.constraints:
+                self.constraints[to_node] = []
+            self.constraints[to_node].append(from_node)
+        """
 
     def initialize(self):
         self.set_graph()
