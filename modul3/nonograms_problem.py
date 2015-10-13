@@ -23,10 +23,8 @@ class NonogramProblem(CSP):
         self.total_cols = 0
         self.total_rows = 0
 
-        self.start = NonoGACNode(self)
-        self.start.initialize()
-        self.start.domain_filtering()
-        self.open = [self.start]
+        self.start = None
+        self.open = []
 
         CSP.__init__(self, self.node_domain, self.constraints)
 
@@ -72,6 +70,11 @@ class NonogramProblem(CSP):
         self.start = NonoGACNode(self)
         self.start.initialize()
         self.start.domain_filtering()
+
+        if self.is_goal(self.start):
+            print("GOOOOOOOOAAAAAAl")
+
+
         self.open = [self.start]
 
     def generate_perm_patterns(self, counts, cols):
