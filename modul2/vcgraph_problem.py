@@ -44,11 +44,7 @@ class VertexColoringProblem(CSP):
             self.init_time = time.time() - self.init_time
             print("GOOOOOOOOAAAAAAl", self.init_time)
 
-
         self.open = [self.start]
-
-    def save_state(self):
-        pass
 
     def path_cost(self, movement):
         return 1
@@ -64,21 +60,3 @@ class VertexColoringProblem(CSP):
         for n in var_names:
             args += "," + n
         return eval("(lambda " + args[1:] + ": " + expression + ")")
-    """
-    def get_input(self):
-        " From file and asks K from user. "
-        f = open('modul2/graph2.txt', "r")
-        ls = f.read().splitlines()
-        nv, ne = map(int, ls[0].split())
-
-        K = int(input("K = "))
-
-        for s in ls[1:nv+1]:
-            index, x, y = map(eval, s.split())
-            self.coordinates[index] = [x, y]
-            self.node_domain_map[index] = [i for i in range(K)]
-
-        for s in ls[nv+1:]:
-            n, m = map(int, s.split())
-            self.constraints.append(Constraint([n, m], lambda x, y: x != y))
-    """
