@@ -48,7 +48,7 @@ class ThreadedDrawer(threading.Thread):
             self.frame.open_c.configure(text='%s' % state['open'])
             self.frame.closed_c.configure(text='%s' % state['closed'])
 
-            for node, domain in state["node"].node_domain_map.items():
+            for node, domain in state["node"].node_domain.items():
                 temp_set.add((node, frozenset(domain)))
             temp_set = frozenset(temp_set)
 
@@ -215,7 +215,7 @@ class Gui(Frame):
        # self.vcp = VertexColoringProblem()
        # self.vcp.set_graph(self.selected_graph.get(), int(self.selected_k_value.get()))
 
-        self.graph_nodes = deepcopy(self.vcp.node_domain_map)
+        self.graph_nodes = deepcopy(self.vcp.node_domain)
 
     def create_graph(self):
         vcp = self.vcp
