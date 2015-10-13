@@ -11,18 +11,16 @@ class Gui(Frame):
         self.master.title("Nonogram Solver")
         self.pack()
         self.nono = NonogramProblem()
-        #self.nono.set_scenario('modul3/scenarioes/scenario1.txt')
-        self.gs = None
+        self.nono.set_scenario('modul3/scenarioes/scenario0.txt')
+        self.gs = GraphSearch(self.nono, Agenda)
 
         self.canvas = None
         self.selected_scenario = None
         self.btn_load = None
         self.display_time = None
-        self.display_steps = None
         self.display_open = None
         self.display_closed = None
         self.label_time = None
-        self.label_steps = None
         self.label_open = None
         self.label_closed = None
 
@@ -49,16 +47,12 @@ class Gui(Frame):
 
         btn_start = Button(group_options, text="Solve", padx=5, pady=5, bg="light green", command=self.paint_scenario)
         btn_exit = Button(group_options, text="Exit", padx=5, pady=5, bg="red", command=self.quit)
-        #self.btn_load = Button(group_options, text="Load graph", padx=5, pady=5, command=self.load_scenario)
+        self.btn_load = Button(group_options, text="Load file", padx=5, pady=5, command=self.load_scenario)
 
         # Stats and numbers
         self.label_time = Label(group_stats, text="Time:")
-        self.label_steps = Label(group_stats, text="Steps:")
-        self.label_open = Label(group_stats, text="Opened nodes:")
         self.label_closed = Label(group_stats, text="Closed nodes:")
         self.display_time = Label(group_stats, text="0.00")
-        self.display_steps = Label(group_stats, text="0")
-        self.display_open = Label(group_stats, text="0")
         self.display_closed = Label(group_stats, text="0")
 
         # Placing GUI components in a grid
@@ -67,32 +61,30 @@ class Gui(Frame):
         scenario_menu.grid(row=0, column=0, sticky=N+E+S+W)
         btn_start.grid(row=0, column=5, sticky=E)
         btn_exit.grid(row=0, column=6, sticky=E)
+        self.btn_load.grid(row=0, column=1, sticky=W)
 
         group_state.grid(row=1, column=0)
         self.canvas.grid(row=0, column=0)
 
         group_stats.grid(row=1, column=1, sticky=N+S)
         self.label_time.grid(row=0, column=0, sticky=W)
-        self.label_steps.grid(row=1, column=0, sticky=W)
-        self.label_open.grid(row=2, column=0, sticky=W)
         self.label_closed.grid(row=3, column=0, sticky=W)
 
         self.display_time.grid(row=0, column=1, sticky=E)
-        self.display_steps.grid(row=1, column=1, sticky=E)
-        self.display_open.grid(row=2, column=1, sticky=E)
         self.display_closed.grid(row=3, column=1, sticky=E)
 
-        #self.paint_scenario(self.gs.search_yieldie())
-
     def paint_scenario(self):
-        self.set_map()
+        self.gs = GraphSearch(self.nono, Agenda)
+
         gs_gen = self.gs.search_yieldie()
         start = time.time()
 
         for solution in gs_gen:
+            print(solution)
             if solution['solved']:
-                print("SOLVED")
-                self.display_time.configure(text="%.2f" % (time.time() - start))
+                print("Solved! ", self.nono.init_time)
+                self.display_time.configure(text="%.2f" % ((time.time() - start) + self.nono.init_time))
+                self.display_closed.configure(text="%s" % solution['closed'])
                 break
 
             print("Solving!")
@@ -111,20 +103,24 @@ class Gui(Frame):
     def set_map(self, scenario=None):
         print("Changed map")
         self.canvas.delete('all')
-        self.nono.set_scenario('modul3/scenarioes/' + self.selected_scenario.get())
+
+        if scenario:
+            self.nono.set_scenario('modul3/scenarioes/' + scenario)
+        else:
+            self.nono.set_scenario('modul3/scenarioes/' + self.selected_scenario.get())
+
+        self.display_time.configure(text="0.00")
+        self.display_closed.configure(text="0")
+
         self.gs = GraphSearch(self.nono, Agenda)
 
-
-
-
-    '''
     def load_scenario(self):
         file = filedialog.askopenfilename(parent=self, filetypes=[('Text Files', '.txt')],
                                           title='Select a scenario file')
 
         file = file.split('/')[-1]
-        self.paint_scenario(file)
-    '''
+        self.set_map(file)
+
 
 
 
