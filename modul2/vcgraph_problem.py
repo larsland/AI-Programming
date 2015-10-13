@@ -2,6 +2,7 @@ import time
 from algorithms.csp import Constraint, CSP
 from modul2.csp import GACPriorityNode
 
+
 class VertexColoringProblem(CSP):
     def __init__(self):
         self.coordinates = {}
@@ -15,7 +16,6 @@ class VertexColoringProblem(CSP):
         self.vc_cons = lambda x, y: x != y
 
         CSP.__init__(self, self.node_domain, self.constraints)
-
 
     def set_graph(self, graph='graph.txt', dom_size=4):
         dom_size = int(dom_size)
