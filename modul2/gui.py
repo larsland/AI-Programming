@@ -44,13 +44,30 @@ class ThreadedDrawer(threading.Thread):
                 self.stopper.set()
                 break
 
+            # Calculating stats and numbers for the solved / not solved graph
+            unsatisfied = []
+            missing = []
+            u_counter = 0
+            m_counter = 0
+            for t in state['node'].node_domain:
+                unsatisfied.append(state['node'].node_domain[t])
+            for value in unsatisfied:
+                if not value:
+                    u_counter += 1
+                elif len(value) > 1:
+                    m_counter += 1
+
             total_nodes = state['open'] + state['closed']
             closed = state['closed'] - 1
+
 
             self.frame.steps.configure(text='%i' % total_nodes)
             self.frame.open_c.configure(text='%s' % state['open'])
             self.frame.closed_c.configure(text='%s' % closed)
             self.frame.path_length.configure(text='%s' % state['closed'])
+            self.frame.missing_colors.configure(text='%s' % m_counter)
+            self.frame.unsatisfied_cons.configure(text='%s' % u_counter)
+
 
             for node, domain in state["node"].node_domain.items():
                 temp_set.add((node, frozenset(domain)))
@@ -108,14 +125,18 @@ class Gui(Frame):
         self.open_c = None
         self.closed_c = None
         self.path_length = None
+        self.missing_colors = None
         self.label_timer = None
         self.label_steps = None
         self.label_open = None
         self.label_closed = None
         self.label_path_length = None
+        self.label_unsatisfied_cons = None
+        self.unsatisfied_cons = None
         self.btn_load = None
         self.input_function = None
         self.input_function_field = None
+        self.label_missing_colors = None
 
         self.graph_nodes = {}
         self.edges = []
@@ -170,10 +191,14 @@ class Gui(Frame):
         self.label_open = Label(group_stats, text="Opened GAC nodes:")
         self.label_closed = Label(group_stats, text="Popped and expanded nodes:")
         self.label_path_length = Label(group_stats, text="Path length:")
+        self.label_missing_colors = Label(group_stats, text="Vertices missing color:")
+        self.label_unsatisfied_cons = Label(group_stats, text="Unsatisfied constraints:")
         self.steps = Label(group_stats, text="0")
         self.open_c = Label(group_stats, text="0")
         self.closed_c = Label(group_stats, text="0")
         self.path_length = Label(group_stats, text="0")
+        self.missing_colors = Label(group_stats, text="0")
+        self.unsatisfied_cons = Label(group_stats, text="0")
 
         # Placing GUI components in a grid
         group_options.grid(row=0, column=0, columnspan=2, sticky=W + E)
@@ -192,18 +217,20 @@ class Gui(Frame):
         self.label_timer.grid(row=1, column=0, sticky=W)
         self.label_steps.grid(row=2, column=0, sticky=W)
         #self.label_open.grid(row=3, column=0, sticky=W)
-        self.label_closed.grid(row=4, column=0, sticky=W)
-        self.label_path_length.grid(row=5, column=0, sticky=W)
+        self.label_closed.grid(row=3, column=0, sticky=W)
+        self.label_path_length.grid(row=4, column=0, sticky=W)
+        self.label_missing_colors.grid(row=5, column=0, sticky=W)
+        self.label_unsatisfied_cons.grid(row=6, column=0, sticky=W)
 
         self.timer.grid(row=1, column=1, sticky=E)
         self.steps.grid(row=2, column=1, sticky=E)
+        self.missing_colors.grid(row=5, column=1, sticky=E)
+        self.unsatisfied_cons.grid(row=6, column=1, sticky=E)
         #self.open_c.grid(row=3, column=1, sticky=E)
-        self.closed_c.grid(row=4, column=1, sticky=E)
-        self.path_length.grid(row=5, column=1, sticky=E)
+        self.closed_c.grid(row=3, column=1, sticky=E)
+        self.path_length.grid(row=4, column=1, sticky=E)
         self.btn_start.grid(row=0, column=5, sticky=E)
         btn_exit.grid(row=0, column=6, sticky=E)
-
-
 
         self.change()
 
