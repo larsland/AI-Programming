@@ -1,29 +1,24 @@
-from algorithms.csp import Constraint, GAC, CSP
-from algorithms.utils import UniversalDict
-from algorithms.search import PriorityNode
-import copy
-
-
-class GACPriorityNode(GAC, PriorityNode):
-    def __init__(self, csp):
-        GAC.__init__(self, csp)
-        PriorityNode.__init__(self, csp, csp)
+import time
+from algorithms.csp import Constraint, CSP
+from modul2.csp import GACPriorityNode
 
 
 class VertexColoringProblem(CSP):
     def __init__(self):
         self.coordinates = {}
-        self.node_domain_map = {}
-        self.constraints = {}
+        self.node_domain = {}
+        self.constraints = []
 
-        self.start = GACPriorityNode(self)
-        self.start.initialize()
-        self.start.domain_filtering()
-        self.open = [self.start]
+        self.init_time = 0
+        self.start = None
+        self.open = []
 
-        CSP.__init__(self, self.node_domain_map, self.constraints)
+        CSP.__init__(self, self.node_domain, self.constraints)
 
-    def set_graph(self, graph='graph1.txt', dom_size=4):
+    def vc_cons(self, x, y):
+        return x != y
+
+    def set_graph(self, graph='graph.txt', dom_size=4):
         dom_size = int(dom_size)
         lines = open('modul2/' + graph).read().splitlines()
         nv, ne = map(int, lines[0].split())
@@ -31,76 +26,38 @@ class VertexColoringProblem(CSP):
         for s in lines[1:nv+1]:
             index, x, y = map(eval, s.split())
             self.coordinates[index] = [x, y]
-            self.node_domain_map[index] = [int(i) for i in range(dom_size)]
+            self.node_domain[index] = [int(i) for i in range(dom_size)]
+
+        self.constraints = []
 
         i = 0
         for s in lines[nv+1:]:
             n, m = map(int, s.split())
-            self.constraints[i] = Constraint([n, m], lambda x, y: x != y)
+            self.constraints.append(Constraint([n, m], self.vc_cons))
             i += 1
 
-        """
-        self.constraints = {}
-        for from_node, to_node in edges:
-            if from_node not in self.constraints:
-                self.constraints[from_node] = []
-            self.constraints[from_node].append(to_node)
-            if to_node not in self.constraints:
-                self.constraints[to_node] = []
-            self.constraints[to_node].append(from_node)
-        """
+        self.start = GACPriorityNode(self)
+        self.start.initialize()
+        self.start.domain_filtering()
 
-    def initialize(self):
-        self.set_graph()
+        if self.is_goal(self.start):
+            self.init_time = time.time() - self.init_time
+            print("GOOOOOOOOAAAAAAl", self.init_time)
+
+
+        self.open = [self.start]
 
     def save_state(self):
         pass
 
-    '''
-    def save_state2(self):
-        """For storing states as the algorithm traverses the problem.
-        Saves the open nodes, the current path and the difference between the current state and the previous one."""
-        temp_state = set()
-        for nodes in self.state:
-            temp_set = set()
-            for node in nodes:
-                # Deep copy of node
-                temp_set.add(copy.copy(node))
-            # Freeze the set so it becomes hashable
-            temp_set = frozenset(temp_set)
-            temp_state.add(temp_set)
-
-        if self.solution['states']:
-            diff_state = list(temp_state.difference(self.solution['states'][-1]))
-        else:
-            diff_state = list(temp_state)
-
-        state = {'state': diff_state, 'open': list(self.open), 'path': list(self.board)}
-        self.solution.states.append(state)
-    '''
-
     def path_cost(self, movement):
         return 1
 
-    def actions(self, state):
-        # Generates children and runs the rerun method.
-        actions = []
-        for node, dom in state.node_domain_map.items():
-            if len(dom) > 1:
-                for j in range(len(dom)):
-                    child = copy.deepcopy(state)
-                    child.node_domain_map[node] = [dom[j]]
-                    child.rerun(node)
-                    if not child.contradiction:
-                        actions.append(child)
-                return actions
-        return actions
-
     def h(self, state):
-        return sum(len(d)-1 for d in state.node_domain_map.values())
+        return sum(len(d)-1 for d in state.node_domain.values())
 
     def is_goal(self, state):
-        return all(map(lambda d: len(d) == 1, state.node_domain_map.values()))
+        return all(map(lambda d: len(d) == 1, state.node_domain.values()))
 
     def make_func(self, var_names, expression):
         args = ""
@@ -125,5 +82,3 @@ class VertexColoringProblem(CSP):
             n, m = map(int, s.split())
             self.constraints.append(Constraint([n, m], lambda x, y: x != y))
     """
-    def solve(self, algorithm):
-        print(algorithm(self))

@@ -1,8 +1,8 @@
-from algorithms.search import Problem
+from algorithms.search import Problem, PriorityNode
+from algorithms.utils import unique_permutations
 from copy import deepcopy
 from abc import abstractclassmethod
 from itertools import count, product
-
 # For debugging purposes:
 counter = count()
 DEBUG = False
@@ -97,26 +97,8 @@ class GAC:
     def domain_filtering(self):
         while self.queue:
             node, cons = self.queue.pop()
-            # print('Node bro', (node, cons))
             if self.revise(node, cons):
                 self.push_pairs(node, cons)
-
-    '''
-    def revise_(self, node, cons):
-        combinations = [self.csp.get_domain(j) for j in cons.variables if j != node]
-
-        def constraint_cmp(x, var_combs=combinations):
-            return any(map(lambda vs: cons.method(vs, [x]), var_combs))
-
-        old_len = len(self.csp.get_domain(node))
-        # print('woot', (node, [item for item in self.csp.get_domain(node) if constraint_cmp(item)]))
-        self.csp.set_domain(node, [item for item in self.csp.get_domain(node) if constraint_cmp(item)])
-        if not self.csp.get_domain(node):
-            self.contradiction = True
-            return False
-
-        return old_len > len(self.csp.get_domain(node))
-    '''
 
     def revise(self, node, cons=None):
         """
@@ -126,13 +108,14 @@ class GAC:
         :return: Boolean telling whether the domain was revised or not
         """
         removals = False
+
         constraint = self.constraints[node]
         for var in constraint.variables:
             for domain in self.get_domain(node):
                 remove = True
                 for x, y in product([domain], self.get_domain(var)):
                     if DEBUG:
-                        print('c: %s, x:%s, y:%s' % (next(counter), (var, x), (node, y)))
+                        print('c: %s, x:%s, y:%s' % (next(counter), x, y))
 
                     if constraint.method(x, y):
                         remove = False
@@ -164,10 +147,9 @@ class GAC:
         for arc in self.constraints[node].variables:
             if node != arc:
                 self.queue.append((arc, node))
-        '''
-        for c in self.constraints:
-            if node in c.variables and (con is None or c != con):
-                for j in c.variables:
-                    if j != node:
-                        self.queue.append((j, c))
-        '''
+
+
+class GACPriorityNode(GAC, PriorityNode):
+    def __init__(self, csp):
+        GAC.__init__(self, csp)
+        PriorityNode.__init__(self, csp, csp)

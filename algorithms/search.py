@@ -182,7 +182,6 @@ class GraphSearch:
             #problem.save_state(node)
             path.append(node)
             if problem.is_goal(node):
-                print("MADDAFAKINNS SUCCESS!!!!!")
                 return self.path, True
             for child in problem.actions(node):
                 new_g = g[node] + problem.path_cost((node, child))

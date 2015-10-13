@@ -1,14 +1,8 @@
 import copy
 import time
-from algorithms.search import Problem, PriorityNode
-from algorithms.csp import GAC, CSP, Constraint
+from algorithms.search import Problem
+from algorithms.csp import GAC, CSP, Constraint, GACPriorityNode
 DEBUG = False
-
-
-class NonoGACNode(GAC, PriorityNode):
-    def __init__(self, csp):
-        GAC.__init__(self, csp)
-        PriorityNode.__init__(self, csp, csp)
 
 
 class NonogramProblem(CSP):
@@ -70,7 +64,7 @@ class NonogramProblem(CSP):
         self.constraints = {}
         self.set_constraints()
 
-        self.start = NonoGACNode(self)
+        self.start = GACPriorityNode(self)
         self.start.initialize()
         self.start.domain_filtering()
 
