@@ -83,6 +83,7 @@ class Gui(Frame):
         #self.paint_scenario(self.gs.search_yieldie())
 
     def paint_scenario(self):
+        self.set_map()
         gs_gen = self.gs.search_yieldie()
 
         for solution in gs_gen:

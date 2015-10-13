@@ -93,7 +93,7 @@ class GAC:
 
     def initialize(self):
         self.queue = [(node, con) for node, con in self.constraints.items()]
-        print(self.queue)
+        #print(self.queue)
 
     def domain_filtering(self):
         while self.queue:
