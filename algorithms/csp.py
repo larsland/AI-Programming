@@ -50,15 +50,12 @@ class CSP(Problem):
                 return actions
         return actions
 
-    @abstractclassmethod
     def save_state(self):
         pass
 
-    @abstractclassmethod
     def solve(self, algorithm):
         pass
 
-    @abstractclassmethod
     def initialize(self):
         pass
 
@@ -113,13 +110,14 @@ class GAC:
         for var in constraint.variables:
             for domain in self.get_domain(node):
                 remove = True
-                for x, y in product([domain], self.get_domain(var)):
-                    if DEBUG:
-                        print('c: %s, x:%s, y:%s' % (next(counter), x, y))
+                for x in [domain]:
+                    for y in self.get_domain(var):
+                        if DEBUG:
+                            print('c: %s, x:%s, y:%s' % (next(counter), x, y))
 
-                    if constraint.method(x, y):
-                        remove = False
-                        break
+                        if constraint.method(x, y):
+                            remove = False
+                            break
 
                 if remove:
                     self.prune(self.get_domain(node), domain)

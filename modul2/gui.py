@@ -29,7 +29,6 @@ class ThreadedDrawer(threading.Thread):
             i += 1
 
             if state['solved']:
-                print('done.')
 
                 top = Toplevel()
                 top.geometry("%dx%d%+d%+d" % (250, 100, 250, 200))
@@ -96,7 +95,7 @@ class Gui(Frame):
 
         self.solution_queue = Queue()
 
-        self.master.title("VC problem")
+        self.master.title("Vertex Color Problem")
         self.pack()
         self.canvas = None
         self.colors = {0: "#FF0000", 1: "#33CC33", 2: "#3366CC", 3: "#FFFF00", 4: "#FF6600", 5: "#FF3399",
@@ -327,7 +326,6 @@ class Gui(Frame):
                                           title='Select a graph file')
 
         file = file.split('/')[-1]
-        print(file)
         self.recreate(file)
 
 

@@ -2,6 +2,7 @@ import time
 from algorithms.csp import Constraint, CSP
 from modul2.csp import GACPriorityNode
 
+
 class VertexColoringProblem(CSP):
     def __init__(self):
         self.coordinates = {}
@@ -41,7 +42,6 @@ class VertexColoringProblem(CSP):
 
         if self.is_goal(self.start):
             self.init_time = time.time() - self.init_time
-            print("GOOOOOOOOAAAAAAl", self.init_time)
 
         self.open = [self.start]
 
