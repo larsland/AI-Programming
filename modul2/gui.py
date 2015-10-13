@@ -29,7 +29,6 @@ class ThreadedDrawer(threading.Thread):
             i += 1
 
             if state['solved']:
-                print('done.')
 
                 top = Toplevel()
                 top.geometry("%dx%d%+d%+d" % (250, 100, 250, 200))
@@ -104,7 +103,7 @@ class ThreadedSearch(threading.Thread):
 class Gui(Frame):
     def __init__(self, master=None):
         Frame.__init__(self, master)
-        self.master.title("VC problem")
+        self.master.title("Vertex Color Problem")
         self.pack()
         self.vcp = VertexColoringProblem()
         self.vcp.set_graph()
@@ -355,7 +354,6 @@ class Gui(Frame):
                                           title='Select a graph file')
 
         file = file.split('/')[-1]
-        print(file)
         self.recreate(file)
 
     def exit(self):

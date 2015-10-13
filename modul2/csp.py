@@ -4,6 +4,7 @@ from itertools import count, product
 counter = count()
 DEBUG = True
 
+
 class GAC_(GAC):
     def __init__(self, csp):
         self.csp = csp

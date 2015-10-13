@@ -41,7 +41,6 @@ class VertexColoringProblem(CSP):
 
         if self.is_goal(self.start):
             self.init_time = time.time() - self.init_time
-            print("GOOOOOOOOAAAAAAl", self.init_time)
 
         self.open = [self.start]
 

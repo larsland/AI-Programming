@@ -92,6 +92,7 @@ class FIFO:
     def pop(self, queue):
         return queue.pop()  # First out
 
+
 def graph_search(problem, frontier):
     """ A normal Graph search contains all the necessary tools to implement the three algorithms
      specified in the task."""
@@ -106,8 +107,6 @@ def graph_search(problem, frontier):
 
         node.closed = True
         for child in problem.actions(node):         # For each child node reachable from the current node,
-
-            print("child", child)
             if child.closed and node.g + 1 >= child.g:
                 continue
 

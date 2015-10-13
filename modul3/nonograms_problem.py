@@ -4,7 +4,6 @@ from algorithms.search import Problem
 from algorithms.csp import GAC, CSP, Constraint, GACPriorityNode
 DEBUG = False
 
-
 class NonogramProblem(CSP):
     def __init__(self):
         """
@@ -27,7 +26,7 @@ class NonogramProblem(CSP):
 
     def nono_cf(self, x, y):
         """
-        Constraint for the Nonogram constraint satisfaction problem.
+        Constraint for the Nsonogram constraint satisfaction problem.
         The contents of a cell must be the same in both row and column - otherwise it is not a valid constraint.
         :param x: Row with both a row-unique id and its respective cells
         :param y: Column with both a column-unique id its respective cells
@@ -78,14 +77,13 @@ class NonogramProblem(CSP):
 
         if self.is_goal(self.start):
             self.init_time = time.time() - self.init_time
-            print("GOOOOOOOOAAAAAAl", self.init_time)
 
         self.open = [self.start]
 
     def generate_perm_patterns(self, series, columns):
         """
         Generates pattern permutations for a given number of segments and columns
-        :param series: A seies of segment lengths
+        :param series: A series of segment lengths
         :param columns: The number of columns in the nonogram
         :return: A pattern matrix
         """

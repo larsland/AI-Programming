@@ -80,14 +80,11 @@ class Gui(Frame):
         start = time.time()
 
         for solution in gs_gen:
-            print(solution)
             if solution['solved']:
-                print("Solved! ", self.nono.init_time)
                 self.display_time.configure(text="%.2f" % ((time.time() - start) + self.nono.init_time))
                 self.display_closed.configure(text="%s" % solution['closed'])
                 break
 
-            print("Solving!")
             y = -1
             for i in range(self.nono.total_rows):
                 domain = solution['node'].get_domain(i)[0]
@@ -101,7 +98,6 @@ class Gui(Frame):
                         self.canvas.create_rectangle(x*30, y*30, (x+1)*30, (y+1)*30, fill="blue", tags='rectangle')
 
     def set_map(self, scenario=None):
-        print("Changed map")
         self.canvas.delete('all')
 
         if scenario:

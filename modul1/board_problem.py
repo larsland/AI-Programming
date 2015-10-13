@@ -86,9 +86,7 @@ class Board(Problem):
                 actions.append(self.state[y + 1][x])    # Down
             if y > 0:
                 actions.append(self.state[y - 1][x])    # Up
-        except IndexError as e:
-            print(e)
-            print(node)
+        except IndexError:
             pass
 
         return actions

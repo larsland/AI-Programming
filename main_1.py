@@ -117,7 +117,6 @@ class Astar_program(Frame):
 
         # Calls the method which creates the GUI grid based on the default map
         self.create_grid(self.selected_map.get(), is_file=True)
-        print(self.input_function.get())
 
     def create_grid(self, matrix, is_file=False):
         for cell_row in self.cells:
@@ -187,16 +186,7 @@ class Astar_program(Frame):
             matrix[start_node[1]][start_node[0]] = 'A'
             matrix[goal_node[1]][goal_node[0]] = 'B'
 
-
-            for line in matrix:
-                print(line)
-
             matrix.reverse()
-
-            for line in matrix:
-                print(line)
-
-
             self.board = matrix
             self.reset_grid(self.board)
 
@@ -334,7 +324,7 @@ class Astar_program(Frame):
         elif self.selected_mode.get() == 'Depth-first':
             self.problem.solve(depth_first_search)
 
-        self.problem.pretty_print()
+        # self.problem.pretty_print()
 
         self.solutions = self.problem.solution.states
         self.step = self.problem.solution.steps
