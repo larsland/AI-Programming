@@ -115,31 +115,30 @@ class Gui(Frame):
         self.colors = {0: "#FF0000", 1: "#33CC33", 2: "#3366CC", 3: "#FFFF00", 4: "#FF6600", 5: "#FF3399",
                        6: "#993300", 7: "#990033", 8: "#808080", 9: "#99FFCC", 10: "#9900DD", 11: "#000000"}
 
-        self.canvas = None
-        self.btn_start = None
+        self.td = None
+        self.ts = None
         self.timer = None
         self.steps = None
         self.open_c = None
+        self.canvas = None
         self.closed_c = None
-        self.path_length = None
-        self.missing_colors = None
-        self.label_timer = None
-        self.label_steps = None
-        self.label_open = None
-        self.label_closed = None
-        self.label_path_length = None
-        self.label_unsatisfied_cons = None
-        self.unsatisfied_cons = None
         self.btn_load = None
+        self.btn_start = None
+        self.label_open = None
+        self.path_length = None
+        self.label_timer = None
+        self.label_steps = None                     # Yay for unreadable shit! :D
+        self.label_closed = None
+        self.selected_graph = None
         self.input_function = None
+        self.missing_colors = None
+        self.selected_k_value = None
+        self.unsatisfied_cons = None
+        self.label_path_length = None
         self.input_function_field = None
         self.label_missing_colors = None
+        self.label_unsatisfied_cons = None
 
-        self.td = None
-        self.ts = None
-
-        self.selected_graph = None
-        self.selected_k_value = None
 
         self.thread_stopper = threading.Event()
         self.thread_stopper.set()
