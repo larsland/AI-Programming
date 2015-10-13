@@ -240,7 +240,8 @@ class GraphSearch:
         yield {
             'solved': solved,
             'open': len(self.open),
-            'closed': len(self.closed)
+            'closed': len(self.closed),
+            'node': node
         }
 
 
