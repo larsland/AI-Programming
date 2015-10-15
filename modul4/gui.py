@@ -1,3 +1,4 @@
+import random
 from tkinter import *
 
 GRID_LEN              = 4
@@ -30,12 +31,12 @@ class GameWindow(Frame):
     def __init__(self, master=None):
         Frame.__init__(self, master)
         self.master.title('2048')
-
         self.grid()
+        self.tiles = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 
         self.grid_cells = []
         self.init_grid()
-        self.update_view( (0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0) )
+        self.update_view(self.tiles)
     #end
 
     def init_grid(self):
@@ -60,6 +61,9 @@ class GameWindow(Frame):
                 grid_row.append(t)
 
             self.grid_cells.append(grid_row)
+
+        self.add_init_tiles()
+        print(self.grid_cells)
         self.play()
     #end
 
@@ -94,6 +98,10 @@ class GameWindow(Frame):
         elif direction == 'right':
             print("Moving RIGHT")
 
+        
+
+
+
     def play(self):
         while True:
             key = input("Key: ")
@@ -114,16 +122,19 @@ class GameWindow(Frame):
             if self.game_lost():
                 print("Game over")
 
-
-
-
-
-
     def game_won(self):
         return False
 
     def game_lost(self):
         return False
+
+    def add_init_tiles(self):
+        indexes = random.sample(range(0, 15), 2)
+
+        self.tiles[indexes[0]] = 1
+        self.tiles[indexes[1]] = 1
+
+        self.update_view(self.tiles)
 
 
 if __name__ == '__main__':
