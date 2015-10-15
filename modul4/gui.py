@@ -33,10 +33,11 @@ class GameWindow(Frame):
         self.master.title('2048')
         self.grid()
         self.tiles = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+        self.board = [[0 for x in range(4)] for x in range(4)]
 
         self.grid_cells = []
         self.init_grid()
-        self.update_view(self.tiles)
+        self.update_view()
     #end
 
     def init_grid(self):
@@ -64,13 +65,15 @@ class GameWindow(Frame):
 
         self.add_init_tiles()
         print(self.grid_cells)
+        print(self.board)
         self.play()
     #end
 
-    def update_view(self, board ):
+    def update_view(self):
+        print("UPDATING")
         for i in range( GRID_LEN ):
             for j in range( GRID_LEN ):
-                digit = board[i*4+j]
+                digit = self.board[i][j]
                 if digit == 0:
                     self.grid_cells[i][j].configure(
                                                 text = "",
@@ -88,17 +91,56 @@ class GameWindow(Frame):
     def move(self, direction):
         if direction == 'up':
             print("Moving UP")
+            for i in range(3):
+                for j in range(3):
+                    tile = self.board[i][j]
+                    print(tile)
+                    print("BOARD BEFORE: ", self.board)
+                    if tile != 0:
+                        self.board[i+1][j] = tile
+                        self.board[i][j] = 0
+                    print("BOARD AFTER: ", self.board)
 
         elif direction == 'down':
             print("Moving DOWN")
+            for i in range(3):
+                for j in range(3):
+                    tile = self.board[i][j]
+                    print(tile)
+                    print("BOARD BEFORE: ", self.board)
+                    if tile != 0:
+                        self.board[i-1][j] = tile
+                        self.board[i][j] = 0
+                    print("BOARD AFTER: ", self.board)
 
         elif direction == 'left':
             print("Moving LEFT")
+            for i in range(3):
+                for j in range(3):
+                    tile = self.board[i][j]
+                    print(tile)
+                    print("BOARD BEFORE: ", self.board)
+                    if tile != 0:
+                        self.board[i][j-1] = tile
+                        self.board[i][j] = 0
+                    print("BOARD AFTER: ", self.board)
 
         elif direction == 'right':
             print("Moving RIGHT")
+            for i in range(3):
+                for j in range(3):
+                    tile = self.board[i][j]
+                    print(tile)
+                    print("BOARD BEFORE: ", self.board)
+                    if tile != 0:
+                        self.board[i][j+1] = tile
+                        self.board[i][j] = 0
+                    print("BOARD AFTER: ", self.board)
+        self.update_view()
 
-        
+
+
+
 
 
 
@@ -129,12 +171,13 @@ class GameWindow(Frame):
         return False
 
     def add_init_tiles(self):
-        indexes = random.sample(range(0, 15), 2)
+        tile_1 = random.sample(range(0, 3), 2)
+        tile_2 = random.sample(range(0, 3), 2)
 
-        self.tiles[indexes[0]] = 1
-        self.tiles[indexes[1]] = 1
+        self.board[tile_1[0]][tile_1[1]] = 1
+        self.board[tile_2[0]][tile_2[1]] = 1
 
-        self.update_view(self.tiles)
+        self.update_view()
 
 
 if __name__ == '__main__':
