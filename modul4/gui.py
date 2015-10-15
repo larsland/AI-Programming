@@ -26,9 +26,6 @@ BACKGROUND_COLOR_DICT       = {
                                 16 : '#FFAE00'
                             }
 
-
-
-
 class GameWindow(Frame):
     def __init__(self, master=None):
         Frame.__init__(self, master)
@@ -63,6 +60,7 @@ class GameWindow(Frame):
                 grid_row.append(t)
 
             self.grid_cells.append(grid_row)
+        self.play()
     #end
 
     def update_view(self, board ):
@@ -83,8 +81,52 @@ class GameWindow(Frame):
                                                 fg   = foreground_color )
         self.update_idletasks()
 
+    def move(self, direction):
+        if direction == 'up':
+            print("Moving UP")
+
+        elif direction == 'down':
+            print("Moving DOWN")
+
+        elif direction == 'left':
+            print("Moving LEFT")
+
+        elif direction == 'right':
+            print("Moving RIGHT")
+
+    def play(self):
+        while True:
+            key = input("Key: ")
+            if key == 'q':
+                break
+            elif key == '\x1b[A':
+                self.move('up')
+            elif key == '\x1b[B':
+                self.move('down')
+            elif key == '\x1b[D':
+                self.move('left')
+            elif key == '\x1b[C':
+                self.move('right')
+
+            if self.game_won():
+                print("Congratulations, you have reached a tile with 2048")
+
+            if self.game_lost():
+                print("Game over")
+
+
+
+
+
+
+    def game_won(self):
+        return False
+
+    def game_lost(self):
+        return False
+
+
 if __name__ == '__main__':
     root = Tk()
     app = GameWindow(master=root)
     app.mainloop()
-#endclass
