@@ -112,6 +112,7 @@ class GameWindow(Frame):
                                 self.board[i][j] = 0
                             else:
                                 self.board[i][j] = self.board[i + 1][j]
+                                self.board[i+1][j] = 0
                         else:
                             pass
         self.next_step(moved)
@@ -144,6 +145,7 @@ class GameWindow(Frame):
                                 self.board[i][j] = 0
                             else:
                                 self.board[i][j] = self.board[i - 1][j]
+                                self.board[i-1][j] = 0
                         else:
                             pass
         self.next_step(moved)
@@ -176,6 +178,7 @@ class GameWindow(Frame):
                                 self.board[i][j] = 0
                             else:
                                 self.board[i][j] = self.board[i][j + 1]
+                                self.board[i][j+1] = 0
                         else:
                             pass
         self.next_step(moved)
@@ -208,6 +211,7 @@ class GameWindow(Frame):
                                 self.board[i][j] = 0
                             else:
                                 self.board[i][j] = self.board[i][j - 1]
+                                self.board[i][j-1] = 0
                         else:
                             pass
         self.next_step(moved)
