@@ -64,7 +64,6 @@ class GameWindow(Frame):
 
         self.add_init_tiles()
 
-
     def update_view(self):
         print("UPDATING")
         for i in range(GRID_LEN):
@@ -218,7 +217,7 @@ class GameWindow(Frame):
         return False
 
     def game_lost(self):
-        return False
+        print("GAME LOST")
 
     def distributed_tile(self):
         return 1 if random.randint(0, 100) < 90 else 2
