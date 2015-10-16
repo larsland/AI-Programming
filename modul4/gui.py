@@ -87,7 +87,7 @@ class GameWindow(Frame):
         print("MOVED UP")
         moved = False
         before = self.board
-        for i in range(0, 4):
+        for i in reversed(range(0, 4)):
             for j in range(0, 4):
                 tile = self.board[i][j]
                 if tile != 0:
@@ -152,7 +152,7 @@ class GameWindow(Frame):
         moved = False
         before = self.board
         for i in range(0, 4):
-            for j in range(0, 4):
+            for j in reversed(range(0, 4)):
                 tile = self.board[i][j]
                 if tile != 0:
                     if j - 1 <= -1:
