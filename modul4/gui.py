@@ -196,8 +196,8 @@ class GameWindow(Frame):
         tile_1 = random.sample(range(0, 4), 2)
         tile_2 = random.sample(range(0, 4), 2)
 
-        self.board[tile_1[0]][tile_1[1]] = 1
-        self.board[tile_2[0]][tile_2[1]] = 1
+        self.board[tile_1[0]][tile_1[1]] = self.distributed_tile()
+        self.board[tile_2[0]][tile_2[1]] = self.distributed_tile()
 
         self.update_view()
 
@@ -209,14 +209,19 @@ class GameWindow(Frame):
                     empty_spots.append((i, j))
         if empty_spots:
             tile = random.choice(empty_spots)
-            n = 1 if random.randint(0, 100) < 90 else 2
+            n = self.distributed_tile()
             self.board[tile[0]][tile[1]] = n
+        else:
+            self.game_lost()
 
     def game_won(self):
         return False
 
     def game_lost(self):
         return False
+
+    def distributed_tile(self):
+        return 1 if random.randint(0, 100) < 90 else 2
 
 
 if __name__ == '__main__':
