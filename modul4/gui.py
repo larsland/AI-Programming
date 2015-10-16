@@ -203,7 +203,7 @@ class GameWindow(Frame):
                                 moved = True
 
                         if moved:
-                            if j - 1 <= -1:
+                            if j - 1 == -1:
                                 self.board[i][j] = 0
                             else:
                                 self.board[i][j] = self.board[i][j - 1]
