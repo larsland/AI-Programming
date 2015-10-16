@@ -1,3 +1,4 @@
+import copy
 import random
 from tkinter import *
 from tkinter import font
@@ -86,7 +87,7 @@ class GameWindow(Frame):
     def move_up(self, event):
         print("MOVED UP")
         moved = False
-        before = self.board
+        before = copy.copy(self.board)
         for i in reversed(range(0, 4)):
             for j in range(0, 4):
                 tile = self.board[i][j]
@@ -118,7 +119,7 @@ class GameWindow(Frame):
     def move_down(self, event):
         print("MOVED DOWN")
         moved = False
-        before = self.board
+        before = copy.copy(self.board)
         for i in range(0, 4):
             for j in range(0, 4):
                 tile = self.board[i][j]
@@ -150,7 +151,7 @@ class GameWindow(Frame):
     def move_left(self, event):
         print("MOVED LEFT")
         moved = False
-        before = self.board
+        before = copy.copy(self.board)
         for i in range(0, 4):
             for j in reversed(range(0, 4)):
                 tile = self.board[i][j]
@@ -182,7 +183,7 @@ class GameWindow(Frame):
     def move_right(self, event):
         print("MOVED RIGHT")
         moved = False
-        before = self.board
+        before = copy.copy(self.board)
         for i in range(0, 4):
             for j in range(0, 4):
                 tile = self.board[i][j]
