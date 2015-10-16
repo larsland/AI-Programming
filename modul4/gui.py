@@ -217,8 +217,8 @@ class GameWindow(Frame):
         self.next_step(moved)
 
     def next_step(self, moved):
-        if moved:
-            self.add_random_tile()
+
+        self.add_random_tile()
         self.update_view()
 
     def add_init_tiles(self):
