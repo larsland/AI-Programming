@@ -85,7 +85,8 @@ class GameWindow(Frame):
 
     def move_up(self, event):
         print("MOVED UP")
-        moved = True
+        moved = False
+        before = self.board
         for i in range(0, 4):
             for j in range(0, 4):
                 tile = self.board[i][j]
@@ -95,10 +96,15 @@ class GameWindow(Frame):
                     else:
                         if self.board[i - 1][j] == tile:
                             self.board[i - 1][j] += 1
+                            moved = True
                         elif self.board[i - 1][j] == 0:
                             self.board[i - 1][j] = tile
+                            moved = True
                         else:
-                            moved = False
+                            if self.board == before:
+                                moved = False
+                            else:
+                                moved = True
 
                         if moved:
                             if i + 1 >= 4:
@@ -107,11 +113,12 @@ class GameWindow(Frame):
                                 self.board[i][j] = self.board[i + 1][j]
                         else:
                             pass
-        self.next_step()
+        self.next_step(moved)
 
     def move_down(self, event):
         print("MOVED DOWN")
-        moved = True
+        moved = False
+        before = self.board
         for i in range(0, 4):
             for j in range(0, 4):
                 tile = self.board[i][j]
@@ -121,10 +128,15 @@ class GameWindow(Frame):
                     else:
                         if self.board[i + 1][j] == tile:
                             self.board[i + 1][j] += 1
+                            moved = True
                         elif self.board[i + 1][j] == 0:
                             self.board[i + 1][j] = tile
+                            moved = True
                         else:
-                            moved = False
+                            if self.board == before:
+                                moved = False
+                            else:
+                                moved = True
 
                         if moved:
                             if i - 1 <= -1:
@@ -133,11 +145,12 @@ class GameWindow(Frame):
                                 self.board[i][j] = self.board[i - 1][j]
                         else:
                             pass
-        self.next_step()
+        self.next_step(moved)
 
     def move_left(self, event):
         print("MOVED LEFT")
-        moved = True
+        moved = False
+        before = self.board
         for i in range(0, 4):
             for j in range(0, 4):
                 tile = self.board[i][j]
@@ -147,10 +160,15 @@ class GameWindow(Frame):
                     else:
                         if self.board[i][j - 1] == tile:
                             self.board[i][j - 1] += 1
+                            moved = True
                         elif self.board[i][j - 1] == 0:
                             self.board[i][j - 1] = tile
+                            moved = True
                         else:
-                            moved = False
+                            if self.board == before:
+                                moved = False
+                            else:
+                                moved = True
 
                         if moved:
                             if j + 1 >= 4:
@@ -159,11 +177,12 @@ class GameWindow(Frame):
                                 self.board[i][j] = self.board[i][j + 1]
                         else:
                             pass
-        self.next_step()
+        self.next_step(moved)
 
     def move_right(self, event):
         print("MOVED RIGHT")
-        moved = True
+        moved = False
+        before = self.board
         for i in range(0, 4):
             for j in range(0, 4):
                 tile = self.board[i][j]
@@ -173,10 +192,15 @@ class GameWindow(Frame):
                     else:
                         if self.board[i][j + 1] == tile:
                             self.board[i][j + 1] += 1
+                            moved = True
                         elif self.board[i][j + 1] == 0:
                             self.board[i][j + 1] = tile
+                            moved = True
                         else:
-                            moved = False
+                            if self.board == before:
+                                moved = False
+                            else:
+                                moved = True
 
                         if moved:
                             if j - 1 <= -1:
@@ -185,11 +209,12 @@ class GameWindow(Frame):
                                 self.board[i][j] = self.board[i][j - 1]
                         else:
                             pass
-        self.next_step()
+        self.next_step(moved)
 
-    def next_step(self):
+    def next_step(self, moved):
+        if moved:
+            self.add_random_tile()
         self.update_view()
-        self.add_random_tile()
 
     def add_init_tiles(self):
         tile_1 = random.sample(range(0, 4), 2)
