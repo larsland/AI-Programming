@@ -1,7 +1,7 @@
-import copy
 import random
 from tkinter import *
 from tkinter import font
+import time
 
 GRID_LEN = 4
 GRID_PADDING = 10
@@ -31,14 +31,8 @@ class GameWindow(Frame):
         self.font = font.Font(master, family="Verdana", size=40, weight="bold")
         self.master.title('2048')
         self.grid()
-        self.tiles = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         self.board = [[0 for x in range(4)] for x in range(4)]
-
-        self.master.bind("<Up>", self.move_up)
-        self.master.bind("<Down>", self.move_down)
-        self.master.bind("<Left>", self.move_left)
-        self.master.bind("<Right>", self.move_right)
-
+        self.master.bind("<KeyPress>", self.onKeyPress)
         self.grid_cells = []
         self.init_grid()
         self.update_view()
@@ -66,7 +60,6 @@ class GameWindow(Frame):
         self.add_init_tiles()
 
     def update_view(self):
-        print("UPDATING")
         for i in range(GRID_LEN):
             for j in range(GRID_LEN):
                 digit = self.board[i][j]
@@ -84,145 +77,65 @@ class GameWindow(Frame):
                         fg=foreground_color)
         self.update_idletasks()
 
-    def move_up(self, event):
-        print("MOVED UP")
+    def move(self, direction):
+        if self.lost():
+            self.game_over_screen()
+        merged = []
         moved = False
-        before = copy.copy(self.board)
-        for i in reversed(range(0, 4)):
-            for j in range(0, 4):
-                tile = self.board[i][j]
-                if tile != 0:
-                    if i - 1 <= -1:
-                        pass
-                    else:
-                        if self.board[i - 1][j] == tile:
-                            self.board[i - 1][j] += 1
-                            moved = True
-                        elif self.board[i - 1][j] == 0:
-                            self.board[i - 1][j] = tile
-                            moved = True
-                        else:
-                            if self.board == before:
-                                print('-'*2+'BOARD IS UNCHANGED')
-                                moved = False
-                            else:
-                                moved = True
+        lines = self.rotate(self.board, direction+1)
+        for line in lines:
+            while len(line) and line[-1] == 0:
+                line.pop(-1)
+            i = len(line)-1
+            while i >= 0:
+                if line[i] == 0:
+                    moved = True
+                    line.pop(i)
+                i -= 1
+            i = 0
+            while i < len(line)-1:
+                if line[i] == line[i+1] and not (line[i] in merged or line[i+1] in merged):
+                    moved = True
+                    print("HEYTHERE; MERGE")
+                    line[i] += 1
+                    merged.append(line[i])
+                    line.pop(i+1)
+                else:
+                    i += 1
+            while len(line) < len(self.board):
+                line.append(0)
 
-                        if moved:
-                            if i + 1 >= 4:
-                                self.board[i][j] = 0
-                            else:
-                                self.board[i][j] = self.board[i + 1][j]
-                                self.board[i+1][j] = 0
-                        else:
-                            pass
+        self.board = self.rotate(lines, 0-(direction+1))
+
+        self.print_board()
         self.next_step(moved)
 
-    def move_down(self, event):
-        print("MOVED DOWN")
-        moved = False
-        before = copy.copy(self.board)
-        for i in range(0, 4):
-            for j in range(0, 4):
-                tile = self.board[i][j]
-                if tile != 0:
-                    if i + 1 >= 4:
-                        pass
-                    else:
-                        if self.board[i + 1][j] == tile:
-                            self.board[i + 1][j] += 1
-                            moved = True
-                        elif self.board[i + 1][j] == 0:
-                            self.board[i + 1][j] = tile
-                            moved = True
-                        else:
-                            if self.board == before:
-                                print('-'*2+'BOARD IS UNCHANGED')
-                                moved = False
-                            else:
-                                moved = True
-
-                        if moved:
-                            if i - 1 <= -1:
-                                self.board[i][j] = 0
-                            else:
-                                self.board[i][j] = self.board[i - 1][j]
-                                self.board[i-1][j] = 0
-                        else:
-                            pass
-        self.next_step(moved)
-
-    def move_left(self, event):
-        print("MOVED LEFT")
-        moved = False
-        before = copy.copy(self.board)
-        for i in range(0, 4):
-            for j in reversed(range(0, 4)):
-                tile = self.board[i][j]
-                if tile != 0:
-                    if j - 1 <= -1:
-                        pass
-                    else:
-                        if self.board[i][j - 1] == tile:
-                            self.board[i][j - 1] += 1
-                            moved = True
-                        elif self.board[i][j - 1] == 0:
-                            self.board[i][j - 1] = tile
-                            moved = True
-                        else:
-                            if self.board == before:
-                                print('-'*2+'BOARD IS UNCHANGED')
-                                moved = False
-                            else:
-                                moved = True
-
-                        if moved:
-                            if j + 1 >= 4:
-                                self.board[i][j] = 0
-                            else:
-                                self.board[i][j] = self.board[i][j + 1]
-                                self.board[i][j+1] = 0
-                        else:
-                            pass
-        self.next_step(moved)
-
-    def move_right(self, event):
-        print("MOVED RIGHT")
-        moved = False
-        before = copy.copy(self.board)
-        for i in range(0, 4):
-            for j in range(0, 4):
-                tile = self.board[i][j]
-                if tile != 0:
-                    if j + 1 >= 4:
-                        pass
-                    else:
-                        if self.board[i][j + 1] == tile:
-                            self.board[i][j + 1] += 1
-                            moved = True
-                        elif self.board[i][j + 1] == 0:
-                            self.board[i][j + 1] = tile
-                            moved = True
-                        else:
-                            if self.board == before:
-                                print('-'*2+'BOARD IS UNCHANGED')
-                                moved = False
-                            else:
-                                moved = True
-
-                        if moved:
-                            if j - 1 == -1:
-                                self.board[i][j] = 0
-                            else:
-                                self.board[i][j] = self.board[i][j - 1]
-                                self.board[i][j-1] = 0
-                        else:
-                            pass
-        self.next_step(moved)
+    def rotate(self, l, num):
+        num = num % 4
+        s = len(l)-1
+        l2 = []
+        if num == 0:
+            l2 = l
+        elif num == 1:
+            l2 = [[None for i in j] for j in l]
+            for y in range(len(l)):
+                for x in range(len(l[y])):
+                    l2[x][s-y] = l[y][x]
+        elif num == 2:
+            l2 = l
+            l2.reverse()
+            for i in l:
+                i.reverse()
+        elif num == 3:
+            l2 = [[None for i in j] for j in l]
+            for y in range(len(l)):
+                for x in range(len(l[y])):
+                    l2[y][x] = l[x][s-y]
+        return l2
 
     def next_step(self, moved):
-
-        self.add_random_tile()
+        if moved:
+            self.add_random_tile()
         self.update_view()
 
     def add_init_tiles(self):
@@ -244,17 +157,55 @@ class GameWindow(Frame):
             tile = random.choice(empty_spots)
             n = self.distributed_tile()
             self.board[tile[0]][tile[1]] = n
-        else:
-            self.game_lost()
+
+    def distributed_tile(self):
+        return 1 if random.randint(0, 100) < 90 else 2
+
+    def onKeyPress(self, event):
+        if event.keysym == 'Left':
+            self.move(3)
+        elif event.keysym == 'Up':
+            self.move(2)
+        elif event.keysym == 'Right':
+            self.move(1)
+        elif event.keysym == 'Down':
+            self.move(0)
 
     def game_won(self):
         return False
 
-    def game_lost(self):
-        print("GAME LOST")
+    def game_over_screen(self):
+        screen = Frame(self, bg="gray", width=SIZE, height=SIZE)
+        screen.grid(row=0, column=0, sticky=N+W+E+S)
+        message = Label(screen, bg="gray", font=self.font, text="Game Over!")
+        message.grid(row=0, column=0, sticky=E+S+W+N, padx=170, pady=150)
+        btn_exit = Button(screen, text="OK", bg="#E6E6E6", font=self.font, padx=50, command=self.quit)
+        btn_exit.grid(row=1, column=0)
 
-    def distributed_tile(self):
-        return 1 if random.randint(0, 100) < 90 else 2
+    def lost(self):
+        s = len(self.board)-1
+        b = True
+        for i in range(len(self.board)):
+            for j in range(len(self.board[i])):
+                val = self.board[i][j]
+                if val == 0:
+                    b = False
+                if i > 0 and self.board[i-1][j] == val:
+                    b = False
+                if j > 0 and self.board[i][j-1] == val:
+                    b = False
+                if i < s and self.board[i+1][j] == val:
+                    b = False
+                if j < s and self.board[i][j+1] == val:
+                    b = False
+        return b
+
+
+    def print_board(self):
+        print('-'*20)
+        for line in self.board:
+            print(line)
+        print('-'*20)
 
 
 if __name__ == '__main__':
