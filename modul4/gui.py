@@ -103,6 +103,7 @@ class GameWindow(Frame):
                             moved = True
                         else:
                             if self.board == before:
+                                print('-'*2+'BOARD IS UNCHANGED')
                                 moved = False
                             else:
                                 moved = True
@@ -136,6 +137,7 @@ class GameWindow(Frame):
                             moved = True
                         else:
                             if self.board == before:
+                                print('-'*2+'BOARD IS UNCHANGED')
                                 moved = False
                             else:
                                 moved = True
@@ -169,6 +171,7 @@ class GameWindow(Frame):
                             moved = True
                         else:
                             if self.board == before:
+                                print('-'*2+'BOARD IS UNCHANGED')
                                 moved = False
                             else:
                                 moved = True
@@ -202,6 +205,7 @@ class GameWindow(Frame):
                             moved = True
                         else:
                             if self.board == before:
+                                print('-'*2+'BOARD IS UNCHANGED')
                                 moved = False
                             else:
                                 moved = True
