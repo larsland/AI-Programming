@@ -106,8 +106,6 @@ class GameWindow(Frame):
                 line.append(0)
 
         self.board = self.rotate(lines, 0-(direction+1))
-
-        self.print_board()
         self.next_step(moved)
 
     def rotate(self, l, num):
@@ -201,14 +199,3 @@ class GameWindow(Frame):
         return b
 
 
-    def print_board(self):
-        print('-'*20)
-        for line in self.board:
-            print(line)
-        print('-'*20)
-
-
-if __name__ == '__main__':
-    root = Tk()
-    app = GameWindow(master=root)
-    app.mainloop()
