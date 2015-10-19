@@ -1,7 +1,6 @@
 import random
 from tkinter import *
 from tkinter import font
-import time
 
 GRID_LEN = 4
 GRID_PADDING = 10
@@ -64,7 +63,8 @@ class GameWindow(Frame):
 
             self.grid_cells.append(grid_row)
 
-        self.add_init_tiles()
+        self.add_random_tile()
+        self.add_random_tile()
 
     def update_view(self):
         for i in range(GRID_LEN):
@@ -86,8 +86,16 @@ class GameWindow(Frame):
         self.score_board.configure(text=self.score)
         self.update_idletasks()
 
+    def game_over_screen(self):
+        screen = Frame(self, bg="gray", width=SIZE, height=SIZE)
+        screen.grid(row=0, column=0, sticky=N+W+E+S)
+        message = Label(screen, bg="gray", font=self.font, text="Game Over!")
+        message.grid(row=0, column=0, sticky=E+S+W+N, padx=170, pady=150)
+        btn_exit = Button(screen, text="OK", bg="#E6E6E6", font=self.font, padx=50, command=self.quit)
+        btn_exit.grid(row=1, column=0)
+
     def move(self, direction):
-        if self.lost():
+        if self.check_if_lost():
             self.game_over_screen()
         merged = []
         moved = False
@@ -115,12 +123,10 @@ class GameWindow(Frame):
                 line.append(0)
 
         self.board = self.rotate(lines, 0-(direction+1))
-        print("SCORE!", self.score)
         self.next_step(moved)
 
-
     def rotate(self, l, num):
-        num = num % 4
+        num %= 4
         s = len(l)-1
         l2 = []
         if num == 0:
@@ -147,15 +153,6 @@ class GameWindow(Frame):
             self.add_random_tile()
         self.update_view()
 
-    def add_init_tiles(self):
-        tile_1 = random.sample(range(0, 4), 2)
-        tile_2 = random.sample(range(0, 4), 2)
-
-        self.board[tile_1[0]][tile_1[1]] = self.distributed_tile()
-        self.board[tile_2[0]][tile_2[1]] = self.distributed_tile()
-
-        self.update_view()
-
     def add_random_tile(self):
         empty_spots = []
         for i in range(0, 4):
@@ -180,18 +177,7 @@ class GameWindow(Frame):
         elif event.keysym == 'Down':
             self.move(0)
 
-    def game_won(self):
-        return False
-
-    def game_over_screen(self):
-        screen = Frame(self, bg="gray", width=SIZE, height=SIZE)
-        screen.grid(row=0, column=0, sticky=N+W+E+S)
-        message = Label(screen, bg="gray", font=self.font, text="Game Over!")
-        message.grid(row=0, column=0, sticky=E+S+W+N, padx=170, pady=150)
-        btn_exit = Button(screen, text="OK", bg="#E6E6E6", font=self.font, padx=50, command=self.quit)
-        btn_exit.grid(row=1, column=0)
-
-    def lost(self):
+    def check_if_lost(self):
         s = len(self.board)-1
         b = True
         for i in range(len(self.board)):
@@ -208,5 +194,3 @@ class GameWindow(Frame):
                 if j < s and self.board[i][j+1] == val:
                     b = False
         return b
-
-
