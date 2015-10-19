@@ -23,6 +23,7 @@ BACKGROUND_COLOR_DICT = {
     11: '#FFAE00'
 }
 
+
 class Tile:
     def __init__(self, value=0):
         self.value = value
@@ -95,11 +96,11 @@ class GameWindow(Frame):
 
     def game_over_screen(self):
         screen = Frame(self, bg="gray", width=SIZE, height=SIZE)
-        screen.grid(row=0, column=0, sticky=N+W+E+S)
+        screen.grid(row=1, column=0, columnspan=2, sticky=N+W+E+S)
         message = Label(screen, bg="gray", font=self.font, text="Game Over!")
-        message.grid(row=0, column=0, sticky=E+S+W+N, padx=170, pady=150)
+        message.grid(row=1, column=0, sticky=E+S+W+N, padx=170, pady=150)
         btn_exit = Button(screen, text="OK", bg="#E6E6E6", font=self.font, padx=50, command=self.quit)
-        btn_exit.grid(row=1, column=0)
+        btn_exit.grid(row=2, column=0)
 
     def move(self, direction):
         if self.check_if_lost():
