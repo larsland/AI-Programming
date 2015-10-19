@@ -193,12 +193,12 @@ class GameWindow(Frame):
                 val = self.board[i][j].value
                 if val == 0:
                     b = False
-                if i > 0 and self.board[i-1][j] == val:
+                if i > 0 and self.board[i-1][j].value == val:
                     b = False
-                if j > 0 and self.board[i][j-1] == val:
+                if j > 0 and self.board[i][j-1].value == val:
                     b = False
-                if i < s and self.board[i+1][j] == val:
+                if i < s and self.board[i+1][j].value == val:
                     b = False
-                if j < s and self.board[i][j+1] == val:
+                if j < s and self.board[i][j+1].value == val:
                     b = False
         return b
