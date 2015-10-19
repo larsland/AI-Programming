@@ -23,6 +23,13 @@ BACKGROUND_COLOR_DICT = {
     11: '#FFAE00'
 }
 
+class Tile:
+    def __init__(self, value=0):
+        self.value = value
+
+    def __str__(self):
+        return str(self.value)
+
 
 class GameWindow(Frame):
     def __init__(self, master=None):
@@ -31,7 +38,7 @@ class GameWindow(Frame):
         self.score_font = font.Font(master, family="Verdana", size=20)
         self.master.title('2048')
         self.grid()
-        self.board = [[0 for x in range(4)] for x in range(4)]
+        self.board = [[Tile() for x in range(4)] for x in range(4)]
         self.master.bind("<KeyPress>", self.onKeyPress)
         self.grid_cells = []
         self.score = 0
@@ -69,7 +76,7 @@ class GameWindow(Frame):
     def update_view(self):
         for i in range(GRID_LEN):
             for j in range(GRID_LEN):
-                digit = self.board[i][j]
+                digit = self.board[i][j].value
                 if digit == 0:
                     self.grid_cells[i][j].configure(
                         text="",
@@ -101,26 +108,26 @@ class GameWindow(Frame):
         moved = False
         lines = self.rotate(self.board, direction+1)
         for line in lines:
-            while len(line) and line[-1] == 0:
+            while len(line) and line[-1].value == 0:
                 line.pop(-1)
             i = len(line)-1
             while i >= 0:
-                if line[i] == 0:
+                if line[i].value == 0:
                     moved = True
                     line.pop(i)
                 i -= 1
             i = 0
             while i < len(line)-1:
-                if line[i] == line[i+1] and not (line[i] in merged or line[i+1] in merged):
+                if line[i].value == line[i+1].value and not (line[i] in merged or line[i+1] in merged):
                     moved = True
-                    line[i] += 1
-                    self.score += 1 * (2**line[i])
+                    line[i] = Tile(line[i].value + 1)
+                    self.score += 1 * (2**line[i].value)
                     merged.append(line[i])
                     line.pop(i+1)
                 else:
                     i += 1
             while len(line) < len(self.board):
-                line.append(0)
+                line.append(Tile())
 
         self.board = self.rotate(lines, 0-(direction+1))
         self.next_step(moved)
@@ -157,12 +164,12 @@ class GameWindow(Frame):
         empty_spots = []
         for i in range(0, 4):
             for j in range(0, 4):
-                if self.board[i][j] == 0:
+                if self.board[i][j].value == 0:
                     empty_spots.append((i, j))
         if empty_spots:
             tile = random.choice(empty_spots)
             n = self.distributed_tile()
-            self.board[tile[0]][tile[1]] = n
+            self.board[tile[0]][tile[1]].value = n
 
     def distributed_tile(self):
         return 1 if random.randint(0, 100) < 90 else 2
@@ -182,7 +189,7 @@ class GameWindow(Frame):
         b = True
         for i in range(len(self.board)):
             for j in range(len(self.board[i])):
-                val = self.board[i][j]
+                val = self.board[i][j].value
                 if val == 0:
                     b = False
                 if i > 0 and self.board[i-1][j] == val:
