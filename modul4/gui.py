@@ -29,17 +29,24 @@ class GameWindow(Frame):
     def __init__(self, master=None):
         Frame.__init__(self, master)
         self.font = font.Font(master, family="Verdana", size=40, weight="bold")
+        self.score_font = font.Font(master, family="Verdana", size=20)
         self.master.title('2048')
         self.grid()
         self.board = [[0 for x in range(4)] for x in range(4)]
         self.master.bind("<KeyPress>", self.onKeyPress)
         self.grid_cells = []
+        self.score = 0
+        self.score_board = None
         self.init_grid()
         self.update_view()
 
     def init_grid(self):
         background = Frame(self, bg=BACKGROUND_COLOR_GAME, width=SIZE, height=SIZE)
-        background.grid()
+        self.score_board = Label(self, text="0", font=self.score_font)
+        score_board_label = Label(self, text="Score:", font=self.score_font)
+        score_board_label.grid(row=0, column=0, sticky=E)
+        self.score_board.grid(row=0, column=1, sticky=W)
+        background.grid(row=1, column=0, columnspan=2)
 
         for i in range(GRID_LEN):
             # Loop rows
@@ -75,6 +82,8 @@ class GameWindow(Frame):
                         text=str(1 << digit),
                         bg=BACKGROUND_COLOR_DICT.get(digit, BACKGROUND_COLOR_CELL_FALLBACK),
                         fg=foreground_color)
+
+        self.score_board.configure(text=self.score)
         self.update_idletasks()
 
     def move(self, direction):
@@ -96,8 +105,8 @@ class GameWindow(Frame):
             while i < len(line)-1:
                 if line[i] == line[i+1] and not (line[i] in merged or line[i+1] in merged):
                     moved = True
-                    print("HEYTHERE; MERGE")
                     line[i] += 1
+                    self.score += 1 * (2**line[i])
                     merged.append(line[i])
                     line.pop(i+1)
                 else:
@@ -106,7 +115,9 @@ class GameWindow(Frame):
                 line.append(0)
 
         self.board = self.rotate(lines, 0-(direction+1))
+        print("SCORE!", self.score)
         self.next_step(moved)
+
 
     def rotate(self, l, num):
         num = num % 4
