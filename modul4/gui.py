@@ -66,12 +66,9 @@ class GameWindow(Frame):
 
             self.grid_cells.append(grid_row)
 
-        # self.board = self.game.adv_move(Bunch(board=self.board))
-        # self.board = self.game.adv_move(Bunch(board=self.board))
-        self.board = [[Tile(1), Tile(2), Tile(3), Tile(1)],
-                 [Tile(1), Tile(2), Tile(3), Tile(1)],
-                 [Tile(2), Tile(1), Tile(2), Tile(1)],
-                 [Tile(2), Tile(1), Tile(2), Tile(1)]]
+        self.board = self.game.adv_move(Bunch(board=self.board))
+        self.board = self.game.adv_move(Bunch(board=self.board))
+
 
     def update_view(self):
         for i in range(GRID_LEN):
