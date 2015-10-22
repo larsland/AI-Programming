@@ -109,10 +109,29 @@ class HashableList(list):
         return hash(str(self))
 
 
-class Bunch(dict):
+'''class Bunch(dict):
     """Simple class for prototyping and other handy stuff"""
     def __init__(self, *args, **kwargs):
         super(Bunch, self).__init__(*args, **kwargs)
+        self.__dict__ = self
+
+    def __eq__(self, other):
+        return isinstance(other, Bunch) and self.__hash__() == other.__hash__()
+
+    def __hash__(self):
+        return hash(str(self))'''
+
+
+class Bunch(dict):
+    def __init__(self, **kw):
+        dict.__init__(self, kw)
+        self.__dict__ = self
+
+    def __getstate__(self):
+        return self
+
+    def __setstate__(self, state):
+        self.update(state)
         self.__dict__ = self
 
     def __eq__(self, other):

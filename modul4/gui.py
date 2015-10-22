@@ -2,6 +2,7 @@ import random
 from tkinter import *
 from tkinter import font
 from modul4.gamelogic import _2048, Tile
+from algorithms.utils import Bunch
 
 GRID_LEN = 4
 GRID_PADDING = 10
@@ -65,8 +66,8 @@ class GameWindow(Frame):
 
             self.grid_cells.append(grid_row)
 
-        self.board = self.game.add_random_tile(self.board)
-        self.board = self.game.add_random_tile(self.board)
+        self.board = self.game.adv_move(Bunch(board=self.board))
+        self.board = self.game.adv_move(Bunch(board=self.board))
 
     def update_view(self):
         for i in range(GRID_LEN):
@@ -96,23 +97,25 @@ class GameWindow(Frame):
         btn_exit = Button(screen, text="OK", bg="#E6E6E6", font=self.font, padx=50, command=self.quit)
         btn_exit.grid(row=2, column=0)
 
+
     def on_key_press(self, event):
-        legal = self.game.legal_moves(self.board)
+        state = Bunch(to_move=0, utility=0, board=self.board)
+        legal = self.game.legal_moves(state)
         print(legal)
         if not legal:
             self.game_over_screen()
         else:
             if event.keysym == 'Left' and 3 in legal:
-                self.board = self.game.make_move(3, self.board)
+                self.board = self.game.make_move(3, Bunch(to_move=1, utility=0, board=self.board)).board
                 self.update_view()
             elif event.keysym == 'Up' and 2 in legal:
-                self.board = self.game.make_move(2, self.board)
+                self.board = self.game.make_move(2, Bunch(to_move=1, utility=0, board=self.board)).board
                 self.update_view()
             elif event.keysym == 'Right' and 1 in legal:
-                self.board = self.game.make_move(1, self.board)
+                self.board = self.game.make_move(1, Bunch(to_move=1, utility=0, board=self.board)).board
                 self.update_view()
             elif event.keysym == 'Down' and 0 in legal:
-                self.board = self.game.make_move(0, self.board)
+                self.board = self.game.make_move(0, Bunch(to_move=1, utility=0, board=self.board)).board
                 self.update_view()
 
 

@@ -1,4 +1,5 @@
 import copy
+import pickle
 import random
 from modul4.adversial import *
 from algorithms.utils import Bunch
@@ -26,9 +27,10 @@ class _2048(Game):
     def legal_moves(self, state):
         moves = []
         for i in range(4):
+            # current_state = pickle.loads(pickle.dumps(state, -1))
             current_state = copy.deepcopy(state)
             move = self.make_move(i, current_state)
-            if state != move:
+            if state.board != move.board:
                 moves.append(i)
         return moves
 
@@ -41,8 +43,8 @@ class _2048(Game):
     def display(self, state):
         print(state)
 
-    def make_move(self, move, state):
-        board = state
+    def my_move(self, move, state):
+        board = state.board
         merged = []
         moved = False
         lines = self.rotate(board, move+1)
@@ -70,15 +72,24 @@ class _2048(Game):
 
         board = self.rotate(lines, 0-(move+1))
 
-        if moved:
-            board = self.add_random_tile(board)
+        #if moved:
+        #    board = self.add_random_tile(board)
 
-        return Bunch(to_move=0 if state.to_move else 1, utility=0, board=board)
+        board = board
+        return board
+
+    def make_move(self, move, state):
+        print("wat", state.to_move)
+        if state.to_move:
+            return Bunch(to_move=0, utility=0, board=self.adv_move(state))
+        else:
+            return Bunch(to_move=1, utility=0, board=self.my_move(move, state))
 
     def terminal_test(self, state):
         return not self.legal_moves(state)
 
-    def add_random_tile(self, board):
+    def adv_move(self, state):
+        board = state.board
         empty_spots = []
         for i in range(0, 4):
             for j in range(0, 4):
