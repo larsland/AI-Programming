@@ -97,17 +97,22 @@ class GameWindow(Frame):
         btn_exit.grid(row=2, column=0)
 
     def on_key_press(self, event):
-        if event.keysym == 'Left':
-            self.board = self.game.make_move(3, self.board)
-            self.update_view()
-        elif event.keysym == 'Up':
-            self.board = self.game.make_move(2, self.board)
-            self.update_view()
-        elif event.keysym == 'Right':
-            self.board = self.game.make_move(1, self.board)
-            self.update_view()
-        elif event.keysym == 'Down':
-            self.board = self.game.make_move(0, self.board)
-            self.update_view()
+        legal = self.game.legal_moves(self.board)
+        print(legal)
+        if not legal:
+            self.game_over_screen()
+        else:
+            if event.keysym == 'Left' and 3 in legal:
+                self.board = self.game.make_move(3, self.board)
+                self.update_view()
+            elif event.keysym == 'Up' and 2 in legal:
+                self.board = self.game.make_move(2, self.board)
+                self.update_view()
+            elif event.keysym == 'Right' and 1 in legal:
+                self.board = self.game.make_move(1, self.board)
+                self.update_view()
+            elif event.keysym == 'Down' and 0 in legal:
+                self.board = self.game.make_move(0, self.board)
+                self.update_view()
 
 
