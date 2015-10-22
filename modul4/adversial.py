@@ -1,5 +1,6 @@
 from abc import abstractclassmethod
 
+
 class Game:
     @abstractclassmethod
     def legal_moves(self, state):
