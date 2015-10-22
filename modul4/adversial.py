@@ -1,5 +1,4 @@
 from abc import abstractclassmethod
-from math import inf
 
 
 class Game:
@@ -64,10 +63,10 @@ Maybe implement minimax with if else on maximizingplayer instead of double innar
 """
 
 
-def minimax_decision(state, game):
+def minimax_decision(state, game, depth, maximizingPlayer):
     # player = game.to_move(state)
     def max_value(state):
-        if game.terminal_test(state):
+        if game.terminal_test(state) or depth == 0:
             return game.utility(state, player)
         v = -inf
         for a, s in game.actions(state):
@@ -77,13 +76,50 @@ def minimax_decision(state, game):
     def min_value(state):
         if game.terminal_test(state):
             return game.utility(state, player)
-        v = infinity
-        for a, s in game.successors(state):
+        v = inf
+        for a, s in game.actions(state):
             v = min(v, max_value(s))
         return v
 
     # Body of minimax_decision starts here:
-    action, state = max(game.successors(state), lambda a, s: min_value(s))
+    action, state = max(game.actions(state), lambda a, s: min_value(s))
     return action
+
+
+def alpha_beta_search(state, game, d=6, cutoff_test=None):
+    # player = game.to_move(state)
+
+    def max_value(state, alpha, beta, depth):
+        if cutoff_test(state, depth):
+            return eval_fn(state)
+        v = -inf
+        for a, s in game.actions(state):
+            v = max(v, min_value(s, alpha, beta, depth+1))
+            if v >= beta:
+                return v
+            alpha = max(alpha, v)
+        return v
+
+    def min_value(state, alpha, beta, depth):
+        if cutoff_test(state, depth):
+            return eval_fn(state)
+        v = inf
+        for a, s in game.successors(state):
+            v = min(v, max_value(s, alpha, beta, depth+1))
+            if v <= alpha:
+                return v
+            beta = min(beta, v)
+        return v
+
+    # Body of alphabeta_search starts here:
+    # The default test cuts off at depth d or at a terminal state
+    cutoff_test = (cutoff_test or (lambda state, depth: depth > d or game.terminal_test(state)))
+    eval_fn = eval_fn or (lambda state: game.utility(state, player))
+
+    action, state = argmax(game.successors(state), lambda a, s: min_value(s, -inf, inf, 0))
+    return action
+
+
+
 
 
