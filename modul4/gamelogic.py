@@ -11,7 +11,6 @@ import random
 from algorithms.utils import Bunch
 
 
-
 class Tile:
     def __init__(self, value=0):
         self.value = value
