@@ -66,8 +66,12 @@ class GameWindow(Frame):
 
             self.grid_cells.append(grid_row)
 
-        self.board = self.game.adv_move(Bunch(board=self.board))
-        self.board = self.game.adv_move(Bunch(board=self.board))
+        # self.board = self.game.adv_move(Bunch(board=self.board))
+        # self.board = self.game.adv_move(Bunch(board=self.board))
+        self.board = [[Tile(1), Tile(2), Tile(3), Tile(1)],
+                 [Tile(1), Tile(2), Tile(3), Tile(1)],
+                 [Tile(2), Tile(1), Tile(2), Tile(1)],
+                 [Tile(2), Tile(1), Tile(2), Tile(1)]]
 
     def update_view(self):
         for i in range(GRID_LEN):
@@ -106,16 +110,36 @@ class GameWindow(Frame):
             self.game_over_screen()
         else:
             if event.keysym == 'Left' and 3 in legal:
-                self.board = self.game.make_move(3, Bunch(to_move=1, utility=0, board=self.board)).board
+                state = self.game.make_move(Bunch(to_move=0, utility=0, board=self.board), 3)
+                self.board = state.board
+                self.update_view()
+
+                state = self.game.make_move(Bunch(to_move=1, utility=0, board=self.board))
+                self.board = state.board
                 self.update_view()
             elif event.keysym == 'Up' and 2 in legal:
-                self.board = self.game.make_move(2, Bunch(to_move=1, utility=0, board=self.board)).board
+                state = self.game.make_move(Bunch(to_move=0, utility=0, board=self.board), 2)
+                self.board = state.board
+                self.update_view()
+
+                state = self.game.make_move(Bunch(to_move=1, utility=0, board=self.board))
+                self.board = state.board
                 self.update_view()
             elif event.keysym == 'Right' and 1 in legal:
-                self.board = self.game.make_move(1, Bunch(to_move=1, utility=0, board=self.board)).board
+                state = self.game.make_move(Bunch(to_move=0, utility=0, board=self.board), 1)
+                self.board = state.board
+                self.update_view()
+
+                state = self.game.make_move(Bunch(to_move=1, utility=0, board=self.board))
+                self.board = state.board
                 self.update_view()
             elif event.keysym == 'Down' and 0 in legal:
-                self.board = self.game.make_move(0, Bunch(to_move=1, utility=0, board=self.board)).board
+                state = self.game.make_move(Bunch(to_move=0, utility=0, board=self.board), 0)
+                self.board = state.board
+                self.update_view()
+
+                state = self.game.make_move(Bunch(to_move=1, utility=0, board=self.board))
+                self.board = state.board
                 self.update_view()
 
 

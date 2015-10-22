@@ -15,8 +15,13 @@ class Tile:
     def __repr__(self):
         return str(self.value)
 
-    def __eq__(self, other):
-        return self.value == other.value
+
+def tile_matrix_eq(state, other):
+    for i, j in zip(state, other):
+        for x, y in zip(i, j):
+            if x.value != y.value:
+                return False
+    return True
 
 
 class _2048(Game):
@@ -29,21 +34,15 @@ class _2048(Game):
         for i in range(4):
             # current_state = pickle.loads(pickle.dumps(state, -1))
             current_state = copy.deepcopy(state)
-            move = self.make_move(i, current_state)
-            if state.board != move.board:
+            move = self.make_move(current_state, i)
+            if not better_cmp(state.board, move.board):
                 moves.append(i)
         return moves
 
     def utility(self, state, player):
         pass
 
-    def to_move(self, state):
-        pass
-
-    def display(self, state):
-        print(state)
-
-    def my_move(self, move, state):
+    def my_move(self, state, move):
         board = state.board
         merged = []
         moved = False
@@ -72,18 +71,13 @@ class _2048(Game):
 
         board = self.rotate(lines, 0-(move+1))
 
-        #if moved:
-        #    board = self.add_random_tile(board)
-
-        board = board
         return board
 
-    def make_move(self, move, state):
-        print("wat", state.to_move)
+    def make_move(self, state, move=None):
         if state.to_move:
             return Bunch(to_move=0, utility=0, board=self.adv_move(state))
         else:
-            return Bunch(to_move=1, utility=0, board=self.my_move(move, state))
+            return Bunch(to_move=1, utility=0, board=self.my_move(state, move))
 
     def terminal_test(self, state):
         return not self.legal_moves(state)
