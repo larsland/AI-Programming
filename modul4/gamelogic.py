@@ -1,13 +1,6 @@
-"""
-
-Put all game logic here, so that we can solve the problem without necessarilly using the GUI.
-Solve first, then beautify!
-
-"""
 import copy
-
-from modul4.adversial import *
 import random
+from modul4.adversial import *
 from algorithms.utils import Bunch
 
 
@@ -18,16 +11,26 @@ class Tile:
     def __str__(self):
         return str(self.value)
 
+    def __repr__(self):
+        return str(self.value)
+
+    def __eq__(self, other):
+        return self.value == other.value
+
 
 class _2048(Game):
     def __init__(self):
-        #self.initial = Bunch(to_move='X', utility=0, board={}, moves=moves)
+        self.initial = Bunch(to_move=0, utility=0, board=[[]], moves=[])
         self.score = 0
 
     def legal_moves(self, state):
-        current_state = copy.deepcopy(state)
-        if current_state == self.make_move(0, current_state):
-            pass
+        moves = []
+        for i in range(4):
+            current_state = copy.deepcopy(state)
+            move = self.make_move(i, current_state)
+            if state != move:
+                moves.append(i)
+        return moves
 
     def utility(self, state, player):
         pass
@@ -70,7 +73,26 @@ class _2048(Game):
         if moved:
             board = self.add_random_tile(board)
 
+        return Bunch(to_move=0 if state.to_move else 1, utility=0, board=board)
+
+    def terminal_test(self, state):
+        return not self.legal_moves(state)
+
+    def add_random_tile(self, board):
+        empty_spots = []
+        for i in range(0, 4):
+            for j in range(0, 4):
+                if board[i][j].value == 0:
+                    empty_spots.append((i, j))
+        if empty_spots:
+            tile = random.choice(empty_spots)
+            n = self.distributed_tile()
+            board[tile[0]][tile[1]].value = n
+
         return board
+
+    def distributed_tile(self):
+        return 1 if random.randint(0, 100) < 90 else 2
 
     def rotate(self, l, num):
         num %= 4
@@ -94,41 +116,6 @@ class _2048(Game):
                 for x in range(len(l[y])):
                     l2[y][x] = l[x][s-y]
         return l2
-
-    def add_random_tile(self, board):
-        empty_spots = []
-        for i in range(0, 4):
-            for j in range(0, 4):
-                if board[i][j].value == 0:
-                    empty_spots.append((i, j))
-        if empty_spots:
-            tile = random.choice(empty_spots)
-            n = self.distributed_tile()
-            board[tile[0]][tile[1]].value = n
-
-        return board
-
-    def distributed_tile(self):
-        return 1 if random.randint(0, 100) < 90 else 2
-
-    def terminal_test(self, state):
-        board = state
-        s = len(board)-1
-        b = True
-        for i in range(len(board)):
-            for j in range(len(board[i])):
-                val = board[i][j].value
-                if val == 0:
-                    b = False
-                if i > 0 and board[i-1][j].value == val:
-                    b = False
-                if j > 0 and board[i][j-1].value == val:
-                    b = False
-                if i < s and board[i+1][j].value == val:
-                    b = False
-                if j < s and board[i][j+1].value == val:
-                    b = False
-        return b
 
 
 
