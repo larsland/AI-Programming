@@ -4,7 +4,7 @@ Put all game logic here, so that we can solve the problem without necessarilly u
 Solve first, then beautify!
 
 """
-
+import copy
 
 from modul4.adversial import *
 import random
@@ -22,12 +22,13 @@ class Tile:
 
 class _2048(Game):
     def __init__(self):
-
         #self.initial = Bunch(to_move='X', utility=0, board={}, moves=moves)
         self.score = 0
 
     def legal_moves(self, state):
-        pass
+        current_state = copy.deepcopy(state)
+        if current_state == self.make_move(0, current_state):
+            pass
 
     def utility(self, state, player):
         pass

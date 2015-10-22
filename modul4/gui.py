@@ -1,7 +1,7 @@
 import random
 from tkinter import *
 from tkinter import font
-from modul4.gamelogic import _2048
+from modul4.gamelogic import _2048, Tile
 
 GRID_LEN = 4
 GRID_PADDING = 10
@@ -25,22 +25,14 @@ BACKGROUND_COLOR_DICT = {
 }
 
 
-class Tile:
-    def __init__(self, value=0):
-        self.value = value
-
-    def __str__(self):
-        return str(self.value)
-
-
 class GameWindow(Frame):
     def __init__(self, master=None):
         Frame.__init__(self, master)
         self.font = font.Font(master, family="Verdana", size=40, weight="bold")
         self.score_font = font.Font(master, family="Verdana", size=20)
         self.master.title('2048')
-        self.game = _2048()
         self.grid()
+        self.game = _2048()
         self.board = [[Tile() for x in range(4)] for x in range(4)]
         self.master.bind("<KeyPress>", self.on_key_press)
         self.grid_cells = []
