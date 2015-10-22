@@ -1,5 +1,5 @@
 from abc import abstractclassmethod
-from math import inf
+
 
 
 class Game:

@@ -1,6 +1,7 @@
 import random
 from tkinter import *
 from tkinter import font
+from modul4.gamelogic import _2048
 
 GRID_LEN = 4
 GRID_PADDING = 10
@@ -38,9 +39,10 @@ class GameWindow(Frame):
         self.font = font.Font(master, family="Verdana", size=40, weight="bold")
         self.score_font = font.Font(master, family="Verdana", size=20)
         self.master.title('2048')
+        self.game = _2048()
         self.grid()
         self.board = [[Tile() for x in range(4)] for x in range(4)]
-        self.master.bind("<KeyPress>", self.onKeyPress)
+        self.master.bind("<KeyPress>", self.on_key_press)
         self.grid_cells = []
         self.score = 0
         self.score_board = None
@@ -71,8 +73,8 @@ class GameWindow(Frame):
 
             self.grid_cells.append(grid_row)
 
-        self.add_random_tile()
-        self.add_random_tile()
+        self.board = self.game.add_random_tile(self.board)
+        self.board = self.game.add_random_tile(self.board)
 
     def update_view(self):
         for i in range(GRID_LEN):
@@ -102,103 +104,18 @@ class GameWindow(Frame):
         btn_exit = Button(screen, text="OK", bg="#E6E6E6", font=self.font, padx=50, command=self.quit)
         btn_exit.grid(row=2, column=0)
 
-    def move(self, direction):
-        if self.check_if_lost():
-            self.game_over_screen()
-        merged = []
-        moved = False
-        lines = self.rotate(self.board, direction+1)
-        for line in lines:
-            while len(line) and line[-1].value == 0:
-                line.pop(-1)
-            i = len(line)-1
-            while i >= 0:
-                if line[i].value == 0:
-                    moved = True
-                    line.pop(i)
-                i -= 1
-            i = 0
-            while i < len(line)-1:
-                if line[i].value == line[i+1].value and not (line[i] in merged or line[i+1] in merged):
-                    moved = True
-                    line[i] = Tile(line[i].value + 1)
-                    self.score += 1 * (2**line[i].value)
-                    merged.append(line[i])
-                    line.pop(i+1)
-                else:
-                    i += 1
-            while len(line) < len(self.board):
-                line.append(Tile())
-
-        self.board = self.rotate(lines, 0-(direction+1))
-        self.next_step(moved)
-
-    def rotate(self, l, num):
-        num %= 4
-        s = len(l)-1
-        l2 = []
-        if num == 0:
-            l2 = l
-        elif num == 1:
-            l2 = [[None for i in j] for j in l]
-            for y in range(len(l)):
-                for x in range(len(l[y])):
-                    l2[x][s-y] = l[y][x]
-        elif num == 2:
-            l2 = l
-            l2.reverse()
-            for i in l:
-                i.reverse()
-        elif num == 3:
-            l2 = [[None for i in j] for j in l]
-            for y in range(len(l)):
-                for x in range(len(l[y])):
-                    l2[y][x] = l[x][s-y]
-        return l2
-
-    def next_step(self, moved):
-        if moved:
-            self.add_random_tile()
-        self.update_view()
-
-    def add_random_tile(self):
-        empty_spots = []
-        for i in range(0, 4):
-            for j in range(0, 4):
-                if self.board[i][j].value == 0:
-                    empty_spots.append((i, j))
-        if empty_spots:
-            tile = random.choice(empty_spots)
-            n = self.distributed_tile()
-            self.board[tile[0]][tile[1]].value = n
-
-    def distributed_tile(self):
-        return 1 if random.randint(0, 100) < 90 else 2
-
-    def onKeyPress(self, event):
+    def on_key_press(self, event):
         if event.keysym == 'Left':
-            self.move(3)
+            self.board = self.game.make_move(3, self.board)
+            self.update_view()
         elif event.keysym == 'Up':
-            self.move(2)
+            self.board = self.game.make_move(2, self.board)
+            self.update_view()
         elif event.keysym == 'Right':
-            self.move(1)
+            self.board = self.game.make_move(1, self.board)
+            self.update_view()
         elif event.keysym == 'Down':
-            self.move(0)
+            self.board = self.game.make_move(0, self.board)
+            self.update_view()
 
-    def check_if_lost(self):
-        s = len(self.board)-1
-        b = True
-        for i in range(len(self.board)):
-            for j in range(len(self.board[i])):
-                val = self.board[i][j].value
-                if val == 0:
-                    b = False
-                if i > 0 and self.board[i-1][j].value == val:
-                    b = False
-                if j > 0 and self.board[i][j-1].value == val:
-                    b = False
-                if i < s and self.board[i+1][j].value == val:
-                    b = False
-                if j < s and self.board[i][j+1].value == val:
-                    b = False
-        return b
+
