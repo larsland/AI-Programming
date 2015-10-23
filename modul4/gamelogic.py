@@ -3,6 +3,7 @@ import pickle
 import random
 from modul4.adversial import *
 from algorithms.utils import Bunch
+import numpy as np
 
 
 def tile_matrix_eq(state, other):
@@ -13,10 +14,60 @@ def tile_matrix_eq(state, other):
     return True
 
 
+improved_gradient_table = np.array([[0.135759, 0.121925, 0.102812, 0.099937],
+                                    [0.0997992, 0.0888405, 0.076711, 0.0724143],
+                                    [0.060654, 0.0562579, 0.037116, 0.0151889],
+                                    [0.0125498, 0.00992495, 0.00575871, 0.00335193]])
+
+improved_gradient_tables = [
+    improved_gradient_table,
+    np.rot90(improved_gradient_table, 1),
+    np.rot90(improved_gradient_table, 2),
+    np.rot90(improved_gradient_table, 3)
+]
+
+
+def gradient_heuristic(board, gradient_tables=improved_gradient_tables):
+
+    h = 0
+    for table in gradient_tables:
+        print('board: ', board)
+        print('gradient table: ', table)
+        dot_product = np.dot(np.array(board), table)
+        print('dot_product: ', dot_product)
+        print('sum of lines: ', sum(dot_product))
+        print('h: ', sum(sum(dot_product)))
+        h += sum(sum(dot_product))
+
+    return h
+
+
+
 class _2048(Game):
     def __init__(self):
         self.initial = Bunch(to_move=0, utility=0, board=[[]], moves=[])
         self.score = 0
+        '''
+        self.gradient_tables = \
+            [
+                np.array([[7, 6, 5, 4],
+                          [6, 5, 4, 3],
+                          [5, 4, 3, 2],
+                          [4, 3, 2, 1]]),
+                np.array([[1, 2, 3, 4],
+                          [2, 3, 4, 5],
+                          [3, 4, 5, 6],
+                          [4, 5, 6, 7]]),
+                np.array([[4, 5, 6, 7],
+                          [3, 4, 5, 6],
+                          [2, 3, 4, 5],
+                          [1, 2, 3, 4]]),
+                np.array([[4, 3, 2, 1],
+                          [5, 4, 3, 2],
+                          [6, 5, 4, 3],
+                          [7, 6, 5, 4]])
+            ]
+        '''
 
     def legal_moves(self, state):
         moves = []
@@ -35,25 +86,25 @@ class _2048(Game):
         board = state.board
         merged = []
         moved = False
-        lines = self.rotate(board, move+1)
+        lines = self.rotate(board, move + 1)
         j = 0
         for line in lines:
             while len(line) and line[-1] == 0:
                 line.pop(-1)
-            i = len(line)-1
+            i = len(line) - 1
             while i >= 0:
                 if line[i] == 0:
                     moved = True
                     line.pop(i)
                 i -= 1
             i = 0
-            while i < len(line)-1:
-                if line[i] == line[i+1] and not ((i, j) in merged or (i+1, j) in merged):
+            while i < len(line) - 1:
+                if line[i] == line[i + 1] and not ((i, j) in merged or (i + 1, j) in merged):
                     moved = True
                     line[i] += 1
-                    self.score += 1 * (2**line[i])
+                    self.score += 1 * (2 ** line[i])
                     merged.append((i, j))
-                    line.pop(i+1)
+                    line.pop(i + 1)
                 else:
                     i += 1
             while len(line) < len(board):
@@ -61,7 +112,7 @@ class _2048(Game):
 
             j += 1
 
-        board = self.rotate(lines, 0-(move+1))
+        board = self.rotate(lines, 0 - (move + 1))
 
         return board
 
@@ -93,28 +144,26 @@ class _2048(Game):
 
     def rotate(self, l, num):
         num %= 4
-        s = len(l)-1
+        s = len(l) - 1
         l2 = []
         if num == 0:
             l2 = l
         elif num == 1:
-            l2 = [[None for i in j] for j in l]
+            l2 = [[None for _ in j] for j in l]
             for y in range(len(l)):
                 for x in range(len(l[y])):
-                    l2[x][s-y] = l[y][x]
+                    l2[x][s - y] = l[y][x]
         elif num == 2:
             l2 = l
             l2.reverse()
             for i in l:
                 i.reverse()
         elif num == 3:
-            l2 = [[None for i in j] for j in l]
+            l2 = [[None for _ in j] for j in l]
             for y in range(len(l)):
                 for x in range(len(l[y])):
-                    l2[y][x] = l[x][s-y]
+                    l2[y][x] = l[x][s - y]
         return l2
-
-
 
 
 '''

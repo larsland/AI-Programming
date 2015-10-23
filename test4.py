@@ -1,5 +1,5 @@
 import unittest
-from modul4.gamelogic import _2048, Tile
+from modul4.gamelogic import _2048, gradient_heuristic
 from algorithms.utils import Bunch
 import copy
 
@@ -116,6 +116,23 @@ class TestGameLogic(unittest.TestCase):
                     [2, 2, 0, 0]]
 
         self.assertTrue(board_assert_eq(solution, new.board))
+
+    def test_heuristic(self):
+        g = _2048()
+
+        board = [[1, 2, 3, 4],
+                 [4, 4, 5, 5],
+                 [2, 2, 3, 3],
+                 [1, 1, 1, 1]]
+        h1 = gradient_heuristic(board)
+
+        state = Bunch(to_move=0, utility=0, board=board)
+        new = g.make_move(copy.deepcopy(state), 3)
+
+        h2 = gradient_heuristic(new.board)
+
+        print('Heuristic for board 1', h1)
+        print('Heuristic for board 2', h2)
 
 
 if __name__ == '__main__':
