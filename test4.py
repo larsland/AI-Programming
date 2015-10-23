@@ -1,6 +1,5 @@
 import unittest
 from modul4.gamelogic import _2048, gradient_heuristic
-from algorithms.utils import Bunch
 import copy
 import numpy as np
 
@@ -47,16 +46,16 @@ class TestGameLogic(unittest.TestCase):
                  [4, 4, 5, 5],
                  [2, 2, 3, 3],
                  [1, 1, 1, 1]]
-        state = Bunch(to_move=0, utility=0, board=board)
+        state = board
 
-        new = g.my_move(copy.deepcopy(state), 1)
+        new = g.my_move(np.copy(state), 1)
 
         solution = [[1, 2, 3, 4],
                     [0, 0, 5, 6],
                     [0, 0, 3, 4],
                     [0, 0, 2, 2]]
 
-        not_true = np.array_equal(state.board, new)
+        not_true = np.array_equal(state, new)
 
         self.assertFalse(not_true)
         self.assertTrue(np.array_equal(solution, new))
@@ -68,15 +67,15 @@ class TestGameLogic(unittest.TestCase):
                  [2, 1, 2, 1],
                  [2, 1, 2, 1]]
 
-        state = Bunch(to_move=0, utility=0, board=board)
-        new = g.my_move(copy.deepcopy(state), 0)
+        state = board
+        new = g.my_move(np.copy(state), 0)
 
         solution = [[0, 0, 0, 0],
                     [0, 0, 0, 0],
                     [2, 2, 4, 2],
                     [3, 2, 3, 2]]
 
-        not_true = np.array_equal(state.board, new)
+        not_true = np.array_equal(state, new)
 
         self.assertFalse(not_true)
         self.assertTrue(np.array_equal(solution, new))
@@ -88,15 +87,15 @@ class TestGameLogic(unittest.TestCase):
                  [2, 1, 2, 1],
                  [2, 1, 2, 1]]
 
-        state = Bunch(to_move=0, utility=0, board=board)
-        new = g.my_move(copy.deepcopy(state), 2)
+        state = board
+        new = g.my_move(np.copy(state), 2)
 
         solution = [[2, 2, 4, 2],
                     [3, 2, 3, 2],
                     [0, 0, 0, 0],
                     [0, 0, 0, 0]]
 
-        not_true = np.array_equal(state.board, new)
+        not_true = np.array_equal(state, new)
 
         self.assertFalse(not_true)
         self.assertTrue(np.array_equal(solution, new))
@@ -108,15 +107,15 @@ class TestGameLogic(unittest.TestCase):
                  [2, 2, 3, 3],
                  [1, 1, 1, 1]]
 
-        state = Bunch(to_move=0, utility=0, board=board)
-        new = g.my_move(copy.deepcopy(state), 3)
+        state = board
+        new = g.my_move(np.copy(state), 3)
 
         solution = [[1, 2, 3, 4],
                     [5, 6, 0, 0],
                     [3, 4, 0, 0],
                     [2, 2, 0, 0]]
 
-        not_true = np.array_equal(state.board, new)
+        not_true = np.array_equal(state, new)
 
         self.assertFalse(not_true)
         self.assertTrue(np.array_equal(solution, new))
@@ -130,13 +129,13 @@ class TestGameLogic(unittest.TestCase):
                  [3, 0, 0, 0]]
 
 
-        state = Bunch(to_move=0, utility=0, board=board)
+        state = board
 
 
-        up = g.my_move(copy.deepcopy(state), 2)
-        down = g.my_move(copy.deepcopy(state), 0)
-        right = g.my_move(copy.deepcopy(state), 1)
-        left = g.my_move(copy.deepcopy(state), 3)
+        up = g.my_move(np.copy(state), 2)
+        down = g.my_move(np.copy(state), 0)
+        right = g.my_move(np.copy(state), 1)
+        left = g.my_move(np.copy(state), 3)
 
 
         b_h = gradient_heuristic(board)

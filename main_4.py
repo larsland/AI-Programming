@@ -5,7 +5,9 @@ from modul4.adversial import expectimax
 from algorithms.utils import Bunch
 import numpy as np
 if __name__ == '__main__':
+
     g = _2048()
+    g.initial = g.adv_move(g.initial)
     print(expectimax(g, g.initial))
     """
     root = Tk()

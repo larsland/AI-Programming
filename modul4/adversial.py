@@ -16,7 +16,7 @@ class Game:
 
     def terminal_test(self, state):
         "Return True if this is a final state for the game."
-        return not self.legal_moves(state)
+        return not self.actions(state)
 
     def to_move(self, state):
         "Return the player whose move it is in this state."
@@ -26,10 +26,10 @@ class Game:
         "Print or otherwise display the state."
         print(state)
 
-    def actions(self, state):
+    def actions(self, state, player=True):
         "Return a list of legal (move, state) pairs."
         return [(move, self.make_move(move, state))
-                for move in self.legal_moves(state)]
+                for move in self.legal_moves(state, player)]
 
     def __repr__(self):
         return '<%s>' % self.__class__.__name__
@@ -60,21 +60,57 @@ function expectiminimax(node, depth)
 '''
 
 
-def expectimax(game, state, depth=4, player=True):
-    if game.terminal_test(state) or depth == 0:
-        print('wot woot?', state)
-        a = game.utility(state)
+def get_dynamic_depth(state):
+    # zeros = sum([1 for x in [line for line in state] if x == 0])
+    zeros = 0
+    for line in state:
+        for x in line:
+            if x == 0:
+                zeros += 1
+
+    if zeros > 10:
+        depth = 2
+    elif zeros > 7:
+        depth = 3
+    elif zeros > 5:
+        depth = 4
     else:
-        if not player:
-            print("HELLOOOOOO")
-            a = inf
+        depth = 5
+
+    print("Dynamic depth size: ", depth)
+    return depth
+
+
+def expectimax(game, state, depth_f=get_dynamic_depth, player=True):
+    depth = depth_f(state)
+    print("DEPTH", depth)
+    if game.terminal_test(state, player) or depth == 0:
+        a = game.utility(state)
+
+        print('Terminal state:\n', (a, state))
+    else:
+        if player:
+            print("Player " + ("-"*50))
+            a = -float('Inf')
             for action, state in game.actions(state, player):
-                a, state = min(a, expectimax(game, state, depth-1, player=True), key=lambda x: x[0])
+                a_, state_ = expectimax(game, state, player=not player)
+                if a_ > a:
+                    a = a_
+                    state = state_
+                # a, state =
+                # max(a, expectimax(game, state, depth=depth-1, player=not player), key=lambda x: print(x) and x[0])
+            print("Best player move: \n", (a, state))
         else:
-            print("HELLOOOOOO2")
-            a = -inf
+            print("Adversary " + ("-"*50))
+            a = float('Inf')
             for action, state in game.actions(state, player):
-                a, state = max(a, expectimax(game, state, depth-1, player=False), key=lambda x: x[0])
+                a_, state_ = expectimax(game, state, player=not player)
+                if a_ < a:
+                    a = a_
+                    state = state_
+                # a, state =
+                # min(a, expectimax(game, state, depth=depth-1, player=not player), key=lambda x: print(x) and x[0])
+            print("Best advesary move: \n", (a, state))
     return a, state
 """
 Maybe implement minimax with if else on maximizingplayer instead of double innard defs.

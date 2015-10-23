@@ -27,76 +27,60 @@ improved_gradient_tables = [
 
 
 def gradient_heuristic(board, gradient_tables=improved_gradient_tables):
+    # Flatten board as numpy 1D array
+    board = np.array(board).reshape(-1)
+    # Change all values from binary to decimal
+    for i, v in enumerate(board):
+        board[i] = 1 << v
+    # Inflate board to 4x4 matrix
+    board.resize((4, 4))
+
     h = 0
     for table in gradient_tables:
-        for x, y in zip(board, table):
-            for i, j in zip(x, y):
-                h += (1 << i) * j
-        # dot_product = np.dot(np.array(board), table)
-        # h += sum(sum(dot_product))
+        dot_product = np.dot(board, table)
+        h += sum(sum(dot_product))
 
     return h
 
 
-class _2048(Game):
+class _2048:
     def __init__(self):
-        initial = Bunch(to_move=0, utility=0, board=[[]], moves=[])
-        initial.board = np.zeros((4, 4), dtype=np.int)
-        self.initial = initial
+        self.initial = np.zeros((4, 4), dtype=np.int)
         self.score = 0
-        '''
-        self.gradient_tables = \
-            [
-                np.array([[7, 6, 5, 4],
-                          [6, 5, 4, 3],
-                          [5, 4, 3, 2],
-                          [4, 3, 2, 1]]),
-                np.array([[1, 2, 3, 4],
-                          [2, 3, 4, 5],
-                          [3, 4, 5, 6],
-                          [4, 5, 6, 7]]),
-                np.array([[4, 5, 6, 7],
-                          [3, 4, 5, 6],
-                          [2, 3, 4, 5],
-                          [1, 2, 3, 4]]),
-                np.array([[4, 3, 2, 1],
-                          [5, 4, 3, 2],
-                          [6, 5, 4, 3],
-                          [7, 6, 5, 4]])
-            ]
-        '''
 
-    def actions(self, state, player=True):
+    def actions(self, state, player):
         moves = []
         if player:
             for i in range(4):
-                # current_state = pickle.loads(pickle.dumps(state, -1))
-                current_state = copy.deepcopy(state)
+                current_state = np.copy(state)
                 board = self.my_move(current_state, i)
-                if not np.array_equal(state.board, board):
-                    current_state.board = board
+                if not np.array_equal(state, board):
+                    current_state = board
                     moves.append((i, current_state))
+
         else:
+            o = 0
             for y in range(4):
                 for x in range(4):
-                    if state.board[x, y] == 0:
-                        current_state_1 = copy.deepcopy(state)
-                        current_state_1.board[x][y] = 1
+                    if state[x, y] == 0:
+                        o += 1
+                        current_state_1 = np.copy(state)
+                        current_state_1[x, y] = 1
 
-                        current_state_2 = copy.deepcopy(state)
-                        current_state_2.board[x, y] = 2
+                        current_state_2 = np.copy(current_state_1)
+                        current_state_2[x, y] = 2
 
-                        moves.append((x, current_state_1))
-                        moves.append((x, current_state_1))
-        for move in moves:
-            print('yo', move[1].board)
+                        moves.append((o, current_state_1))
+                        o += 1
+                        moves.append((o, current_state_2))
+
         return moves
 
     def utility(self, state, player=None):
-        return gradient_heuristic(state.board)
+        return gradient_heuristic(state)
 
     def my_move(self, state, move):
-        board = state.board
+        board = state
         merged = []
         moved = False
 
@@ -135,24 +119,26 @@ class _2048(Game):
 
     def make_move(self, state, move=None, player=False):
         if not player:
-            return Bunch(to_move=0, utility=0, board=self.adv_move(state))
+            return self.adv_move(state)
         else:
-            return Bunch(to_move=1, utility=0, board=self.my_move(state, move))
+            return self.my_move(state, move)
 
-    def terminal_test(self, state):
-        return not self.actions(state)
+    def terminal_test(self, state, player):
+        actions = self.actions(state, player)
+
+        return not actions
 
     def adv_move(self, state):
-        board = state.board
+        board = state
         empty_spots = []
         for i in range(0, 4):
             for j in range(0, 4):
                 if board[i, j] == 0:
                     empty_spots.append((i, j))
         if empty_spots:
-            tile = random.choice(empty_spots)
+            x, y = random.choice(empty_spots)
             n = self.distributed_tile()
-            board[tile[0]][tile[1]] = n
+            board[x, y] = n
 
         return board
 

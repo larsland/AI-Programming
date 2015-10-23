@@ -67,13 +67,14 @@ class GameWindow(Frame):
 
             self.grid_cells.append(grid_row)
 
-        self.board = self.game.adv_move(Bunch(board=self.board))
+        self.board = self.game.adv_move(self.board)
+        #print('self.board', self.board)
 
 
     def update_view(self):
         for i in range(GRID_LEN):
             for j in range(GRID_LEN):
-                digit = self.board[i][j]
+                digit = self.board[i, j]
                 if digit == 0:
                     self.grid_cells[i][j].configure(
                         text="",
@@ -98,45 +99,43 @@ class GameWindow(Frame):
         btn_exit = Button(screen, text="OK", bg="#E6E6E6", font=self.font, padx=50, command=self.quit)
         btn_exit.grid(row=2, column=0)
 
-
     def on_key_press(self, event):
-        state = Bunch(to_move=0, utility=0, board=self.board)
-        legal = self.game.legal_moves(state)
-        print(legal)
+        state = self.board
+        legal = self.game.actions(state, True)
+        legal_moves = [x for x, _ in legal]
         if not legal:
             self.game_over_screen()
         else:
-            if event.keysym == 'Left' and 3 in legal:
-                state = self.game.make_move(Bunch(to_move=0, utility=0, board=self.board), 3)
-                self.board = state.board
+            if event.keysym == 'Left' and 3 in legal_moves:
+                self.board = self.game.my_move(self.board, 3)
+                self.board = self.game.adv_move(self.board)
                 self.update_view()
 
-                state = self.game.make_move(Bunch(to_move=1, utility=0, board=self.board))
-                self.board = state.board
-                self.update_view()
-            elif event.keysym == 'Up' and 2 in legal:
-                state = self.game.make_move(Bunch(to_move=0, utility=0, board=self.board), 2)
-                self.board = state.board
+            elif event.keysym == 'Up' and 2 in legal_moves:
+                self.board = self.game.my_move(self.board, 2)
+                self.board = self.game.adv_move(self.board)
                 self.update_view()
 
-                state = self.game.make_move(Bunch(to_move=1, utility=0, board=self.board))
-                self.board = state.board
-                self.update_view()
-            elif event.keysym == 'Right' and 1 in legal:
-                state = self.game.make_move(Bunch(to_move=0, utility=0, board=self.board), 1)
-                self.board = state.board
+            elif event.keysym == 'Right' and 1 in legal_moves:
+                self.board = self.game.my_move(self.board, 1)
+                self.board = self.game.adv_move(self.board)
                 self.update_view()
 
-                state = self.game.make_move(Bunch(to_move=1, utility=0, board=self.board))
-                self.board = state.board
-                self.update_view()
-            elif event.keysym == 'Down' and 0 in legal:
-                state = self.game.make_move(Bunch(to_move=0, utility=0, board=self.board), 0)
-                self.board = state.board
+            elif event.keysym == 'Down' and 0 in legal_moves:
+                self.board = self.game.my_move(self.board, 0)
+                self.board = self.game.adv_move(self.board)
                 self.update_view()
 
-                state = self.game.make_move(Bunch(to_move=1, utility=0, board=self.board))
-                self.board = state.board
-                self.update_view()
+                self.artificial_unintelligence()
+
+    def artificial_unintelligence(self):
+        while self.game.actions(self.board, True):
+            self.board = self.game.my_move(self.board, 1)
+            if self.game.actions(self.board, False):
+                self.board = self.game.adv_move(self.board)
+            self.board = self.game.my_move(self.board, 0)
+            if self.game.actions(self.board, False):
+                self.board = self.game.adv_move(self.board)
+            self.update_view()
 
 
