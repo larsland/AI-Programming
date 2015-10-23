@@ -1,7 +1,7 @@
 import random
 from tkinter import *
 from tkinter import font
-from modul4.gamelogic import _2048, Tile
+from modul4.gamelogic import _2048
 from algorithms.utils import Bunch
 
 GRID_LEN = 4
@@ -34,7 +34,7 @@ class GameWindow(Frame):
         self.master.title('2048')
         self.grid()
         self.game = _2048()
-        self.board = [[Tile() for x in range(4)] for x in range(4)]
+        self.board = [[0 for _ in range(4)] for _ in range(4)]
         self.master.bind("<KeyPress>", self.on_key_press)
         self.grid_cells = []
         self.score = 0
@@ -73,7 +73,7 @@ class GameWindow(Frame):
     def update_view(self):
         for i in range(GRID_LEN):
             for j in range(GRID_LEN):
-                digit = self.board[i][j].value
+                digit = self.board[i][j]
                 if digit == 0:
                     self.grid_cells[i][j].configure(
                         text="",

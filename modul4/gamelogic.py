@@ -5,21 +5,10 @@ from modul4.adversial import *
 from algorithms.utils import Bunch
 
 
-class Tile:
-    def __init__(self, value=0):
-        self.value = value
-
-    def __str__(self):
-        return str(self.value)
-
-    def __repr__(self):
-        return str(self.value)
-
-
 def tile_matrix_eq(state, other):
     for i, j in zip(state, other):
         for x, y in zip(i, j):
-            if x.value != y.value:
+            if x != y:
                 return False
     return True
 
@@ -47,27 +36,30 @@ class _2048(Game):
         merged = []
         moved = False
         lines = self.rotate(board, move+1)
+        j = 0
         for line in lines:
-            while len(line) and line[-1].value == 0:
+            while len(line) and line[-1] == 0:
                 line.pop(-1)
             i = len(line)-1
             while i >= 0:
-                if line[i].value == 0:
+                if line[i] == 0:
                     moved = True
                     line.pop(i)
                 i -= 1
             i = 0
             while i < len(line)-1:
-                if line[i].value == line[i+1].value and not (line[i] in merged or line[i+1] in merged):
+                if line[i] == line[i+1] and not ((i, j) in merged or (i+1, j) in merged):
                     moved = True
-                    line[i] = Tile(line[i].value + 1)
-                    self.score += 1 * (2**line[i].value)
-                    merged.append(line[i])
+                    line[i] += 1
+                    self.score += 1 * (2**line[i])
+                    merged.append((i, j))
                     line.pop(i+1)
                 else:
                     i += 1
             while len(line) < len(board):
-                line.append(Tile())
+                line.append(0)
+
+            j += 1
 
         board = self.rotate(lines, 0-(move+1))
 
@@ -87,12 +79,12 @@ class _2048(Game):
         empty_spots = []
         for i in range(0, 4):
             for j in range(0, 4):
-                if board[i][j].value == 0:
+                if board[i][j] == 0:
                     empty_spots.append((i, j))
         if empty_spots:
             tile = random.choice(empty_spots)
             n = self.distributed_tile()
-            board[tile[0]][tile[1]].value = n
+            board[tile[0]][tile[1]] = n
 
         return board
 
