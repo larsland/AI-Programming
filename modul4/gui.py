@@ -3,6 +3,7 @@ from tkinter import *
 from tkinter import font
 from modul4.gamelogic import _2048
 from algorithms.utils import Bunch
+import numpy as np
 
 GRID_LEN = 4
 GRID_PADDING = 10
@@ -34,7 +35,7 @@ class GameWindow(Frame):
         self.master.title('2048')
         self.grid()
         self.game = _2048()
-        self.board = [[0 for _ in range(4)] for _ in range(4)]
+        self.board = np.zeros((4, 4), dtype=np.int)
         self.master.bind("<KeyPress>", self.on_key_press)
         self.grid_cells = []
         self.score = 0
@@ -66,7 +67,6 @@ class GameWindow(Frame):
 
             self.grid_cells.append(grid_row)
 
-        self.board = self.game.adv_move(Bunch(board=self.board))
         self.board = self.game.adv_move(Bunch(board=self.board))
 
 

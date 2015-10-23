@@ -6,18 +6,17 @@ from algorithms.utils import Bunch
 import numpy as np
 
 
-def tile_matrix_eq(state, other):
-    for i, j in zip(state, other):
-        for x, y in zip(i, j):
-            if x != y:
-                return False
-    return True
-
-
 improved_gradient_table = np.array([[0.135759, 0.121925, 0.102812, 0.099937],
                                     [0.0997992, 0.0888405, 0.076711, 0.0724143],
                                     [0.060654, 0.0562579, 0.037116, 0.0151889],
                                     [0.0125498, 0.00992495, 0.00575871, 0.00335193]])
+
+'''
+improved_gradient_table = np.array([[50, 10, 5, 1],
+                                    [10, 6, 3, 2],
+                                    [5, 3, 2, 1],
+                                    [1, 2, 1, -3]])
+'''
 
 improved_gradient_tables = [
     improved_gradient_table,
@@ -28,24 +27,22 @@ improved_gradient_tables = [
 
 
 def gradient_heuristic(board, gradient_tables=improved_gradient_tables):
-
     h = 0
     for table in gradient_tables:
-        print('board: ', board)
-        print('gradient table: ', table)
-        dot_product = np.dot(np.array(board), table)
-        print('dot_product: ', dot_product)
-        print('sum of lines: ', sum(dot_product))
-        print('h: ', sum(sum(dot_product)))
-        h += sum(sum(dot_product))
+        for x, y in zip(board, table):
+            for i, j in zip(x, y):
+                h += (1 << i) * j
+        # dot_product = np.dot(np.array(board), table)
+        # h += sum(sum(dot_product))
 
     return h
 
 
-
 class _2048(Game):
     def __init__(self):
-        self.initial = Bunch(to_move=0, utility=0, board=[[]], moves=[])
+        initial = Bunch(to_move=0, utility=0, board=[[]], moves=[])
+        initial.board = np.zeros((4, 4), dtype=np.int)
+        self.initial = initial
         self.score = 0
         '''
         self.gradient_tables = \
@@ -69,24 +66,43 @@ class _2048(Game):
             ]
         '''
 
-    def legal_moves(self, state):
+    def actions(self, state, player=True):
         moves = []
-        for i in range(4):
-            # current_state = pickle.loads(pickle.dumps(state, -1))
-            current_state = copy.deepcopy(state)
-            move = self.make_move(current_state, i)
-            if not tile_matrix_eq(state.board, move.board):
-                moves.append(i)
+        if player:
+            for i in range(4):
+                # current_state = pickle.loads(pickle.dumps(state, -1))
+                current_state = copy.deepcopy(state)
+                board = self.my_move(current_state, i)
+                if not np.array_equal(state.board, board):
+                    current_state.board = board
+                    moves.append((i, current_state))
+        else:
+            for y in range(4):
+                for x in range(4):
+                    if state.board[x, y] == 0:
+                        current_state_1 = copy.deepcopy(state)
+                        current_state_1.board[x][y] = 1
+
+                        current_state_2 = copy.deepcopy(state)
+                        current_state_2.board[x, y] = 2
+
+                        moves.append((x, current_state_1))
+                        moves.append((x, current_state_1))
+        for move in moves:
+            print('yo', move[1].board)
         return moves
 
-    def utility(self, state, player):
-        pass
+    def utility(self, state, player=None):
+        return gradient_heuristic(state.board)
 
     def my_move(self, state, move):
         board = state.board
         merged = []
         moved = False
-        lines = self.rotate(board, move + 1)
+
+        # Rotate board and convert to list
+        lines = np.rot90(board, -(move+1)).tolist()
+
         j = 0
         for line in lines:
             while len(line) and line[-1] == 0:
@@ -112,25 +128,26 @@ class _2048(Game):
 
             j += 1
 
-        board = self.rotate(lines, 0 - (move + 1))
+        # Create numpy array from list and rotate it back to original orientation
+        board = np.rot90(np.array(lines), (move + 1))
 
         return board
 
-    def make_move(self, state, move=None):
-        if state.to_move:
+    def make_move(self, state, move=None, player=False):
+        if not player:
             return Bunch(to_move=0, utility=0, board=self.adv_move(state))
         else:
             return Bunch(to_move=1, utility=0, board=self.my_move(state, move))
 
     def terminal_test(self, state):
-        return not self.legal_moves(state)
+        return not self.actions(state)
 
     def adv_move(self, state):
         board = state.board
         empty_spots = []
         for i in range(0, 4):
             for j in range(0, 4):
-                if board[i][j] == 0:
+                if board[i, j] == 0:
                     empty_spots.append((i, j))
         if empty_spots:
             tile = random.choice(empty_spots)
@@ -141,98 +158,6 @@ class _2048(Game):
 
     def distributed_tile(self):
         return 1 if random.randint(0, 100) < 90 else 2
-
-    def rotate(self, l, num):
-        num %= 4
-        s = len(l) - 1
-        l2 = []
-        if num == 0:
-            l2 = l
-        elif num == 1:
-            l2 = [[None for _ in j] for j in l]
-            for y in range(len(l)):
-                for x in range(len(l[y])):
-                    l2[x][s - y] = l[y][x]
-        elif num == 2:
-            l2 = l
-            l2.reverse()
-            for i in l:
-                i.reverse()
-        elif num == 3:
-            l2 = [[None for _ in j] for j in l]
-            for y in range(len(l)):
-                for x in range(len(l[y])):
-                    l2[y][x] = l[x][s - y]
-        return l2
-
-
-'''
-class TicTacToe(Game):
-    """Play TicTacToe on an h x v board, with Max (first player) playing 'X'.
-    A state has the player to move, a cached utility, a list of moves in
-    the form of a list of (x, y) positions, and a board, in the form of
-    a dict of {(x, y): Player} entries, where Player is 'X' or 'O'."""
-    def __init__(self, h=3, v=3, k=3):
-        moves = [(x, y) for x in range(1, h+1)
-                 for y in range(1, v+1)]
-        self.initial = Bunch(to_move='X', utility=0, board={}, moves=moves)
-
-    def legal_moves(self, state):
-        "Legal moves are any square not yet taken."
-        return state.moves
-
-    def make_move(self, move, state):
-        if move not in state.moves:
-            return state  # Illegal move has no effect
-        board = state.board.copy()
-        board[move] = state.to_move
-        moves = list(state.moves)
-        moves.remove(move)
-        return Bunch(to_move=if_(state.to_move == 'X', 'O', 'X'),
-                      utility=self.compute_utility(board, move, state.to_move),
-                      board=board, moves=moves)
-
-    def utility(self, state):
-        "Return the value to X; 1 for win, -1 for loss, 0 otherwise."
-        return state.utility
-
-    def terminal_test(self, state):
-        "A state is terminal if it is won or there are no empty squares."
-        return state.utility != 0 or len(state.moves) == 0
-
-    def display(self, state):
-        board = state.board
-        for x in range(1, self.h+1):
-            for y in range(1, self.v+1):
-                print(board.get((x, y), '.')),
-            print("wat")
-
-    def compute_utility(self, board, move, player):
-        "If X wins with this move, return 1; if O return -1; else return 0."
-        if (
-                self.k_in_row(board, move, player, (0, 1)) or
-                self.k_in_row(board, move, player, (1, 0)) or
-                self.k_in_row(board, move, player, (1, -1)) or
-                self.k_in_row(board, move, player, (1, 1))
-            ):
-            return if_(player == 'X', +1, -1)
-        else:
-            return 0
-
-    def k_in_row(self, board, move, player, delta_x, delta_y):
-        "Return true if there is a line through move on board for player."
-        x, y = move
-        n = 0  # n is number of moves in row
-        while board.get((x, y)) == player:
-            n += 1
-            x, y = x + delta_x, y + delta_y
-        x, y = move
-        while board.get((x, y)) == player:
-            n += 1
-            x, y = x - delta_x, y - delta_y
-        n -= 1  # Because we counted move itself twice
-        return n >= self.k
-'''
 
 if __name__ == '__main__':
     print("wat")

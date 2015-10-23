@@ -35,6 +35,8 @@ class Game:
         return '<%s>' % self.__class__.__name__
 
 
+inf = float('Inf')
+
 '''
 function expectiminimax(node, depth)
     if node is a terminal node or depth = 0
@@ -57,13 +59,29 @@ function expectiminimax(node, depth)
     return a
 '''
 
-inf = float('Inf')
+
+def expectimax(game, state, depth=4, player=True):
+    if game.terminal_test(state) or depth == 0:
+        print('wot woot?', state)
+        a = game.utility(state)
+    else:
+        if not player:
+            print("HELLOOOOOO")
+            a = inf
+            for action, state in game.actions(state, player):
+                a, state = min(a, expectimax(game, state, depth-1, player=True), key=lambda x: x[0])
+        else:
+            print("HELLOOOOOO2")
+            a = -inf
+            for action, state in game.actions(state, player):
+                a, state = max(a, expectimax(game, state, depth-1, player=False), key=lambda x: x[0])
+    return a, state
 """
 Maybe implement minimax with if else on maximizingplayer instead of double innard defs.
 """
 
-
-def minimax_decision(state, game, depth, maximizingPlayer):
+'''
+def minimax_decision(state, game, depth, player=True):
     # player = game.to_move(state)
     def max_value(state):
         if game.terminal_test(state) or depth == 0:
@@ -118,8 +136,6 @@ def alpha_beta_search(state, game, d=6, cutoff_test=None):
 
     action, state = argmax(game.successors(state), lambda a, s: min_value(s, -inf, inf, 0))
     return action
-
-
-
+'''
 
 
