@@ -35,7 +35,7 @@ class _2048(Game):
             # current_state = pickle.loads(pickle.dumps(state, -1))
             current_state = copy.deepcopy(state)
             move = self.make_move(current_state, i)
-            if not better_cmp(state.board, move.board):
+            if not tile_matrix_eq(state.board, move.board):
                 moves.append(i)
         return moves
 
