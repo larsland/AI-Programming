@@ -7,13 +7,14 @@ import time
 
 import sys
 if __name__ == '__main__':
+
+
     g = _2048()
     g.initial = g.adv_move(g.initial)
     g.initial = g.adv_move(g.initial)
     state = g.initial
-    '''
     print(state)
-
+    '''
     _, state = expectimax(g, state)
     print('p: \n', state)
 
@@ -29,32 +30,32 @@ if __name__ == '__main__':
     _, state = expectimax(g, state)
     print('p: \n', state)
 
-
+    '''
 
     times = []
-    for i in range(10):
+    t1 = time.time()
+    for i in range(100):
         state = g.initial
         actions = list(g.actions(state, True))
         while actions:
-            t1 = time.time()
             _, state = expectimax(g, state)
             # print('p', state)
             state = g.adv_move(state)
-            times.append(time.time() - t1)
             # print('a', state)
             actions = list(g.actions(state, True))
 
-        print(1 << np.amax(state))
+    print(time.time() - t1)
 
-    print(sum(times) / len(times))
+    g.adv_move = g.adv_move2
+    t1 = time.time()
+    for i in range(100):
+        state = g.initial
+        actions = list(g.actions(state, True))
+        while actions:
+            _, state = expectimax(g, state)
+            # print('p', state)
+            state = g.adv_move(state)
+            # print('a', state)
+            actions = list(g.actions(state, True))
 
-
-    '''
-
-    g = _2048()
-    test = np.array([[1, 2, 3, 0],
-                     [5, 6, 7, 8],
-                     [9, 10, 0, 12],
-                     [13, 14, 15, 16]])
-    print(g.adv_move(test))
-    print(g.adv_move2(test))
+    print(time.time() - t1)

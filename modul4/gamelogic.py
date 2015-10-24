@@ -126,13 +126,13 @@ class _2048:
 
         return not actions
 
-    def adv_move(self, state):
+    def adv_move2(self, state):
         empty_spots = []
         for i in range(4):
             for j in range(4):
                 if state[i, j] == 0:
                     empty_spots.append((i, j))
-        print(empty_spots)
+
         if empty_spots:
             x, y = random.choice(empty_spots)
             n = self.distributed_tile()
@@ -143,6 +143,10 @@ class _2048:
     def distributed_tile(self):
         return 1 if random.randint(0, 100) < 90 else 2
 
-    def adv_move2(self, state):
-        empty_spots = np.where(state == 0)[0]
-        return empty_spots
+    def adv_move(self, state):
+        empty_spots = np.where(state == 0)
+        if empty_spots[0].size:
+            r = random.choice(range(len(empty_spots[0])))
+            x, y = empty_spots[0][r], empty_spots[1][r]
+            state[x, y] = self.distributed_tile()
+        return state
