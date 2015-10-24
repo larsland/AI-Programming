@@ -1,15 +1,5 @@
-import copy
-import pickle
 import random
-from modul4.adversial import *
-from algorithms.utils import Bunch
 import numpy as np
-
-
-
-
-
-
 
 improved_gradient_table = np.array([[50, 8, 5, 3],
                                     [8, 5, 3, 2],
@@ -29,6 +19,7 @@ snake_table = np.array([[32768, 16384, 8192, 4096],
 snake_tables = [
     snake_table
 ]
+
 
 def snake_heuristic(board, snake_tables=snake_tables):
     # Flatten board as numpy 1D array
@@ -134,7 +125,6 @@ class _2048:
                 if line[i] == line[i + 1] and not ((i, j) in merged or (i + 1, j) in merged):
                     moved = True
                     line[i] += 1
-                    self.score += 1 * (2 ** line[i])
                     merged.append((i, j))
                     line.pop(i + 1)
                 else:

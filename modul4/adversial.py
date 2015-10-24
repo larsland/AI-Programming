@@ -82,7 +82,6 @@ def get_dynamic_depth(state, prev):
 
 
 def expectimax(game, state, depth=3, player=True):
-
     if game.terminal_test(state, player) or depth == 0:
         a = game.utility(state)
     else:

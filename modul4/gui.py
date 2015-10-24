@@ -28,7 +28,7 @@ BACKGROUND_COLOR_DICT = {
 
 
 class GameWindow(Frame):
-    def __init__(self, lol=None, master=None):
+    def __init__(self, master=None):
         Frame.__init__(self, master)
         self.font = font.Font(master, family="Verdana", size=40, weight="bold")
         self.score_font = font.Font(master, family="Verdana", size=20)
@@ -38,13 +38,10 @@ class GameWindow(Frame):
         state = np.zeros((4, 4), dtype=np.int)
         #self.master.bind("<KeyPress>", self.on_key_press)
         self.grid_cells = []
-        self.score = 0
+
         self.score_board = None
         self.init_grid()
         #self.update_view()
-
-        if lol:
-            self.game_over_screen()
 
     def init_grid(self):
         background = Frame(self, bg=BACKGROUND_COLOR_GAME, width=SIZE, height=SIZE)
@@ -74,7 +71,7 @@ class GameWindow(Frame):
         #print('state', state)
 
 
-    def update_view(self, state):
+    def update_view(self, state, score):
         for i in range(GRID_LEN):
             for j in range(GRID_LEN):
                 digit = state[i, j]
@@ -91,16 +88,18 @@ class GameWindow(Frame):
                         bg=BACKGROUND_COLOR_DICT.get(digit, BACKGROUND_COLOR_CELL_FALLBACK),
                         fg=foreground_color)
 
-        self.score_board.configure(text=self.score)
+        self.score_board.configure(text=score)
         self.update_idletasks()
 
     def game_over_screen(self):
-        screen = Frame(self, width=SIZE, height=SIZE)
-        screen.grid(row=1, column=0, columnspan=2, sticky=N+W+E+S)
-        message = Label(screen, bg="gray", font=self.font, text="Game Over!")
-        message.grid(row=1, column=0, sticky=E+S+W+N, padx=170, pady=150)
-        btn_exit = Button(screen, text="OK", bg="#E6E6E6", font=self.font, padx=50, command=self.quit)
-        btn_exit.grid(row=2, column=0)
+        print("Game Over!")
+        screen = Frame(self,  width=50, height=20)
+        screen.grid(row=1, column=0, columnspan=2)
+        message = Label(screen, font=self.font, text="Game Over!")
+        message.grid(row=1, column=0, sticky=E+S+W+N)
+
+        self.update_idletasks()
+
 
 
     '''
