@@ -9,25 +9,42 @@ import numpy as np
 
 
 
-'''
+
+
 improved_gradient_table = np.array([[50, 8, 5, 3],
                                     [8, 5, 3, 2],
                                     [5, 3, 2, 1],
                                     [3, 2, 1, 0]])
-'''
-
-
-improved_gradient_table = np.array([[32768, 16384, 8192, 4096],
-                                    [256, 512, 1024, 2048],
-                                    [128, 64, 32, 16],
-                                    [1, 2, 4, 8]])
-
-
-
 
 improved_gradient_tables = [
     improved_gradient_table
 ]
+
+
+snake_table = np.array([[32768, 16384, 8192, 4096],
+                        [256, 512, 1024, 2048],
+                        [128, 64, 32, 16],
+                        [1, 2, 4, 8]])
+
+snake_tables = [
+    snake_table
+]
+
+
+def snake_heuristic(board, snake_tables=snake_tables):
+    # Flatten board as numpy 1D array
+    board = np.array(board).reshape(-1)
+    # Change all values from binary to decimal
+    for i, v in enumerate(board):
+        board[i] = 1 << v
+    # Inflate board to 4x4 matrix
+    board.resize((4, 4))
+
+    h = 0
+    for table in snake_tables:
+        dot_product = board * table
+        h += sum(sum(dot_product))
+    return h
 
 
 def gradient_heuristic(board, gradient_tables=improved_gradient_tables):
@@ -46,6 +63,7 @@ def gradient_heuristic(board, gradient_tables=improved_gradient_tables):
         h += sum(sum(dot_product))
     return h
 
+
 def empty_heuristic(board):
     num_empty = 0
 
@@ -55,12 +73,6 @@ def empty_heuristic(board):
                 num_empty += 1
 
     return num_empty
-
-
-
-
-
-
 
 
 class _2048:
@@ -97,7 +109,8 @@ class _2048:
         return moves
 
     def utility(self, state, player=None):
-        return gradient_heuristic(state) #+ empty_heuristic(state)
+        return snake_heuristic(state) #+ gradient_heuristic(state) + empty_heuristic(state)
+
 
     def my_move(self, state, move):
         board = state
@@ -105,7 +118,7 @@ class _2048:
         moved = False
 
         # Rotate board and convert to list
-        lines = np.rot90(board, -(move+1)).tolist()
+        lines = np.rot90(board, -(move + 1)).tolist()
 
         j = 0
         for line in lines:
@@ -164,6 +177,7 @@ class _2048:
 
     def distributed_tile(self):
         return 1 if random.randint(0, 100) < 90 else 2
+
 
 if __name__ == '__main__':
     print("wat")
