@@ -30,7 +30,6 @@ snake_tables = [
     snake_table
 ]
 
-
 def snake_heuristic(board, snake_tables=snake_tables):
     # Flatten board as numpy 1D array
     board = np.array(board).reshape(-1)

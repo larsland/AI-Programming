@@ -44,7 +44,7 @@ class GameWindow(Frame):
         #self.update_view()
 
         if lol:
-            self.game_over_screen(state)
+            self.game_over_screen()
 
     def init_grid(self):
         background = Frame(self, bg=BACKGROUND_COLOR_GAME, width=SIZE, height=SIZE)
