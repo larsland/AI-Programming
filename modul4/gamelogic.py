@@ -5,18 +5,16 @@ from modul4.adversial import *
 from algorithms.utils import Bunch
 import numpy as np
 
-'''
-improved_gradient_table = np.array([[0.135759, 0.121925, 0.102812, 0.099937],
-                                    [0.0997992, 0.0888405, 0.076711, 0.0724143],
-                                    [0.060654, 0.0562579, 0.037116, 0.0151889],
-                                    [0.0125498, 0.00992495, 0.00575871, 0.00335193]])
-'''
 
 
-improved_gradient_table = np.array([[1000, 10, 5, 1],
-                                    [10, 6, 3, 2],
-                                    [5, 3, 2, 1],
-                                    [1, 2, 1, -3]])
+
+
+
+improved_gradient_table = np.array([[1, 1, 1, 1],
+                                    [1, 1, 1, 1],
+                                    [1, 1, 1, 1],
+                                    [1, 1, 1, 100000]])
+
 
 '''
 improved_gradient_table = np.array([[32768, 16384, 8192, 4096],
@@ -45,8 +43,23 @@ def gradient_heuristic(board, gradient_tables=improved_gradient_tables):
     for table in gradient_tables:
         dot_product = np.dot(board, table)
         h += sum(sum(dot_product))
-
     return h
+
+def empty_heuristic(board):
+    num_empty = 0
+
+    for line in board:
+        for cell in line:
+            if cell == 0:
+                num_empty += 1
+
+    return num_empty
+
+
+
+
+
+
 
 
 class _2048:
@@ -83,7 +96,7 @@ class _2048:
         return moves
 
     def utility(self, state, player=None):
-        return gradient_heuristic(state)
+        return gradient_heuristic(state) # empty_heuristic(state)
 
     def my_move(self, state, move):
         board = state
