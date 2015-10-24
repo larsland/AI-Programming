@@ -1,5 +1,5 @@
-#from tkinter import Tk
-#from modul4.gui import GameWindow
+from tkinter import Tk
+from modul4.gui import GameWindow
 from modul4.gamelogic import _2048
 from modul4.adversial import expectimax
 import numpy as np
@@ -7,6 +7,8 @@ import numpy as np
 import sys
 if __name__ == '__main__':
 
+    root = Tk()
+    app = GameWindow(master=root)
     sys.setrecursionlimit(10000)
 
     g = _2048()
@@ -43,6 +45,8 @@ if __name__ == '__main__':
         state = g.adv_move(state)
         print('a', state)
         actions = list(g.actions(state, True))
+        app.update_view(state)
+
 
     """
     root = Tk()
