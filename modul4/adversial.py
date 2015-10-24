@@ -82,7 +82,6 @@ def get_dynamic_depth(state, prev):
 
 
 def expectimax(game, state, depth=2, player=True):
-
     if game.terminal_test(state, player) or depth == 0:
         a = game.utility(state)
     else:
@@ -104,7 +103,7 @@ def expectimax(game, state, depth=2, player=True):
                     if state[i, j] == 0:
 
                         zeros += 1
-                        copy_state = copy.copy(state)
+                        copy_state = np.copy(state)
                         copy_state[i, j] = 1
                         temp_a, _ = expectimax(game, copy_state, depth=depth-1, player=not player)
                         a += (0.9 * temp_a) / zeros
