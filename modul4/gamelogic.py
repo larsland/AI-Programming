@@ -6,17 +6,11 @@ from algorithms.utils import Bunch
 import numpy as np
 
 
-improved_gradient_table = np.array([[0.135759, 0.121925, 0.102812, 0.099937],
-                                    [0.0997992, 0.0888405, 0.076711, 0.0724143],
-                                    [0.060654, 0.0562579, 0.037116, 0.0151889],
-                                    [0.0125498, 0.00992495, 0.00575871, 0.00335193]])
-
-'''
-improved_gradient_table = np.array([[50, 10, 5, 1],
+improved_gradient_table_backup = np.array([[50, 10, 5, 1],
                                     [10, 6, 3, 2],
                                     [5, 3, 2, 1],
                                     [1, 2, 1, -3]])
-'''
+
 
 improved_gradient_tables = [
     improved_gradient_table,
