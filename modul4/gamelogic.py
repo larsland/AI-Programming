@@ -5,24 +5,30 @@ from modul4.adversial import *
 from algorithms.utils import Bunch
 import numpy as np
 
-
+'''
 improved_gradient_table = np.array([[0.135759, 0.121925, 0.102812, 0.099937],
                                     [0.0997992, 0.0888405, 0.076711, 0.0724143],
                                     [0.060654, 0.0562579, 0.037116, 0.0151889],
                                     [0.0125498, 0.00992495, 0.00575871, 0.00335193]])
-
 '''
-improved_gradient_table = np.array([[50, 10, 5, 1],
+
+
+improved_gradient_table = np.array([[1000, 10, 5, 1],
                                     [10, 6, 3, 2],
                                     [5, 3, 2, 1],
                                     [1, 2, 1, -3]])
+
+'''
+improved_gradient_table = np.array([[32768, 16384, 8192, 4096],
+                                    [256, 512, 1024, 2048],
+                                    [128, 64, 32, 16],
+                                    [1, 2, 4, 8]])
+
 '''
 
+
 improved_gradient_tables = [
-    improved_gradient_table,
-    np.rot90(improved_gradient_table, 1),
-    np.rot90(improved_gradient_table, 2),
-    np.rot90(improved_gradient_table, 3)
+    improved_gradient_table
 ]
 
 

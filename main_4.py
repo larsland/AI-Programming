@@ -1,4 +1,5 @@
 from tkinter import Tk
+import time
 from modul4.gui import GameWindow
 from modul4.gamelogic import _2048
 from modul4.adversial import expectimax
@@ -41,11 +42,16 @@ if __name__ == '__main__':
     actions = list(g.actions(state, True))
     while actions:
         _, state = expectimax(g, state)
-        print('p', state)
+        # print('p', state)
         state = g.adv_move(state)
-        print('a', state)
+        # print('a', state)
         actions = list(g.actions(state, True))
         app.update_view(state)
+
+
+    app.destroy()
+    app2 = GameWindow('lol', master=root)
+    app2.mainloop()
 
 
     """

@@ -28,7 +28,7 @@ BACKGROUND_COLOR_DICT = {
 
 
 class GameWindow(Frame):
-    def __init__(self, master=None):
+    def __init__(self, lol=None, master=None):
         Frame.__init__(self, master)
         self.font = font.Font(master, family="Verdana", size=40, weight="bold")
         self.score_font = font.Font(master, family="Verdana", size=20)
@@ -42,6 +42,9 @@ class GameWindow(Frame):
         self.score_board = None
         self.init_grid()
         #self.update_view()
+
+        if lol:
+            self.game_over_screen()
 
     def init_grid(self):
         background = Frame(self, bg=BACKGROUND_COLOR_GAME, width=SIZE, height=SIZE)
