@@ -1,8 +1,6 @@
-import random
 from tkinter import *
 from tkinter import font
 from modul4.gamelogic import _2048
-from algorithms.utils import Bunch
 import numpy as np
 
 GRID_LEN = 4
@@ -35,7 +33,6 @@ class GameWindow(Frame):
         self.master.title('2048')
         self.grid()
         self.game = _2048()
-        state = np.zeros((4, 4), dtype=np.int)
         #self.master.bind("<KeyPress>", self.on_key_press)
         self.grid_cells = []
 
