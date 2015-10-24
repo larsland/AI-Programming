@@ -1,4 +1,5 @@
 from abc import abstractclassmethod
+import numpy as np
 
 
 class Game:
@@ -60,7 +61,7 @@ function expectiminimax(node, depth)
 '''
 
 
-def get_dynamic_depth(state):
+def get_dynamic_depth(state, prev):
     # zeros = sum([1 for x in [line for line in state] if x == 0])
     zeros = 0
     for line in state:
@@ -69,40 +70,52 @@ def get_dynamic_depth(state):
                 zeros += 1
 
     if zeros > 10:
-        depth = 2
+        depth = 3 - prev
     elif zeros > 7:
-        depth = 3
+        depth = 2 - prev
     elif zeros > 5:
-        depth = 4
+        depth = 2 - prev
     else:
-        depth = 5
+        depth = 1 - prev
 
-    print("Dynamic depth size: ", depth)
-    return depth
+    #print("Dynamic depth size: ", depth)
+    return depth if depth > -1 else 0
 
 
-def expectimax(game, state, depth_f=get_dynamic_depth, player=True):
-    depth = depth_f(state)
-    print("DEPTH", depth)
+def expectimax(game, state, depth_f=get_dynamic_depth, prev_d=0, player=True):
+    depth = depth_f(state, prev_d)
+    #print("DEPTH", depth)
+    #print("depth: %s, player: %s \n %s \n %s" % (depth, player, state, '-'*100))
     if game.terminal_test(state, player) or depth == 0:
         a = game.utility(state)
 
-        print('Terminal state:\n', (a, state))
+        #print('Terminal state:\n', (a, state))
     else:
         if player:
-            print("Player " + ("-"*50))
+            #print("Player " + ("-"*50))
             a = -float('Inf')
-            for action, state in game.actions(state, player):
-                a_, state_ = expectimax(game, state, player=not player)
+            actions = list(game.actions(state, player))
+
+            for action, new_state in actions:
+                a_, state_ = expectimax(game, new_state, prev_d=prev_d+1, player=not player)
                 if a_ > a:
                     a = a_
                     state = state_
-                # a, state =
-                # max(a, expectimax(game, state, depth=depth-1, player=not player), key=lambda x: print(x) and x[0])
-            print("Best player move: \n", (a, state))
+            return a, state
         else:
-            print("Adversary " + ("-"*50))
-            a = float('Inf')
+            a = 0.0
+            zeros = 0.0
+            for i in range(4):
+                for j in range(4):
+                    if state[i, j] == 0:
+                        for n, p in zip([1, 2], [0.9, 0.1]):
+                            zeros += 1
+                            copy_state = np.copy(state)
+                            copy_state[i, j] = 1
+                            temp_a, _ = expectimax(game, copy_state, prev_d=prev_d+1, player=not player)
+                            a += (p * temp_a) / zeros
+
+            '''
             for action, state in game.actions(state, player):
                 a_, state_ = expectimax(game, state, player=not player)
                 if a_ < a:
@@ -110,7 +123,9 @@ def expectimax(game, state, depth_f=get_dynamic_depth, player=True):
                     state = state_
                 # a, state =
                 # min(a, expectimax(game, state, depth=depth-1, player=not player), key=lambda x: print(x) and x[0])
-            print("Best advesary move: \n", (a, state))
+            '''
+
+            return a, state
     return a, state
 """
 Maybe implement minimax with if else on maximizingplayer instead of double innard defs.
