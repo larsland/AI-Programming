@@ -11,8 +11,8 @@ improved_gradient_tables = [
 ]
 
 
-snake_table = np.array([[32768, 16384, 8192, 4096],
-                        [256, 512, 1024, 2048],
+snake_table = np.array([[32803, 16401, 8200, 4099],
+                        [256, 512, 1024, 2049],
                         [128, 64, 32, 16],
                         [1, 2, 4, 8]])
 
@@ -99,7 +99,7 @@ class _2048:
         return moves
 
     def utility(self, state, player=None):
-        return snake_heuristic(state) #+ gradient_heuristic(state) + empty_heuristic(state)
+        return 0.9* snake_heuristic(state) + 0.1*gradient_heuristic(state)
 
 
     def my_move(self, state, move):

@@ -30,5 +30,7 @@ if __name__ == '__main__':
         state = g.adv_move(state)
         actions = list(g.actions(state, True))
 
+    app.update_view(state, score)
+
     app.game_over_screen()
     time.sleep(3)
