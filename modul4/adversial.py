@@ -1,7 +1,7 @@
-from abc import abstractclassmethod
+#from abc import abstractclassmethod
 import numpy as np
 
-
+'''
 class Game:
     @abstractclassmethod
     def legal_moves(self, state):
@@ -34,7 +34,7 @@ class Game:
 
     def __repr__(self):
         return '<%s>' % self.__class__.__name__
-
+'''
 
 inf = float('Inf')
 
@@ -69,35 +69,29 @@ def get_dynamic_depth(state, prev):
             if x == 0:
                 zeros += 1
 
-    if zeros > 10:
-        depth = 3 - prev
-    elif zeros > 7:
+    if zeros > 8:
         depth = 2 - prev
     elif zeros > 5:
         depth = 2 - prev
+    elif zeros > 3:
+        depth = 3 - prev
     else:
-        depth = 1 - prev
+        depth = 4 - prev
 
-    #print("Dynamic depth size: ", depth)
-    return depth if depth > -1 else 0
+    return 2 if prev < 2 else 0
 
 
-def expectimax(game, state, depth_f=get_dynamic_depth, prev_d=0, player=True):
-    depth = depth_f(state, prev_d)
-    #print("DEPTH", depth)
-    #print("depth: %s, player: %s \n %s \n %s" % (depth, player, state, '-'*100))
+def expectimax(game, state, depth=4, player=True):
+
     if game.terminal_test(state, player) or depth == 0:
         a = game.utility(state)
-
-        #print('Terminal state:\n', (a, state))
     else:
         if player:
-            #print("Player " + ("-"*50))
             a = -float('Inf')
-            actions = list(game.actions(state, player))
 
+            actions = list(game.actions(state, player))
             for action, new_state in actions:
-                a_, state_ = expectimax(game, new_state, prev_d=prev_d+1, player=not player)
+                a_, state_ = expectimax(game, new_state, depth=depth-1, player=not player)
                 if a_ > a:
                     a = a_
                     state = state_
@@ -112,18 +106,8 @@ def expectimax(game, state, depth_f=get_dynamic_depth, prev_d=0, player=True):
                             zeros += 1
                             copy_state = np.copy(state)
                             copy_state[i, j] = 1
-                            temp_a, _ = expectimax(game, copy_state, prev_d=prev_d+1, player=not player)
+                            temp_a, _ = expectimax(game, copy_state, depth=depth-1, player=not player)
                             a += (p * temp_a) / zeros
-
-            '''
-            for action, state in game.actions(state, player):
-                a_, state_ = expectimax(game, state, player=not player)
-                if a_ < a:
-                    a = a_
-                    state = state_
-                # a, state =
-                # min(a, expectimax(game, state, depth=depth-1, player=not player), key=lambda x: print(x) and x[0])
-            '''
 
             return a, state
     return a, state
