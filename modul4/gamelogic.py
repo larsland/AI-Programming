@@ -9,20 +9,20 @@ import numpy as np
 
 
 
-
-improved_gradient_table = np.array([[1, 1, 1, 1],
-                                    [1, 1, 1, 1],
-                                    [1, 1, 1, 1],
-                                    [1, 1, 1, 100000]])
-
-
 '''
+improved_gradient_table = np.array([[50, 8, 5, 3],
+                                    [8, 5, 3, 2],
+                                    [5, 3, 2, 1],
+                                    [3, 2, 1, 0]])
+'''
+
+
 improved_gradient_table = np.array([[32768, 16384, 8192, 4096],
                                     [256, 512, 1024, 2048],
                                     [128, 64, 32, 16],
                                     [1, 2, 4, 8]])
 
-'''
+
 
 
 improved_gradient_tables = [
@@ -41,7 +41,8 @@ def gradient_heuristic(board, gradient_tables=improved_gradient_tables):
 
     h = 0
     for table in gradient_tables:
-        dot_product = np.dot(board, table)
+        dot_product = board * table
+
         h += sum(sum(dot_product))
     return h
 
@@ -96,7 +97,7 @@ class _2048:
         return moves
 
     def utility(self, state, player=None):
-        return gradient_heuristic(state) # empty_heuristic(state)
+        return gradient_heuristic(state) #+ empty_heuristic(state)
 
     def my_move(self, state, move):
         board = state

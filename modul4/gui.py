@@ -44,7 +44,7 @@ class GameWindow(Frame):
         #self.update_view()
 
         if lol:
-            self.game_over_screen()
+            self.game_over_screen(state)
 
     def init_grid(self):
         background = Frame(self, bg=BACKGROUND_COLOR_GAME, width=SIZE, height=SIZE)
@@ -95,12 +95,14 @@ class GameWindow(Frame):
         self.update_idletasks()
 
     def game_over_screen(self):
-        screen = Frame(self, bg="gray", width=SIZE, height=SIZE)
+        screen = Frame(self, width=SIZE, height=SIZE)
         screen.grid(row=1, column=0, columnspan=2, sticky=N+W+E+S)
         message = Label(screen, bg="gray", font=self.font, text="Game Over!")
         message.grid(row=1, column=0, sticky=E+S+W+N, padx=170, pady=150)
         btn_exit = Button(screen, text="OK", bg="#E6E6E6", font=self.font, padx=50, command=self.quit)
         btn_exit.grid(row=2, column=0)
+
+
     '''
     def on_key_press(self, event):
         state = state

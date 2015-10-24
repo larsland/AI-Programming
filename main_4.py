@@ -41,16 +41,15 @@ if __name__ == '__main__':
 
     actions = list(g.actions(state, True))
     while actions:
+        app.update_view(state)
         _, state = expectimax(g, state)
         # print('p', state)
         state = g.adv_move(state)
         # print('a', state)
         actions = list(g.actions(state, True))
-        app.update_view(state)
 
 
-    app.destroy()
-    app2 = GameWindow('lol', master=root)
+    app2 = GameWindow(state, master=root)
     app2.mainloop()
 
 
