@@ -3,11 +3,10 @@
 from modul4.gamelogic import _2048
 from modul4.adversial import expectimax
 import numpy as np
+import time
 
 import sys
 if __name__ == '__main__':
-
-    sys.setrecursionlimit(10000)
 
     g = _2048()
     g.initial = g.adv_move(g.initial)
@@ -36,13 +35,20 @@ if __name__ == '__main__':
 
 
 
-    actions = list(g.actions(state, True))
-    while actions:
-        _, state = expectimax(g, state)
-        print('p', state)
-        state = g.adv_move(state)
-        print('a', state)
+    times = []
+    for i in range(100):
+        state = g.initial
         actions = list(g.actions(state, True))
+        while actions:
+            t1 = time.time()
+            _, state = expectimax(g, state)
+            # print('p', state)
+            state = g.adv_move(state)
+            times.append(time.time() - t1)
+            # print('a', state)
+            actions = list(g.actions(state, True))
+
+    print(sum(times) / len(times))
 
     """
     root = Tk()

@@ -5,24 +5,21 @@ from modul4.adversial import *
 from algorithms.utils import Bunch
 import numpy as np
 
-
+'''
 improved_gradient_table = np.array([[0.135759, 0.121925, 0.102812, 0.099937],
                                     [0.0997992, 0.0888405, 0.076711, 0.0724143],
                                     [0.060654, 0.0562579, 0.037116, 0.0151889],
                                     [0.0125498, 0.00992495, 0.00575871, 0.00335193]])
-
 '''
+
 improved_gradient_table = np.array([[50, 10, 5, 1],
                                     [10, 6, 3, 2],
                                     [5, 3, 2, 1],
                                     [1, 2, 1, -3]])
-'''
+
 
 improved_gradient_tables = [
-    improved_gradient_table,
-    np.rot90(improved_gradient_table, 1),
-    np.rot90(improved_gradient_table, 2),
-    np.rot90(improved_gradient_table, 3)
+    improved_gradient_table
 ]
 
 
@@ -52,7 +49,7 @@ class _2048:
         moves = []
         if player:
             for i in range(4):
-                current_state = np.copy(state)
+                current_state = copy.copy(state)
                 board = self.my_move(current_state, i)
                 if not np.array_equal(state, board):
                     current_state = board
@@ -64,15 +61,14 @@ class _2048:
                 for x in range(4):
                     if state[x, y] == 0:
                         o += 1
-                        current_state_1 = np.copy(state)
+                        current_state_1 = copy.copy(state)
                         current_state_1[x, y] = 1
-
-                        current_state_2 = np.copy(current_state_1)
-                        current_state_2[x, y] = 2
 
                         moves.append((o, current_state_1))
                         o += 1
-                        moves.append((o, current_state_2))
+
+                        current_state_1[x, y] = 2
+                        moves.append((o, current_state_1))
 
         return moves
 
