@@ -39,30 +39,14 @@ class _2048:
         self.initial = np.zeros((4, 4), dtype=np.int)
         self.score = 0
 
-    def actions(self, state, player):
+    def actions(self, state):
         moves = []
-        if player:
-            for i in range(4):
-                current_state = np.copy(state)
-                board = self.my_move(current_state, i)
-                if not np.array_equal(state, board):
-                    current_state = board
-                    moves.append((i, current_state))
-
-        else:
-            o = 0
-            for y in range(4):
-                for x in range(4):
-                    if state[x, y] == 0:
-                        o += 1
-                        current_state_1 = np.copy(state)
-                        current_state_1[x, y] = 1
-
-                        moves.append((o, current_state_1))
-                        o += 1
-
-                        current_state_1[x, y] = 2
-                        moves.append((o, current_state_1))
+        for i in range(4):
+            current_state = np.copy(state)
+            board = self.my_move(current_state, i)
+            if not np.array_equal(state, board):
+                current_state = board
+                moves.append((i, current_state))
 
         return moves
 
@@ -113,8 +97,8 @@ class _2048:
         else:
             return self.my_move(state, move)
 
-    def terminal_test(self, state, player):
-        actions = self.actions(state, player)
+    def terminal_test(self, state):
+        actions = self.actions(state)
 
         return not actions
 

@@ -62,35 +62,31 @@ function expectiminimax(node, depth)
     return a
 '''
 
-def get_dynamic_depth(state, prev):
-    # zeros = sum([1 for x in [line for line in state] if x == 0])
-    zeros = 0
-    for line in state:
-        for x in line:
-            if x == 0:
-                zeros += 1
+depth_by_zeros_map = {
+    0: 0,
+    1: 5, 2: 5, 3: 4, 4: 4,
+    5: 4, 6: 3, 7: 3, 8: 3,
+    9: 3, 10: 3, 11: 2, 12: 2,
+    13: 2, 14: 1, 15: 1, 16: 1
+}
 
-    if zeros > 8:
-        depth = 2 - prev
-    elif zeros > 5:
-        depth = 2 - prev
-    elif zeros > 3:
-        depth = 3 - prev
-    else:
-        depth = 4 - prev
 
-    return 2 if prev < 2 else 0
+def get_dynamic_depth(state, prev, depth_by_zeros=depth_by_zeros_map):
+    zeros = state[state == 0].size
+    depth = depth_by_zeros[zeros] - prev
+    return depth if depth > 0 else 0
 
 
 def expectimax_process(q, game, state, depth, player):
     q.put(expectimax(game, state, depth, player))
 
 
-def expectimax_top(game, state, depth=2):
+def expectimax_top(game, state, depth_f=get_dynamic_depth):
+    depth = depth_f(state, 0)
     q = mp.Queue()
 
     processes = []
-    for i, action in game.actions(state, True):
+    for i, action in game.actions(state):
         processes.append(mp.Process(target=expectimax_process, args=(q, game, action, depth, True)))
 
     for p in processes:
@@ -111,35 +107,33 @@ def expectimax_top(game, state, depth=2):
     return a, state
 
 
-def expectimax(game, state, depth=3, player=True):
-    if game.terminal_test(state, player) or depth == 0:
+def expectimax(game, state, depth, player=True):
+    if game.terminal_test(state) or depth == 0:
         a = game.utility(state)
     else:
         if player:
             a = -float('Inf')
 
-            actions = list(game.actions(state, player))
+            actions = game.actions(state)
             for action, new_state in actions:
-                a_, state_ = expectimax(game, new_state, depth=depth-1, player=not player)
+                a_, state_ = expectimax(game, new_state, depth-1, player=False)
                 if a_ > a:
                     a = a_
                     state = state_
             return a, state
         else:
             a = 0.0
-            zeros = 0.0
-            for (i, j), _ in np.ndenumerate(state):
-
-                if state[i, j] == 0:
-
+            zeros = 0
+            for (i, j), cell in np.ndenumerate(state):
+                if cell == 0:
                     zeros += 1
                     copy_state = np.copy(state)
                     copy_state[i, j] = 1
-                    temp_a, _ = expectimax(game, copy_state, depth=depth-1, player=not player)
+                    temp_a, _ = expectimax(game, copy_state, depth-1, player=True)
                     a += (0.9 * temp_a) / zeros
 
                     copy_state[i, j] = 2
-                    temp_a, _ = expectimax(game, copy_state, depth=depth-1, player=not player)
+                    temp_a, _ = expectimax(game, copy_state, depth-1, player=True)
                     a += (0.1 * temp_a) / zeros
 
             return a, state
