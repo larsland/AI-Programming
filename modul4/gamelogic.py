@@ -1,26 +1,18 @@
 import copy
 import pickle
 import random
-from modul4.adversial import *
-from algorithms.utils import Bunch
 import numpy as np
 
-'''
-improved_gradient_table = np.array([[0.135759, 0.121925, 0.102812, 0.099937],
-                                    [0.0997992, 0.0888405, 0.076711, 0.0724143],
-                                    [0.060654, 0.0562579, 0.037116, 0.0151889],
-                                    [0.0125498, 0.00992495, 0.00575871, 0.00335193]])
-'''
 
 improved_gradient_table = np.array([[64, 32, 16, 8],
                                     [32, 16, 8, 4],
                                     [16, 8, 4, 2],
                                     [8, 4, 2, 1]])
 
-snake_table = np.array([[15, 14, 13, 12],
-                        [8, 9, 10, 11],
-                        [7, 6, 5, 4],
-                        [0, 1, 2, 3]])
+snake_table = np.array([[64503, 32251, 16125, 8062],
+                        [4031, 2015, 1007, 503],
+                        [251, 125, 62, 31],
+                        [1, 3, 7, 15]])
 
 
 def snake_heuristic(board, snake_table=snake_table):
@@ -75,7 +67,7 @@ class _2048:
         return moves
 
     def utility(self, state, player=None):
-        return 0.8*snake_heuristic(state) + 0.2*gradient_heuristic(state)  # + empty_heuristic(state)
+        return snake_heuristic(state)  # + 0.1*gradient_heuristic(state)  # + empty_heuristic(state)
 
     def my_move(self, state, move):
         board = state

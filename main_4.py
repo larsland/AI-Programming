@@ -1,11 +1,18 @@
-from tkinter import Tk
-from modul4.gui import GameWindow
+# from tkinter import Tk
+# from modul4.gui import GameWindow
 from modul4.gamelogic import _2048
-from modul4.adversial import expectimax
-import numpy as np
+from modul4.adversial import expectimax_top
 import time
+import numpy as np
 
-import sys
+
+def pretty_print_4x4_np(state):
+    board = np.copy(state)
+    for (i, j), _ in np.ndenumerate(state):
+        board[i, j] = 1 << state[i, j] if state[i, j] != 0 else 0
+    print(board)
+
+
 if __name__ == '__main__':
 
 
@@ -31,6 +38,7 @@ if __name__ == '__main__':
     print('p: \n', state)
 
     '''
+    '''
 
     times = []
     t1 = time.time()
@@ -43,19 +51,19 @@ if __name__ == '__main__':
             state = g.adv_move(state)
             # print('a', state)
             actions = list(g.actions(state, True))
-
     print(time.time() - t1)
+    '''
 
-    g.adv_move = g.adv_move2
     t1 = time.time()
-    for i in range(100):
+    for i in range(1):
         state = g.initial
         actions = list(g.actions(state, True))
         while actions:
-            _, state = expectimax(g, state)
-            # print('p', state)
+            _, state = expectimax_top(g, state, depth=4)
+            pretty_print_4x4_np(state)
             state = g.adv_move(state)
             # print('a', state)
             actions = list(g.actions(state, True))
+        print(state)
 
     print(time.time() - t1)

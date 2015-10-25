@@ -1,5 +1,7 @@
 #from abc import abstractclassmethod
 import numpy as np
+import multiprocessing as mp
+import copy as cp
 
 '''
 class Game:
@@ -59,7 +61,6 @@ function expectiminimax(node, depth)
             a := a + (Probability[child] * expectiminimax(child, depth-1))
     return a
 '''
-import copy
 
 def get_dynamic_depth(state, prev):
     # zeros = sum([1 for x in [line for line in state] if x == 0])
@@ -81,7 +82,36 @@ def get_dynamic_depth(state, prev):
     return 2 if prev < 2 else 0
 
 
-def expectimax(game, state, depth=2, player=True):
+def expectimax_process(q, game, state, depth, player):
+    q.put(expectimax(game, state, depth, player))
+
+
+def expectimax_top(game, state, depth=2):
+    q = mp.Queue()
+
+    processes = []
+    for i, action in game.actions(state, True):
+        processes.append(mp.Process(target=expectimax_process, args=(q, game, action, depth, True)))
+
+    for p in processes:
+        p.start()
+
+    for p in processes:
+        p.join()
+
+    a = -float('Inf')
+
+    state = []
+    while not q.empty():
+        a_, state_ = q.get()
+        if a_ > a:
+            a = a_
+            state = state_
+
+    return a, state
+
+
+def expectimax(game, state, depth=3, player=True):
     if game.terminal_test(state, player) or depth == 0:
         a = game.utility(state)
     else:
@@ -98,22 +128,26 @@ def expectimax(game, state, depth=2, player=True):
         else:
             a = 0.0
             zeros = 0.0
-            for i in range(4):
-                for j in range(4):
-                    if state[i, j] == 0:
+            for (i, j), _ in np.ndenumerate(state):
 
-                        zeros += 1
-                        copy_state = np.copy(state)
-                        copy_state[i, j] = 1
-                        temp_a, _ = expectimax(game, copy_state, depth=depth-1, player=not player)
-                        a += (0.9 * temp_a) / zeros
+                if state[i, j] == 0:
 
-                        copy_state[i, j] = 2
-                        temp_a, _ = expectimax(game, copy_state, depth=depth-1, player=not player)
-                        a += (0.1 * temp_a) / zeros
+                    zeros += 1
+                    copy_state = np.copy(state)
+                    copy_state[i, j] = 1
+                    temp_a, _ = expectimax(game, copy_state, depth=depth-1, player=not player)
+                    a += (0.9 * temp_a) / zeros
+
+                    copy_state[i, j] = 2
+                    temp_a, _ = expectimax(game, copy_state, depth=depth-1, player=not player)
+                    a += (0.1 * temp_a) / zeros
 
             return a, state
     return a, state
+
+
+
+
 """
 Maybe implement minimax with if else on maximizingplayer instead of double innard defs.
 """
