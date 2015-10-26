@@ -1,9 +1,6 @@
-import random
 from tkinter import *
 from tkinter import font
 from modul4.gamelogic import _2048
-from algorithms.utils import Bunch
-import numpy as np
 
 GRID_LEN = 4
 GRID_PADDING = 10
@@ -28,23 +25,18 @@ BACKGROUND_COLOR_DICT = {
 
 
 class GameWindow(Frame):
-    def __init__(self, lol=None, master=None):
+    def __init__(self, master=None):
         Frame.__init__(self, master)
         self.font = font.Font(master, family="Verdana", size=40, weight="bold")
         self.score_font = font.Font(master, family="Verdana", size=20)
         self.master.title('2048')
         self.grid()
         self.game = _2048()
-        state = np.zeros((4, 4), dtype=np.int)
-        #self.master.bind("<KeyPress>", self.on_key_press)
         self.grid_cells = []
         self.score = 0
         self.score_board = None
+        self.timer = None
         self.init_grid()
-        #self.update_view()
-
-        if lol:
-            self.game_over_screen()
 
     def init_grid(self):
         background = Frame(self, bg=BACKGROUND_COLOR_GAME, width=SIZE, height=SIZE)
@@ -52,7 +44,9 @@ class GameWindow(Frame):
         score_board_label = Label(self, text="Score:", font=self.score_font)
         score_board_label.grid(row=0, column=0, sticky=E)
         self.score_board.grid(row=0, column=1, sticky=W)
-        background.grid(row=1, column=0, columnspan=2)
+        background.grid(row=1, column=0, columnspan=3)
+        self.timer = Label(self, text=0, font=self.score_font)
+        self.timer.grid(row=0, column=2, sticky=E)
 
         for i in range(GRID_LEN):
             # Loop rows
@@ -70,11 +64,7 @@ class GameWindow(Frame):
 
             self.grid_cells.append(grid_row)
 
-        # state = self.game.adv_move(state)
-        #print('state', state)
-
-
-    def update_view(self, state):
+    def update_view(self, state, score, time):
         for i in range(GRID_LEN):
             for j in range(GRID_LEN):
                 digit = state[i, j]
@@ -91,45 +81,15 @@ class GameWindow(Frame):
                         bg=BACKGROUND_COLOR_DICT.get(digit, BACKGROUND_COLOR_CELL_FALLBACK),
                         fg=foreground_color)
 
-        self.score_board.configure(text=self.score)
+        self.score_board.configure(text=score)
+        self.timer.configure(text=time)
         self.update_idletasks()
 
     def game_over_screen(self):
-        screen = Frame(self, width=SIZE, height=SIZE)
-        screen.grid(row=1, column=0, columnspan=2, sticky=N+W+E+S)
-        message = Label(screen, bg="gray", font=self.font, text="Game Over!")
-        message.grid(row=1, column=0, sticky=E+S+W+N, padx=170, pady=150)
-        btn_exit = Button(screen, text="OK", bg="#E6E6E6", font=self.font, padx=50, command=self.quit)
-        btn_exit.grid(row=2, column=0)
+        print("Game Over!")
+        screen = Frame(self,  width=50, height=20)
+        screen.grid(row=1, column=0, columnspan=2)
+        message = Label(screen, font=self.font, text="Game Over!")
+        message.grid(row=1, column=0, sticky=E+S+W+N)
 
-
-    '''
-    def on_key_press(self, event):
-        state = state
-        legal = self.game.actions(state, True)
-        legal_moves = [x for x, _ in legal]
-        if not legal:
-            self.game_over_screen()
-        else:
-            if event.keysym == 'Left' and 3 in legal_moves:
-                state = self.game.my_move(state, 3)
-                state = self.game.adv_move(state)
-                self.update_view()
-
-            elif event.keysym == 'Up' and 2 in legal_moves:
-                state = self.game.my_move(state, 2)
-                state = self.game.adv_move(state)
-                self.update_view()
-
-            elif event.keysym == 'Right' and 1 in legal_moves:
-                state = self.game.my_move(state, 1)
-                state = self.game.adv_move(state)
-                self.update_view()
-
-            elif event.keysym == 'Down' and 0 in legal_moves:
-                state = self.game.my_move(state, 0)
-                state = self.game.adv_move(state)
-                self.update_view()
-
-                self.artificial_unintelligence()
-    '''
+        self.update_idletasks()

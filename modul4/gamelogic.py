@@ -1,16 +1,15 @@
-import copy
-import pickle
 import random
 import numpy as np
 
-
-improved_gradient_table = np.array([[64, 32, 16, 8],
+# The table which holds the weights for each tile, with a gradient pattern
+gradient_table = np.array([[64, 32, 16, 8],
                                     [32, 16, 8, 4],
                                     [16, 8, 4, 2],
                                     [8, 4, 2, 1]])
 
+# The table which holds the weights for each tile, with a snake pattern
 snake_table = np.array([[64503, 32251, 16125, 8062],
-                        [4031, 2015, 1007, 503],
+                        [503, 1007, 2015, 4031],
                         [251, 125, 62, 31],
                         [1, 3, 7, 15]])
 
@@ -19,7 +18,7 @@ def snake_heuristic(board, snake_table=snake_table):
     return sum(sum(board * snake_table))
 
 
-def gradient_heuristic(board, gradient_table=improved_gradient_table):
+def gradient_heuristic(board, gradient_table=gradient_table):
     return sum(sum(board * gradient_table))
 
 
@@ -51,7 +50,7 @@ class _2048:
         return moves
 
     def utility(self, state, player=None):
-        return snake_heuristic(state)  # + 0.1*gradient_heuristic(state)  # + empty_heuristic(state)
+        return snake_heuristic(state) # + 0.5*gradient_heuristic(state)   + 0.1*empty_heuristic(state)
 
     def my_move(self, state, move):
         board = state
@@ -101,20 +100,6 @@ class _2048:
         actions = self.actions(state)
 
         return not actions
-
-    def adv_move2(self, state):
-        empty_spots = []
-        for i in range(4):
-            for j in range(4):
-                if state[i, j] == 0:
-                    empty_spots.append((i, j))
-
-        if empty_spots:
-            x, y = random.choice(empty_spots)
-            n = self.distributed_tile()
-            state[x, y] = n
-
-        return state
 
     def distributed_tile(self):
         return 1 if random.randint(0, 100) < 90 else 2
