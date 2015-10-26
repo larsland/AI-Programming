@@ -1,5 +1,5 @@
-# from tkinter import Tk
-# from modul4.gui import GameWindow
+from tkinter import Tk
+from modul4.gui import GameWindow
 from modul4.gamelogic import _2048
 from modul4.adversial import expectimax_top, get_dynamic_depth
 import time
@@ -21,6 +21,9 @@ if __name__ == '__main__':
     g.initial = g.adv_move(g.initial)
     state = g.initial
     print(state)
+
+    root = Tk()
+    app = GameWindow(master=root)
     '''
     _, state = expectimax(g, state)
     print('p: \n', state)
@@ -56,18 +59,26 @@ if __name__ == '__main__':
 
     t1 = time.time()
     success = 0
-    for i in range(5):
+    for i in range(3):
         state = g.initial
         actions = list(g.actions(state))
         while actions:
+            app.update_view(state)
             _, state = expectimax_top(g, state)
             state = g.adv_move(state)
             # print('a', state)
             actions = list(g.actions(state))
-            pretty_print_4x4_np(state)
+            # pretty_print_4x4_np(state)
         if state.max() >= 11:
             print("woop woop!")
             success += 1
+        print(time.time() - t1)
+        print("success rate: %s" % (success / 3.0))
+
+    app.update_view(state)
+    app.game_over_screen()
+    time.sleep(3)
 
     print(time.time() - t1)
     print("success rate: %s" % (success / 1.0))
+
