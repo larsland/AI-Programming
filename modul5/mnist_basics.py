@@ -19,7 +19,7 @@ def kd_reduce(func,seq):
 
 # Set this to the complete path to your mnist files.
 ## __mnist_path__ = "path/to/all/your/mnist/files"
-__mnist_path__ = "/Users/keithd/core/python/data/mnist/basics/"
+__mnist_path__ = "/home/lars/Documents/git/AI-prog/modul5/basics"
 
 # The load_mnist function is the main interface between the MNIST files and your machine-learning code.  It fetches
 # subsets of the entire training or test sets, as determined by the 'digits'
@@ -40,7 +40,7 @@ __mnist_path__ = "/Users/keithd/core/python/data/mnist/basics/"
 # 2) labels - a 2-dimensional numpy array whose first dimension is the number of images in subset and whose second
 # dimension is always 1.   Check it out by calling and examining the results.
 
-def load_mnist(dataset="training", digits=numpy.arange(10), path= __mnist_path__):
+def load_x_mnist(x, dataset="training", digits=numpy.arange(10), path= __mnist_path__):
 
     if dataset == "training":
         fname_img = os.path.join(path, 'train-images.idx3-ubyte')
@@ -62,7 +62,8 @@ def load_mnist(dataset="training", digits=numpy.arange(10), path= __mnist_path__
     fimg.close()
 
     ind = [ k for k in range(size) if lbl[k] in digits ]
-    N = len(ind)
+    #N = len(ind)
+    N = x
 
     images = numpy.zeros((N, rows, cols), dtype=numpy.uint8)
     labels = numpy.zeros((N, 1), dtype=numpy.int8)
@@ -72,12 +73,18 @@ def load_mnist(dataset="training", digits=numpy.arange(10), path= __mnist_path__
 
     return images, labels
 
+def gen_x_flat_cases(x, digits=numpy.arange(10),type='training',cases=None):
+     images, labels = cases if cases else load_x_mnist(x, type, digits=digits)
+     i2 = list(map(flatten_image,images))
+     l2 = kd_reduce((lambda a, b: a + b), labels.tolist())
+     return i2, l2
+
 # *****   Viewing images *******
 #  These two functions assume that the image is in the standard MNIST format: a 2-d numpy array.
 
 # Other colormaps: binary, jet, copper, rainbow, summer, autumn, winter, spring...
 def show_avg_digit(digit, cm = 'gray'):
-    images, labels = load_mnist('training', digits=[digit])
+    images, labels = load_x_mnist('training', digits=[digit])
     show_digit_image(images.mean(axis=0),cm=cm)
 
 def show_digit_image(image,cm='gray'):
