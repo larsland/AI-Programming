@@ -106,3 +106,6 @@ docs/_build/
 
 # PyBuilder
 target/
+
+#MNIST
+modul5/basics/
