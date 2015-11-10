@@ -5,7 +5,7 @@ import numpy as np
 import theano.tensor as T
 import theano.tensor.nnet as Tann
 
-class ImageRecog():
+class ImageRecognizer():
 
     # nb = # bits, nh = # hidden nodes (in the single hidden layer)
     # lr = learning rate
@@ -13,19 +13,19 @@ class ImageRecog():
     def __init__(self, nr_of_training_images, nb=28*28, nh=700, lr=0.001, bulk_size=1):
         self.images, self.labels = gen_x_flat_cases(nr_of_training_images)
         self.test_images, self.test_labels = gen_x_flat_cases(nr_of_testing_images, type="testing")
-        #self.images, self.labels = gen_flat_cases()
         self.lrate = lr
         self.bulk_size = bulk_size
         self.build_ann(nb, nh)
 
+    # Setting default Theano bit width
     def floatX(self, X):
         return np.asarray(X, dtype=theano.config.floatX)
 
-    def build_ann(self,nb,nh):
+    def build_ann(self, nb, nh):
         w1 = theano.shared(np.random.uniform(low=-.1, high=.1, size=(nb, nh)))
         w2 = theano.shared(np.random.uniform(low=-.1, high=.1, size=(nh, 10)))
-        input = T.fmatrix()
-        target = T.fmatrix()
+        input = T.dmatrix()
+        target = T.dmatrix()
         x1 = Tann.sigmoid(T.dot(input,w1))
         x2 = Tann.sigmoid(T.dot(x1,w2))
         error = T.sum(pow((target - x2), 2))
@@ -37,6 +37,10 @@ class ImageRecog():
         self.trainer = theano.function(inputs=[input, target], outputs=error, updates=backprops, allow_input_downcast=True)
         self.predictor = theano.function(inputs=[input], outputs=x2, allow_input_downcast=True)
 
+    def build_ann2(self, nb, nh):
+        pass
+
+
     def backprop_acts (self, params, gradients):
         updates = []
         for p, g in zip(params, gradients):
@@ -45,8 +49,6 @@ class ImageRecog():
 
     def do_training(self, epochs=1, test_interval=None, errors=[]):
         starttime = time()
-        #graph.start_interactive_mode()
-        #if test_interval: self.avg_vector_distances = []
         for i in range(epochs):
             print("epoch: ", i)
             error = 0
@@ -60,14 +62,8 @@ class ImageRecog():
                     result_group[k][label_index] = 1
                 i += self.bulk_size
                 j += self.bulk_size
-            #for j in range(len(self.images)):
                 if j % (self.bulk_size * 100) == 0:
                     print("image nr: ", j)
-                #tar = [0] * 10
-                #tar[self.labels[j]] = 1
-                #tar = theano.shared(tar)
-                #hhh = self.get_x1(image_group, result_group)
-                #print("hh")
                 error += self.trainer(image_group, result_group)
             print(error)
             print("avg error pr image: " + str(error/j))
@@ -118,15 +114,7 @@ class ImageRecog():
     def check_result(self, result):
         count = 0
         for i in range(len(result)):
-            #print image_recog.labels[i]
-            #print result[i]
             b = int(self.test_labels[i]) == np.argmax(result[i])# == max(result[i]))[0][0])
-            #print b
-            # print (test_labels[i])
-            # print(result[i])
-            # print(np.argmax(result[i]))
-            # print(b)
-            # print ("---")
             if b:
                 count += 1
         print("statistics:", (count/float(len(self.test_labels))) * 100)
@@ -134,7 +122,7 @@ class ImageRecog():
 
 nr_of_training_images = 60000
 nr_of_testing_images = 10000
-image_recog = ImageRecog(nr_of_training_images, bulk_size=50)
+image_recog = ImageRecognizer(nr_of_training_images, bulk_size=50)
 image_recog.preprosessing(image_recog.images)
 image_recog.preprosessing(image_recog.test_images)
 
