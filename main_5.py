@@ -10,7 +10,7 @@ class ImageRecognizer():
     # nb = # bits, nh = # hidden nodes (in the single hidden layer)
     # lr = learning rate
 
-    def __init__(self, nr_of_training_images, nb=28*28, nh=10, lr=0.001, bulk_size=1):
+    def __init__(self, nr_of_training_images, nb=28*28, nh=30, lr=0.001, bulk_size=1, ann=0):
         self.images, self.labels = gen_flat_cases(nr_of_training_images)
         self.test_images, self.test_labels = gen_flat_cases(nr_of_testing_images, type="testing")
         self.lrate = lr
@@ -26,8 +26,8 @@ class ImageRecognizer():
         w2 = theano.shared(np.random.uniform(low=-.1, high=.1, size=(nh, 10)))
         input = T.dmatrix()
         target = T.dmatrix()
-        x1 = Tann.sigmoid(T.dot(input,w1))
-        x2 = Tann.sigmoid(T.dot(x1,w2))
+        x1 = Tann.softplus(T.dot(input,w1))
+        x2 = Tann.softplus(T.dot(x1,w2))
         error = T.sum(pow((target - x2), 2))
         params = [w1, w2]
         gradients = T.grad(error, params)
@@ -39,7 +39,6 @@ class ImageRecognizer():
 
     def build_ann2(self, nb, nh):
         pass
-
 
     def backprop_acts (self, params, gradients):
         updates = []
@@ -86,11 +85,7 @@ class ImageRecognizer():
             end = self.predictor(image_group)
             for res in end:
                 hidden_activations.append(res)
-        '''
-        for c in self.test_images:
-            end = self.predictor(c)
-            hidden_activations.append(end)
-        '''
+
         self.check_result(hidden_activations)
         return self.test_labels, hidden_activations
 
@@ -127,7 +122,7 @@ image_recog.preprosessing(image_recog.test_images)
 
 errors = []
 start_time = time()
-
+'''
 while True:
     action = input("Press 1 to train, 2 to test, r to set learning rate: ")
     if action == "r":
@@ -139,5 +134,13 @@ while True:
     else:
         errors = image_recog.do_training(epochs=int(action), errors=errors)
     print("Total time elapsed: " + str((time() - start_time)/60) + " min")
+'''
+
+
+
+errors = image_recog.do_training(epochs=20, errors=errors)
+
+test_labels, result = image_recog.do_testing(nr_of_testing_images=nr_of_testing_images)
+print("Total time elapsed: " + str((time() - start_time)/60) + " min")
 
 
