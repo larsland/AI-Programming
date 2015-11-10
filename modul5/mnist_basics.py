@@ -40,7 +40,7 @@ __mnist_path__ = "/home/lars/Documents/git/AI-prog/modul5/basics"
 # 2) labels - a 2-dimensional numpy array whose first dimension is the number of images in subset and whose second
 # dimension is always 1.   Check it out by calling and examining the results.
 
-def load_x_mnist(x, dataset="training", digits=numpy.arange(10), path= __mnist_path__):
+def load_mnist(dataset="training", digits=numpy.arange(10), path= __mnist_path__):
 
     if dataset == "training":
         fname_img = os.path.join(path, 'train-images.idx3-ubyte')
@@ -61,30 +61,24 @@ def load_x_mnist(x, dataset="training", digits=numpy.arange(10), path= __mnist_p
     img = pyarray("B", fimg.read())
     fimg.close()
 
-    ind = [ k for k in range(size) if lbl[k] in digits ]
-    #N = len(ind)
-    N = x
+    ind = [k for k in range(size) if lbl[k] in digits]
+    N = len(ind)
 
     images = numpy.zeros((N, rows, cols), dtype=numpy.uint8)
     labels = numpy.zeros((N, 1), dtype=numpy.int8)
-    for i in range(len(ind)):
+
+    for i in range(N):
         images[i] = numpy.array(img[ ind[i]*rows*cols : (ind[i]+1)*rows*cols ]).reshape((rows, cols))
         labels[i] = lbl[ind[i]]
 
     return images, labels
-
-def gen_x_flat_cases(x, digits=numpy.arange(10),type='training',cases=None):
-     images, labels = cases if cases else load_x_mnist(x, type, digits=digits)
-     i2 = list(map(flatten_image,images))
-     l2 = kd_reduce((lambda a, b: a + b), labels.tolist())
-     return i2, l2
 
 # *****   Viewing images *******
 #  These two functions assume that the image is in the standard MNIST format: a 2-d numpy array.
 
 # Other colormaps: binary, jet, copper, rainbow, summer, autumn, winter, spring...
 def show_avg_digit(digit, cm = 'gray'):
-    images, labels = load_x_mnist('training', digits=[digit])
+    images, labels = load_mnist('training', digits=[digit])
     show_digit_image(images.mean(axis=0),cm=cm)
 
 def show_digit_image(image,cm='gray'):
@@ -110,16 +104,18 @@ def reconstruct_image(flat_list,dims=(28,28)):
 # two returned lists are of the 784-integer vectors and the labels.  If cases are sent in as an argument, then
 # they are assumed to have the same format as that returned by load_mnist:  (list-of-images, list-of-labels)
 
-def gen_flat_cases(digits=numpy.arange(10),type='training',cases=None):
-     images, labels = cases if cases else load_mnist(type, digits=digits)
-     i2 = list(map(flatten_image,images))
-     l2 = kd_reduce((lambda a, b: a + b), labels.tolist())
-     return i2, l2
+
+def gen_flat_cases(x, digits=numpy.arange(10), type='training', cases=None):
+    images, labels = cases if cases else load_mnist(type, digits=digits)
+    i2 = list(map(flatten_image,images))
+    l2 = kd_reduce((lambda a, b: a + b), labels.tolist())
+    return i2, l2
+
 
 def reconstruct_flat_cases(cases,dims=(28,28),nested=True):
     labels = numpy.array([[label] for label in cases[1]]) if nested else cases[1]
     images = [reconstruct_image(i,dims=dims) for i in cases[0]] if nested else cases[0]
-    return images,labels
+    return images, labels
 
 # ***** PICKLING FLAT CASES ********
 # This uses pickle to dump cases to and retrieve cases from a binary file.

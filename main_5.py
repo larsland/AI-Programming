@@ -10,9 +10,9 @@ class ImageRecognizer():
     # nb = # bits, nh = # hidden nodes (in the single hidden layer)
     # lr = learning rate
 
-    def __init__(self, nr_of_training_images, nb=28*28, nh=700, lr=0.001, bulk_size=1):
-        self.images, self.labels = gen_x_flat_cases(nr_of_training_images)
-        self.test_images, self.test_labels = gen_x_flat_cases(nr_of_testing_images, type="testing")
+    def __init__(self, nr_of_training_images, nb=28*28, nh=10, lr=0.001, bulk_size=1):
+        self.images, self.labels = gen_flat_cases(nr_of_training_images)
+        self.test_images, self.test_labels = gen_flat_cases(nr_of_testing_images, type="testing")
         self.lrate = lr
         self.bulk_size = bulk_size
         self.build_ann(nb, nh)
@@ -119,17 +119,15 @@ class ImageRecognizer():
                 count += 1
         print("statistics:", (count/float(len(self.test_labels))) * 100)
 
-
 nr_of_training_images = 60000
 nr_of_testing_images = 10000
 image_recog = ImageRecognizer(nr_of_training_images, bulk_size=50)
 image_recog.preprosessing(image_recog.images)
 image_recog.preprosessing(image_recog.test_images)
 
-
 errors = []
+start_time = time()
 
-starttime = time()
 while True:
     action = input("Press 1 to train, 2 to test, r to set learning rate: ")
     if action == "r":
@@ -140,6 +138,6 @@ while True:
         test_labels, result = image_recog.do_testing(nr_of_testing_images=nr_of_testing_images)
     else:
         errors = image_recog.do_training(epochs=int(action), errors=errors)
-    print("Total time elapsed: " + str((time() - starttime)/60) + " min")
+    print("Total time elapsed: " + str((time() - start_time)/60) + " min")
 
 
