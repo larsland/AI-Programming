@@ -10,11 +10,11 @@ class ImageRecognizer():
     # nb = # bits, nh = # hidden nodes (in the single hidden layer)
     # lr = learning rate
 
-    def __init__(self, nr_of_training_images, nb=28*28, nh=30, lr=0.001, bulk_size=1, ann=0):
+    def __init__(self, nr_of_training_images, nb=28*28, nh=30, lr=0.005, batch_size=1, ann=0):
         self.images, self.labels = gen_flat_cases(nr_of_training_images)
         self.test_images, self.test_labels = gen_flat_cases(nr_of_testing_images, type="testing")
         self.lrate = lr
-        self.bulk_size = bulk_size
+        self.batch_size = batch_size
         self.build_ann(nb, nh)
 
     # Setting default Theano bit width
@@ -52,16 +52,16 @@ class ImageRecognizer():
             print("epoch: ", i)
             error = 0
             i = 0
-            j = self.bulk_size
+            j = self.batch_size
             while j < len(self.images):
                 image_group = self.images[i:j]
-                result_group = [[0 for i in range(10)] for i in range(self.bulk_size)]
-                for k in range(self.bulk_size):
+                result_group = [[0 for i in range(10)] for i in range(self.batch_size)]
+                for k in range(self.batch_size):
                     label_index = self.labels[i + k]
                     result_group[k][label_index] = 1
-                i += self.bulk_size
-                j += self.bulk_size
-                if j % (self.bulk_size * 100) == 0:
+                i += self.batch_size
+                j += self.batch_size
+                if j % (self.batch_size * 100) == 0:
                     print("image nr: ", j)
                 error += self.trainer(image_group, result_group)
             print(error)
@@ -77,11 +77,11 @@ class ImageRecognizer():
 
         hidden_activations = []
         i = 0
-        j = self.bulk_size
+        j = self.batch_size
         while j < len(self.test_images):
             image_group = self.test_images[i:j]
-            i += self.bulk_size
-            j += self.bulk_size
+            i += self.batch_size
+            j += self.batch_size
             end = self.predictor(image_group)
             for res in end:
                 hidden_activations.append(res)
@@ -109,19 +109,20 @@ class ImageRecognizer():
     def check_result(self, result):
         count = 0
         for i in range(len(result)):
-            b = int(self.test_labels[i]) == np.argmax(result[i])# == max(result[i]))[0][0])
+            b = int(self.test_labels[i]) == np.argmax(result[i])
             if b:
                 count += 1
         print("statistics:", (count/float(len(self.test_labels))) * 100)
 
 nr_of_training_images = 60000
 nr_of_testing_images = 10000
-image_recog = ImageRecognizer(nr_of_training_images, bulk_size=50)
+image_recog = ImageRecognizer(nr_of_training_images, batch_size=50)
 image_recog.preprosessing(image_recog.images)
 image_recog.preprosessing(image_recog.test_images)
 
 errors = []
 start_time = time()
+
 '''
 while True:
     action = input("Press 1 to train, 2 to test, r to set learning rate: ")
