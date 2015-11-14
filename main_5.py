@@ -10,7 +10,7 @@ class ImageRecognizer():
     # nb = # bits, nh = # hidden nodes (in the single hidden layer)
     # lr = learning rate
 
-    def __init__(self, nr_of_training_images, nb=28*28, nh=30, lr=0.005, batch_size=1, ann=0):
+    def __init__(self, nr_of_training_images, nb=28*28, nh=30, lr=0.01, batch_size=1, ann=0):
         self.images, self.labels = gen_flat_cases(nr_of_training_images)
         self.test_images, self.test_labels = gen_flat_cases(nr_of_testing_images, type="testing")
         self.lrate = lr
@@ -37,14 +37,17 @@ class ImageRecognizer():
         self.trainer = theano.function(inputs=[input, target], outputs=error, updates=backprops, allow_input_downcast=True)
         self.predictor = theano.function(inputs=[input], outputs=x2, allow_input_downcast=True)
 
-    def build_ann2(self, nb, nh):
-        pass
-
-    def backprop_acts (self, params, gradients):
+    def RMSprop(self, params, gradients, rho=0.9, epsilon=1e-6):
         updates = []
         for p, g in zip(params, gradients):
+            acc = theano.shared(p.get_value() * 0.)
+            acc_new = rho * acc + (1 - rho) * g ** 2
+            gradient_scaling = T.sqrt(acc_new + epsilon)
+            g = g / gradient_scaling
+            updates.append((acc, acc_new))
             updates.append((p, p - self.lrate * g))
         return updates
+
 
     def do_training(self, epochs=1, test_interval=None, errors=[]):
         starttime = time()
