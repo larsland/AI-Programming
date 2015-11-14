@@ -11,12 +11,13 @@ input_nodes = 28*28
 
 
 class ImageRecognizer:
-    def __init__(self, hidden_nodes, learning_rate, batch_size):
+    def __init__(self, hidden_nodes, learning_rate, batch_size, hidden_layers):
         self.images, self.labels = gen_flat_cases(nr_of_training_images)
         self.test_images, self.test_labels = gen_flat_cases(nr_of_testing_images, type="testing")
         self.lrate = learning_rate
         self.batch_size = batch_size
         self.hidden_nodes = hidden_nodes
+        self.hidden_layers = hidden_layers
 
         self.build_ann()
 
@@ -28,22 +29,25 @@ class ImageRecognizer:
         input = T.fmatrix()
         target = T.fmatrix()
 
-        w1 = theano.shared(np.random.uniform(low=-.1, high=.1, size=(input_nodes, self.hidden_nodes)))
-        w2 = theano.shared(np.random.uniform(low=-.1, high=.1, size=(self.hidden_nodes, 500)))
-        w3 = theano.shared(np.random.uniform(low=-.1, high=.1, size=(500, 10)))
+        weights = []
+        weights.append(theano.shared(np.random.uniform(low=-.1, high=.1, size=(input_nodes, self.hidden_nodes[0]))))
+        weights.append(theano.shared(np.random.uniform(low=-.1, high=.1, size=(self.hidden_nodes[0], self.hidden_nodes[1]))))
+        weights.append(theano.shared(np.random.uniform(low=-.1, high=.1, size=(self.hidden_nodes[1], self.hidden_nodes[2]))))
+        weights.append(theano.shared(np.random.uniform(low=-.1, high=.1, size=(self.hidden_nodes[2], 10))))
 
-        x1 = Tann.softplus(T.dot(input, w1))
-        x2 = Tann.sigmoid(T.dot(x1, w2))
-        x3 = Tann.softplus(T.dot(x2, w3))
+        activation_1 = Tann.softplus(T.dot(input, weights[0]))
+        activation_2 = Tann.softplus(T.dot(activation_1, weights[1]))
+        activation_3 = Tann.sigmoid(T.dot(activation_2, weights[2]))
+        activation_4 = Tann.softmax(T.dot(activation_3, weights[3]))
 
-        error = T.sum(pow((target - x3), 2))
-        params = [w1, w2, w3]
+        error = T.sum(pow((target - activation_4), 2))
+        params = [weights[0], weights[1], weights[2], weights[3]]
         gradients = T.grad(error, params)
 
         self.get_x1 = theano.function(inputs=[input, target], outputs=error, allow_input_downcast=True)
         self.train = theano.function(inputs=[input, target], outputs=error, updates=self.RMSprop(params, gradients),
                                      allow_input_downcast=True)
-        self.predict = theano.function(inputs=[input], outputs=x3, allow_input_downcast=True)
+        self.predict = theano.function(inputs=[input], outputs=activation_4, allow_input_downcast=True)
 
     def RMSprop(self, params, gradients, rho=0.9, epsilon=1e-6):
         updates = []
@@ -122,12 +126,11 @@ class ImageRecognizer:
             b = int(self.test_labels[i]) == np.argmax(result[i])
             if b:
                 count += 1
-        print("Correct classification:", '%.2f' % str((count/float(len(self.test_labels))) * 100) + '%')
-
+        print("Correct classification:", (count/float(len(self.test_labels))) * 100)
 
 if __name__ == '__main__':
-    # input nodes, hidden nodes, learning rate, batch size
-    image_recog = ImageRecognizer(30, 0.01, 50)
+    # input nodes, hidden nodes, learning rate, batch size, hidden layers
+    image_recog = ImageRecognizer([20, 100, 30], 0.01, 50, 3)
 
     image_recog.preprosessing(image_recog.images)
     image_recog.preprosessing(image_recog.test_images)
@@ -135,7 +138,7 @@ if __name__ == '__main__':
     errors = []
     start_time = time()
 
-    errors = image_recog.do_training(epochs=10, errors=errors)
+    errors = image_recog.do_training(epochs=20, errors=errors)
 
     test_labels, result = image_recog.do_testing(nr_of_testing_images=nr_of_testing_images)
     print("Total time elapsed: " + str((time() - start_time)/60) + " min")
