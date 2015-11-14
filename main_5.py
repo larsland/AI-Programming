@@ -5,37 +5,42 @@ import numpy as np
 import theano.tensor as T
 import theano.tensor.nnet as Tann
 
-class ImageRecognizer():
+nr_of_training_images = 60000
+nr_of_testing_images = 10000
+input_nodes = 28*28
 
-    # nb = # bits, nh = # hidden nodes (in the single hidden layer)
-    # lr = learning rate
 
-    def __init__(self, nr_of_training_images, nb=28*28, nh=30, lr=0.01, batch_size=1, ann=0):
+class ImageRecognizer:
+    def __init__(self, hidden_nodes, learning_rate, batch_size):
         self.images, self.labels = gen_flat_cases(nr_of_training_images)
         self.test_images, self.test_labels = gen_flat_cases(nr_of_testing_images, type="testing")
-        self.lrate = lr
+        self.lrate = learning_rate
         self.batch_size = batch_size
-        self.build_ann(nb, nh)
+        self.hidden_nodes = hidden_nodes
+
+        self.build_ann()
 
     # Setting default Theano bit width
     def floatX(self, X):
         return np.asarray(X, dtype=theano.config.floatX)
 
-    def build_ann(self, nb, nh):
-        w1 = theano.shared(np.random.uniform(low=-.1, high=.1, size=(nb, nh)))
-        w2 = theano.shared(np.random.uniform(low=-.1, high=.1, size=(nh, 10)))
-        input = T.dmatrix()
-        target = T.dmatrix()
-        x1 = Tann.softplus(T.dot(input,w1))
-        x2 = Tann.softplus(T.dot(x1,w2))
-        error = T.sum(pow((target - x2), 2))
-        params = [w1, w2]
+    def build_ann(self):
+        w1 = theano.shared(np.random.uniform(low=-.1, high=.1, size=(input_nodes, self.hidden_nodes)))
+        w2 = theano.shared(np.random.uniform(low=-.1, high=.1, size=(self.hidden_nodes, 50)))
+        w3 = theano.shared(np.random.uniform(low=-.1, high=.1, size=(50, 10)))
+        input = T.fmatrix()
+        target = T.fmatrix()
+        x1 = Tann.softplus(T.dot(input, w1))
+        x2 = Tann.softplus(T.dot(x1, w2))
+        x3 = Tann.softplus(T.dot(x2, w3))
+        error = T.sum(pow((target - x3), 2))
+        params = [w1, w2, w3]
         gradients = T.grad(error, params)
-        backprops = self.backprop_acts(params, gradients)
+        backprops = self.RMSprop(params, gradients)
 
         self.get_x1 = theano.function(inputs=[input, target], outputs=error, allow_input_downcast=True)
         self.trainer = theano.function(inputs=[input, target], outputs=error, updates=backprops, allow_input_downcast=True)
-        self.predictor = theano.function(inputs=[input], outputs=x2, allow_input_downcast=True)
+        self.predictor = theano.function(inputs=[input], outputs=x3, allow_input_downcast=True)
 
     def RMSprop(self, params, gradients, rho=0.9, epsilon=1e-6):
         updates = []
@@ -47,7 +52,6 @@ class ImageRecognizer():
             updates.append((acc, acc_new))
             updates.append((p, p - self.lrate * g))
         return updates
-
 
     def do_training(self, epochs=1, test_interval=None, errors=[]):
         starttime = time()
@@ -117,9 +121,9 @@ class ImageRecognizer():
                 count += 1
         print("statistics:", (count/float(len(self.test_labels))) * 100)
 
-nr_of_training_images = 60000
-nr_of_testing_images = 10000
-image_recog = ImageRecognizer(nr_of_training_images, batch_size=50)
+# input nodes, hidden nodes, learning rate, batch size
+image_recog = ImageRecognizer(30, 0.001, 50)
+
 image_recog.preprosessing(image_recog.images)
 image_recog.preprosessing(image_recog.test_images)
 
@@ -140,9 +144,7 @@ while True:
     print("Total time elapsed: " + str((time() - start_time)/60) + " min")
 '''
 
-
-
-errors = image_recog.do_training(epochs=20, errors=errors)
+errors = image_recog.do_training(epochs=10, errors=errors)
 
 test_labels, result = image_recog.do_testing(nr_of_testing_images=nr_of_testing_images)
 print("Total time elapsed: " + str((time() - start_time)/60) + " min")
