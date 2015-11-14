@@ -25,22 +25,25 @@ class ImageRecognizer:
         return np.asarray(X, dtype=theano.config.floatX)
 
     def build_ann(self):
-        w1 = theano.shared(np.random.uniform(low=-.1, high=.1, size=(input_nodes, self.hidden_nodes)))
-        w2 = theano.shared(np.random.uniform(low=-.1, high=.1, size=(self.hidden_nodes, 50)))
-        w3 = theano.shared(np.random.uniform(low=-.1, high=.1, size=(50, 10)))
         input = T.fmatrix()
         target = T.fmatrix()
+
+        w1 = theano.shared(np.random.uniform(low=-.1, high=.1, size=(input_nodes, self.hidden_nodes)))
+        w2 = theano.shared(np.random.uniform(low=-.1, high=.1, size=(self.hidden_nodes, 500)))
+        w3 = theano.shared(np.random.uniform(low=-.1, high=.1, size=(500, 10)))
+
         x1 = Tann.softplus(T.dot(input, w1))
-        x2 = Tann.softplus(T.dot(x1, w2))
+        x2 = Tann.sigmoid(T.dot(x1, w2))
         x3 = Tann.softplus(T.dot(x2, w3))
+
         error = T.sum(pow((target - x3), 2))
         params = [w1, w2, w3]
         gradients = T.grad(error, params)
-        backprops = self.RMSprop(params, gradients)
 
         self.get_x1 = theano.function(inputs=[input, target], outputs=error, allow_input_downcast=True)
-        self.trainer = theano.function(inputs=[input, target], outputs=error, updates=backprops, allow_input_downcast=True)
-        self.predictor = theano.function(inputs=[input], outputs=x3, allow_input_downcast=True)
+        self.train = theano.function(inputs=[input, target], outputs=error, updates=self.RMSprop(params, gradients),
+                                     allow_input_downcast=True)
+        self.predict = theano.function(inputs=[input], outputs=x3, allow_input_downcast=True)
 
     def RMSprop(self, params, gradients, rho=0.9, epsilon=1e-6):
         updates = []
@@ -70,9 +73,9 @@ class ImageRecognizer:
                 j += self.batch_size
                 if j % (self.batch_size * 100) == 0:
                     print("image nr: ", j)
-                error += self.trainer(image_group, result_group)
+                error += self.train(image_group, result_group)
             print(error)
-            print("avg error pr image: " + str(error/j))
+            print("Avg error per image: " + str(error/j))
             errors.append(error)
         print("Training time: " + str((time()-starttime)) + " sec")
         return errors
@@ -89,7 +92,7 @@ class ImageRecognizer:
             image_group = self.test_images[i:j]
             i += self.batch_size
             j += self.batch_size
-            end = self.predictor(image_group)
+            end = self.predict(image_group)
             for res in end:
                 hidden_activations.append(res)
 
@@ -108,7 +111,7 @@ class ImageRecognizer:
         return results
 
     def preprosessing(self, feature_sets):
-        #Scales images to have values between 0.0 and 1.0 instead of 0 and 255
+        # Scales images to have values between 0.0 and 1.0 instead of 0 and 255
         for image in range(len(feature_sets)):
             for value in range(len(feature_sets[image])):
                 feature_sets[image][value] = feature_sets[image][value]/float(255)
@@ -119,34 +122,22 @@ class ImageRecognizer:
             b = int(self.test_labels[i]) == np.argmax(result[i])
             if b:
                 count += 1
-        print("statistics:", (count/float(len(self.test_labels))) * 100)
+        print("Correct classification:", '%.2f' % str((count/float(len(self.test_labels))) * 100) + '%')
 
-# input nodes, hidden nodes, learning rate, batch size
-image_recog = ImageRecognizer(30, 0.001, 50)
 
-image_recog.preprosessing(image_recog.images)
-image_recog.preprosessing(image_recog.test_images)
+if __name__ == '__main__':
+    # input nodes, hidden nodes, learning rate, batch size
+    image_recog = ImageRecognizer(30, 0.01, 50)
 
-errors = []
-start_time = time()
+    image_recog.preprosessing(image_recog.images)
+    image_recog.preprosessing(image_recog.test_images)
 
-'''
-while True:
-    action = input("Press 1 to train, 2 to test, r to set learning rate: ")
-    if action == "r":
-        image_recog.lrate = float(input("Enter a new learning rate: "))
-    elif int(action) == 1:
-        errors = image_recog.do_training(epochs=1, errors=errors)
-    elif int(action) == 2:
-        test_labels, result = image_recog.do_testing(nr_of_testing_images=nr_of_testing_images)
-    else:
-        errors = image_recog.do_training(epochs=int(action), errors=errors)
+    errors = []
+    start_time = time()
+
+    errors = image_recog.do_training(epochs=10, errors=errors)
+
+    test_labels, result = image_recog.do_testing(nr_of_testing_images=nr_of_testing_images)
     print("Total time elapsed: " + str((time() - start_time)/60) + " min")
-'''
-
-errors = image_recog.do_training(epochs=10, errors=errors)
-
-test_labels, result = image_recog.do_testing(nr_of_testing_images=nr_of_testing_images)
-print("Total time elapsed: " + str((time() - start_time)/60) + " min")
 
 
