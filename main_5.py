@@ -37,7 +37,7 @@ class ImageRecognizer:
 
         activation_1 = Tann.softplus(T.dot(input, weights[0]))
         activation_2 = Tann.softplus(T.dot(activation_1, weights[1]))
-        activation_3 = Tann.sigmoid(T.dot(activation_2, weights[2]))
+        activation_3 = Tann.softplus(T.dot(activation_2, weights[2]))
         activation_4 = Tann.softmax(T.dot(activation_3, weights[3]))
 
         error = T.sum(pow((target - activation_4), 2))
