@@ -17,7 +17,7 @@ class ImageRecognizer:
         self.lrate = learning_rate
         self.batch_size = batch_size
         self.hidden_nodes = hidden_nodes
-        self.hidden_layers = hidden_layers
+        self.num_hidden_layers = hidden_layers
 
         self.build_network()
 
@@ -31,9 +31,13 @@ class ImageRecognizer:
 
         weights = []
         weights.append(theano.shared(np.random.uniform(low=-.1, high=.1, size=(input_nodes, self.hidden_nodes[0]))))
-        weights.append(theano.shared(np.random.uniform(low=-.1, high=.1, size=(self.hidden_nodes[0], self.hidden_nodes[1]))))
-        weights.append(theano.shared(np.random.uniform(low=-.1, high=.1, size=(self.hidden_nodes[1], self.hidden_nodes[2]))))
-        weights.append(theano.shared(np.random.uniform(low=-.1, high=.1, size=(self.hidden_nodes[2], 10))))
+
+        for i in range(1, self.num_hidden_layers):
+            weights.append(theano.shared(np.random.uniform(low=-.1, high=.1, size=(self.hidden_nodes[i-1], self.hidden_nodes[i]))))
+
+        weights.append(theano.shared(np.random.uniform(low=-.1, high=.1, size=(self.hidden_nodes[-1], 10))))
+
+        print("WEIGHTS: ", weights)
 
         input_layer = Tann.softplus(T.dot(input, weights[0]))
         hidden_layer1 = Tann.softplus(T.dot(input_layer, weights[1]))
