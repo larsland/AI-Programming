@@ -4,6 +4,7 @@ import theano
 import numpy as np
 import theano.tensor as T
 import theano.tensor.nnet as Tann
+import itertools
 
 nr_of_training_images = 60000
 nr_of_testing_images = 10000
@@ -11,7 +12,7 @@ input_nodes = 28*28
 
 
 class ImageRecognizer:
-    def __init__(self, hidden_nodes, activation_functions, learning_rate, batch_size, hidden_layers):
+    def __init__(self, hidden_nodes, activation_functions, learning_rate, batch_size, hidden_layers, epochs):
         self.images, self.labels = gen_flat_cases(nr_of_training_images)
         self.test_images, self.test_labels = gen_flat_cases(nr_of_testing_images, type="testing")
         self.lrate = learning_rate
@@ -19,6 +20,7 @@ class ImageRecognizer:
         self.hidden_nodes = hidden_nodes
         self.act_funcs = activation_functions
         self.num_hidden_layers = hidden_layers
+        self.epochs = epochs
 
         self.build_network()
 
@@ -143,23 +145,42 @@ class ImageRecognizer:
         errors = []
         start_time = time()
     
-        errors = self.train_network(epochs=20, errors=errors)
+        errors = self.train_network(epochs=self.epochs, errors=errors)
     
         test_labels, result = self.test_network(nr_of_testing_images=nr_of_testing_images)
         print("Total time elapsed: " + str((time() - start_time)/60) + " min")
         
-        
-        
+
+def rectify(x):
+    return T.maximum(x, 0.)
+
+
+def find_optimal():
+    funcs = [Tann.softplus, rectify]
+    hiddens = list(range(40, 200, 20))
+    lrs = np.arange(0.001, 0.01, 0.001)
+
+    print(funcs)
+    print(hiddens)
+    print(lrs)
+
 
 if __name__ == '__main__':
     # hidden nodes in each hidden layer, activation function in each layer, learning rate, batch size, hidden layers
     #ann1 = ImageRecognizer([20, 100, 100], [Tann.softplus, Tann.softplus, Tann.softplus, Tann.softplus, Tann.softplus],
     #                       0.01, 50, 3)
 
-    ann2 = ImageRecognizer([30], [Tann.softplus, Tann.softplus, Tann.softmax],
-                           0.01, 50, 1)
+    bare_minimals = ImageRecognizer([100, 100], [Tann.softplus, rectify, rectify, Tann.softmax],
+                           0.001, 100, 1, 30)
 
-    ann2.run()
+    test = ImageRecognizer([40, 100, 40], [Tann.softplus, Tann.softmax, Tann.softmax],
+                           0.002, 50, 3, 30)
+
+    # bare_minimals.run()
+
+    find_optimal()
+
+
 
 
    
