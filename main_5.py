@@ -11,7 +11,7 @@ input_nodes = 28*28
 
 
 class ImageRecognizer:
-    def __init__(self, hidden_nodes, learning_rate, batch_size, hidden_layers):
+    def __init__(self, hidden_nodes, activation_functions, learning_rate, batch_size, hidden_layers):
         self.images, self.labels = gen_flat_cases(nr_of_training_images)
         self.test_images, self.test_labels = gen_flat_cases(nr_of_testing_images, type="testing")
         self.lrate = learning_rate
@@ -28,21 +28,28 @@ class ImageRecognizer:
     def build_network(self):
         input = T.fmatrix()
         target = T.fmatrix()
-
         weights = []
+        layers = []
+
+        # Weight matrix for input layer
         weights.append(theano.shared(np.random.uniform(low=-.1, high=.1, size=(input_nodes, self.hidden_nodes[0]))))
 
+        # Weight matrices for hidden layers
         for i in range(1, self.num_hidden_layers):
             weights.append(theano.shared(np.random.uniform(low=-.1, high=.1, size=(self.hidden_nodes[i-1], self.hidden_nodes[i]))))
 
+        # Weight matrix for output layer
         weights.append(theano.shared(np.random.uniform(low=-.1, high=.1, size=(self.hidden_nodes[-1], 10))))
 
-        print("WEIGHTS: ", weights)
-
         input_layer = Tann.softplus(T.dot(input, weights[0]))
+
+        for i in range(self.num_hidden_layers):
+
+
         hidden_layer1 = Tann.softplus(T.dot(input_layer, weights[1]))
         hidden_layer2 = Tann.sigmoid(T.dot(hidden_layer1, weights[2]))
-        output_layer = Tann.softplus(T.dot(hidden_layer2, weights[3]))
+
+        output_layer = Tann.softplus(T.dot(hidden_layer2, weights[-1]))
 
         error = T.sum(pow((target - output_layer), 2))
         params = [weights[0], weights[1], weights[2], weights[3]]
@@ -130,20 +137,30 @@ class ImageRecognizer:
             if b:
                 count += 1
         print("Correct classification:", (count/float(len(self.test_labels))) * 100)
+        
+    def run(self):
+        self.preprosess_images(self.images)
+        self.preprosess_images(self.test_images)
+    
+        errors = []
+        start_time = time()
+    
+        errors = self.train_network(epochs=10, errors=errors)
+    
+        test_labels, result = self.test_network(nr_of_testing_images=nr_of_testing_images)
+        print("Total time elapsed: " + str((time() - start_time)/60) + " min")
+        
+        
+        
 
 if __name__ == '__main__':
     # input nodes, hidden nodes, learning rate, batch size, hidden layers
-    image_recog = ImageRecognizer([20, 100, 100], 0.01, 50, 3)
+    ann1 = ImageRecognizer([20, 100, 100], ['softplus', 'softplus', 'softplus', 'softplus', 'softplus'], 0.01, 50, 3)
 
-    image_recog.preprosess_images(image_recog.images)
-    image_recog.preprosess_images(image_recog.test_images)
+    ann1.run()
 
-    errors = []
-    start_time = time()
 
-    errors = image_recog.train_network(epochs=10, errors=errors)
 
-    test_labels, result = image_recog.test_network(nr_of_testing_images=nr_of_testing_images)
-    print("Total time elapsed: " + str((time() - start_time)/60) + " min")
+   
 
 
