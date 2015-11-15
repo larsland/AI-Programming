@@ -59,7 +59,7 @@ class ImageRecognizer:
                                      allow_input_downcast=True)
         self.predict = theano.function(inputs=[input], outputs=layers[-1], allow_input_downcast=True)
 
-    def rms_prop(self, params, gradients, rho=0.9, epsilon=1e-6):
+    def _rms_prop(self, params, gradients, rho=0.9, epsilon=1e-6):
         updates = []
         for p, g in zip(params, gradients):
             acc = theano.shared(p.get_value() * 0.)
@@ -67,6 +67,13 @@ class ImageRecognizer:
             gradient_scaling = T.sqrt(acc_new + epsilon)
             g = g / gradient_scaling
             updates.append((acc, acc_new))
+            updates.append((p, p - self.lrate * g))
+        return updates
+
+    def rms_prop(self, params, gradients, rho=0.9, epsilon=1e-6):
+        updates = []
+        for p, g in zip(params, gradients):
+
             updates.append((p, p - self.lrate * g))
         return updates
 
@@ -126,6 +133,7 @@ class ImageRecognizer:
 
     def preprosess_images(self, feature_sets):
         # Scales images to have values between 0.0 and 1.0 instead of 0 and 255
+
         for image in range(len(feature_sets)):
             for value in range(len(feature_sets[image])):
                 feature_sets[image][value] = feature_sets[image][value]/float(255)
@@ -145,7 +153,7 @@ class ImageRecognizer:
         errors = []
         start_time = time()
     
-        errors = self.train_network(epochs=10, errors=errors)
+        errors = self.train_network(epochs=20, errors=errors)
     
         test_labels, result = self.test_network(nr_of_testing_images=nr_of_testing_images)
         print("Total time elapsed: " + str((time() - start_time)/60) + " min")
@@ -158,7 +166,11 @@ if __name__ == '__main__':
     ann1 = ImageRecognizer([20, 100, 100], [Tann.softplus, Tann.softplus, Tann.softplus, Tann.softplus, Tann.softplus],
                            0.01, 50, 3)
 
-    ann1.run()
+    bare_minimals = ImageRecognizer([30], [Tann.softplus, Tann.softplus, Tann.softmax],
+                           0.02, 50, 1)
+
+
+    bare_minimals.run()
 
 
    
