@@ -78,7 +78,6 @@ class ANN:
                 if j % (self.batch_size * 100) == 0:
                     print("image nr: ", j)
                 error += self.train(image_group, result_group)
-            print(error)
             print("Avg error per image: " + str('%.5f' % (error/j)))
             errors.append(error)
         print("Training time: " + str('%.2f' % (time() - starttime) + " sec"))
@@ -137,7 +136,7 @@ class ANN:
                 self.test_network()
             elif key_input == 3:
                 quit()
-                
+
 
 
 
