@@ -153,8 +153,9 @@ class ImageRecognizer:
         
 
 if __name__ == '__main__':
-    # input nodes, hidden nodes, learning rate, batch size, hidden layers
-    ann1 = ImageRecognizer([20, 100, 100], ['softplus', 'softplus', 'softplus', 'softplus', 'softplus'], 0.01, 50, 3)
+    # hidden nodes in each hidden layer, activation function in each layer, learning rate, batch size, hidden layers
+    ann1 = ImageRecognizer([20, 100, 100], [Tann.softplus, Tann.softplus, Tann.softplus, Tann.softplus, Tann.softplus],
+                           0.01, 50, 3)
 
     ann1.run()
 
