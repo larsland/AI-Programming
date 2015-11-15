@@ -115,7 +115,7 @@ class ImageRecognizer:
 
     def blind_test(self, images):
         #Raw images is a list with sublist of raw_images
-        self.preprosess_images(images)
+        images = self.preprocess_images(images)
         raw_results = self.test_network(blind_test_images=images)
         results = []
         for i in range(len(raw_results)):
@@ -124,14 +124,9 @@ class ImageRecognizer:
         #Returns a list with the classifications of the images
         return results
 
-    def preprosess_images(self, feature_sets):
+    def preprocess_images(self, feature_sets):
         # Scales images to have values between 0.0 and 1.0 instead of 0 and 255
-
-        #feature_sets = list(np.asarray(feature_sets) / 255.)
-        #print(feature_sets)
-        for image in range(len(feature_sets)):
-            for value in range(len(feature_sets[image])):
-                feature_sets[image][value] = feature_sets[image][value]/float(255)
+        return np.asarray(feature_sets, dtype=theano.config.floatX) / 255.
 
     def check_result(self, result):
         count = 0
@@ -142,13 +137,13 @@ class ImageRecognizer:
         print("Correct classification:", (count/float(len(self.test_labels))) * 100)
         
     def run(self):
-        self.preprosess_images(self.images)
-        self.preprosess_images(self.test_images)
+        self.images = self.preprocess_images(self.images)
+        self.test_images = self.preprocess_images(self.test_images)
     
         errors = []
         start_time = time()
     
-        errors = self.train_network(epochs=10, errors=errors)
+        errors = self.train_network(epochs=20, errors=errors)
     
         test_labels, result = self.test_network(nr_of_testing_images=nr_of_testing_images)
         print("Total time elapsed: " + str((time() - start_time)/60) + " min")
@@ -161,9 +156,8 @@ if __name__ == '__main__':
     #ann1 = ImageRecognizer([20, 100, 100], [Tann.softplus, Tann.softplus, Tann.softplus, Tann.softplus, Tann.softplus],
     #                       0.01, 50, 3)
 
-    ann2 = ImageRecognizer([20, 100, 100], [Tann.softplus, Tann.hard_sigmoid, Tann.softplus,
-                                            Tann.softplus, Tann.softmax],
-                           0.01, 50, 3)
+    ann2 = ImageRecognizer([30], [Tann.softplus, Tann.softplus, Tann.softmax],
+                           0.01, 50, 1)
 
     ann2.run()
 
