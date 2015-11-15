@@ -134,6 +134,8 @@ class ImageRecognizer:
     def preprosess_images(self, feature_sets):
         # Scales images to have values between 0.0 and 1.0 instead of 0 and 255
 
+        #feature_sets = list(np.asarray(feature_sets) / 255.)
+        #print(feature_sets)
         for image in range(len(feature_sets)):
             for value in range(len(feature_sets[image])):
                 feature_sets[image][value] = feature_sets[image][value]/float(255)
@@ -163,14 +165,21 @@ class ImageRecognizer:
 
 if __name__ == '__main__':
     # hidden nodes in each hidden layer, activation function in each layer, learning rate, batch size, hidden layers
-    ann1 = ImageRecognizer([20, 100, 100], [Tann.softplus, Tann.softplus, Tann.softplus, Tann.softplus, Tann.softplus],
+    #ann1 = ImageRecognizer([20, 100, 100], [Tann.softplus, Tann.softplus, Tann.softplus, Tann.softplus, Tann.softplus],
+    #                       0.01, 50, 3)
+
+    ann2 = ImageRecognizer([20, 100, 100], [Tann.softplus, Tann.hard_sigmoid, Tann.softplus,
+                                            Tann.softplus, Tann.softmax],
                            0.01, 50, 3)
 
+
     bare_minimals = ImageRecognizer([30], [Tann.softplus, Tann.softplus, Tann.softmax],
-                           0.02, 50, 1)
+                           0.01, 50, 1)
 
 
     bare_minimals.run()
+
+
 
 
    
