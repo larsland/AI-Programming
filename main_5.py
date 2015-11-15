@@ -43,8 +43,6 @@ class ImageRecognizer:
 
         input_layer = Tann.softplus(T.dot(input, weights[0]))
 
-        for i in range(self.num_hidden_layers):
-
 
         hidden_layer1 = Tann.softplus(T.dot(input_layer, weights[1]))
         hidden_layer2 = Tann.sigmoid(T.dot(hidden_layer1, weights[2]))
