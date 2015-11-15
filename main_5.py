@@ -17,6 +17,7 @@ class ImageRecognizer:
         self.lrate = learning_rate
         self.batch_size = batch_size
         self.hidden_nodes = hidden_nodes
+        self.act_funcs = activation_functions
         self.num_hidden_layers = hidden_layers
 
         self.build_network()
@@ -41,14 +42,13 @@ class ImageRecognizer:
         # Weight matrix for output layer
         weights.append(theano.shared(np.random.uniform(low=-.1, high=.1, size=(self.hidden_nodes[-1], 10))))
         
-        input_layer = Tann.softplus(T.dot(input, weights[0]))
+        input_layer = self.act_funcs[0](T.dot(input, weights[0]))
         layers.append(input_layer)
 
-
         for i in range(1, self.num_hidden_layers):
-            layers.append(Tann.softplus(T.dot(layers[i-1], weights[i])))
+            layers.append(self.act_funcs[i](T.dot(layers[i-1], weights[i])))
 
-        output_layer = Tann.softplus(T.dot(layers[-1], weights[-1]))
+        output_layer = self.act_funcs[-1](T.dot(layers[-1], weights[-1]))
         layers.append(output_layer)
 
         error = T.sum(pow((target - output_layer), 2))
@@ -155,7 +155,7 @@ class ImageRecognizer:
 
 if __name__ == '__main__':
     # input nodes, hidden nodes, learning rate, batch size, hidden layers
-    ann1 = ImageRecognizer([20, 100, 100], ['softplus', 'softplus', 'softplus', 'softplus', 'softplus'], 0.01, 50, 3)
+    ann1 = ImageRecognizer([20, 100, 100], [Tann.softplus, Tann.softplus, Tann.softplus, Tann.softplus], 0.01, 50, 3)
 
     ann1.run()
 
