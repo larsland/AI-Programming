@@ -40,24 +40,23 @@ class ImageRecognizer:
 
         # Weight matrix for output layer
         weights.append(theano.shared(np.random.uniform(low=-.1, high=.1, size=(self.hidden_nodes[-1], 10))))
-
+        
         input_layer = Tann.softplus(T.dot(input, weights[0]))
+        layers.append(input_layer)
 
-        for i in range(self.num_hidden_layers):
+        for i in range(1, self.num_hidden_layers):
+            layers.append(Tann.softplus(T.dot(layers[i-1], weights[i])))
 
-
-        hidden_layer1 = Tann.softplus(T.dot(input_layer, weights[1]))
-        hidden_layer2 = Tann.sigmoid(T.dot(hidden_layer1, weights[2]))
-
-        output_layer = Tann.softplus(T.dot(hidden_layer2, weights[-1]))
+        output_layer = Tann.softplus(T.dot(layers[-1], weights[-1]))
+        layers.append(output_layer)
 
         error = T.sum(pow((target - output_layer), 2))
-        params = [weights[0], weights[1], weights[2], weights[3]]
+        params = list(weights)
         gradients = T.grad(error, params)
 
         self.train = theano.function(inputs=[input, target], outputs=error, updates=self.rms_prop(params, gradients),
                                      allow_input_downcast=True)
-        self.predict = theano.function(inputs=[input], outputs=output_layer, allow_input_downcast=True)
+        self.predict = theano.function(inputs=[input], outputs=layers[-1], allow_input_downcast=True)
 
     def rms_prop(self, params, gradients, rho=0.9, epsilon=1e-6):
         updates = []
