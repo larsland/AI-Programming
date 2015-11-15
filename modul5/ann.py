@@ -127,12 +127,17 @@ class ANN:
         preprocess_images(self.test_images)
 
         errors = []
-        start_time = time()
 
-        self.train_network(epochs=self.epochs, errors=errors)
-        self.test_network()
-
-        print("Total time elapsed: " + str('%.2f' % ((time() - start_time)/60)) + " min")
+        while True:
+            print('1: Train' + '\n' + '2: Test' + '\n' + '3: Exit')
+            key_input = int(input("Input: "))
+            if key_input == 1:
+                self.train_network(epochs=self.epochs, errors=errors)
+            elif key_input == 2:
+                self.test_network()
+            elif key_input == 3:
+                quit()
+                
 
 
 
