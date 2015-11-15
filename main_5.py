@@ -13,8 +13,8 @@ if __name__ == '__main__':
     6: number of epochs
     '''
 
-    ann1 = ANN([50], [Tann.softplus, Tann.softplus, Tann.softmax], 0.005, 50, 1, 2)
-    ann2 = ANN([100, 100], [Tann.softplus, rectify, rectify, Tann.softmax], 0.003, 50, 2, 20)
+    ann1 = ANN([50], [Tann.softplus, Tann.softplus, Tann.softmax], 0.005, 50, 1, 10)
+    ann2 = ANN([100, 100], [Tann.softplus, rectify, rectify, Tann.softmax], 0.003, 50, 2, 30)
 
     ann1.run()
     #ann2.run()
