@@ -36,7 +36,7 @@ class ANN:
             weights.append(theano.shared(np.random.uniform(low=-.1, high=.1, size=(self.hidden_nodes[i-1], self.hidden_nodes[i]))))
         weights.append(theano.shared(np.random.uniform(low=-.1, high=.1, size=(self.hidden_nodes[-1], 10))))
 
-        # Creating layers with respective activation functions
+        # Creating all layers with respective activation functions
         layers.append(self.act_funcs[0](T.dot(input, weights[0])))
         for i in range(1, self.num_hidden_layers):
             layers.append(self.act_funcs[i](T.dot(layers[i-1], weights[i])))
