@@ -68,9 +68,9 @@ class ANN:
             updates.append((p, p - self.learning_rate * g))
         return updates
 
-    def train_network(self, epochs=1, test_interval=None, errors=[]):
+    def train_network(self, errors=[]):
         starttime = time()
-        for i in range(epochs):
+        for i in range(self.epochs):
             print('-'*30 + '\n' + "epoch: " + str(i) + '\n' + '-'*30)
             error = 0
             i = 0
@@ -115,9 +115,8 @@ class ANN:
         labels = []
 
         for i in range(len(feature_sets)):
-            label = np.argmax(self.predict([feature_sets[i]]).tolist())
+            label = np.argmax(self.predict([feature_sets[i]])).tolist()
             labels.append(label)
-
         return labels
 
     def check_result(self, result):
@@ -127,9 +126,6 @@ class ANN:
             if b:
                 count += 1
         print("Correct classification:", '%.5f' % ((count/float(len(self.test_labels))) * 100))
-
-
-
 
     def run(self):
         self.images = preprocess_images(self.images)
@@ -141,7 +137,7 @@ class ANN:
             print('-'*30 + '\n' + '1: Train' + '\n' + '2: Test' + '\n' + '3: Blind Test' + '\n' + '4: Exit' + '\n' + '-'*30)
             key_input = int(input("Input: "))
             if key_input == 1:
-                errors = self.train_network(epochs=self.epochs, errors=errors)
+                errors = self.train_network(errors=errors)
             elif key_input == 2:
                 self.test_network()
             elif key_input == 3:
