@@ -1,4 +1,4 @@
-from modul5.mnist_basics import *
+from modul5.basics.mnist_basics import *
 from time import time
 import theano
 import numpy as np
@@ -11,7 +11,7 @@ input_nodes = 784
 
 
 class ANN:
-    def __init__(self, hidden_nodes, activation_functions, learning_rate, batch_size, hidden_layers, epochs):
+    def __init__(self, hidden_nodes, activation_functions, learning_rate, batch_size, hidden_layers, epochs, error_func):
         self.images, self.labels = gen_flat_cases(nr_of_training_images)
         self.test_images, self.test_labels = gen_flat_cases(nr_of_testing_images, type="testing")
         self.learning_rate = learning_rate
@@ -20,6 +20,7 @@ class ANN:
         self.act_funcs = activation_functions
         self.num_hidden_layers = hidden_layers
         self.epochs = epochs
+        self.error_func = error_func
 
         self.build_network()
 
@@ -29,23 +30,30 @@ class ANN:
         weights = []
         layers = []
 
+        # Setting weights for each layer
         weights.append(theano.shared(np.random.uniform(low=-.1, high=.1, size=(input_nodes, self.hidden_nodes[0]))))
         for i in range(1, self.num_hidden_layers):
             weights.append(theano.shared(np.random.uniform(low=-.1, high=.1, size=(self.hidden_nodes[i-1], self.hidden_nodes[i]))))
         weights.append(theano.shared(np.random.uniform(low=-.1, high=.1, size=(self.hidden_nodes[-1], 10))))
 
+        # Creating layers with respective activation functions
         layers.append(self.act_funcs[0](T.dot(input, weights[0])))
-
         for i in range(1, self.num_hidden_layers):
             layers.append(self.act_funcs[i](T.dot(layers[i-1], weights[i])))
-
         layers.append(self.act_funcs[-1](T.dot(layers[-1], weights[-1])))
 
-        error = T.sum(pow((target - layers[-1]), 2))
-        params = list(weights)
-        gradients = T.grad(error, params)
+        # Choosing error function
+        if self.error_func == 'sum':
+            error_function = T.sum(pow((target - layers[-1]), 2))
+        elif self.error_func == 'mean':
+            error_function = T.mean(T.nnet.categorical_crossentropy(layers[-1], target))
+        else:
+            error_function = None
 
-        self.train = theano.function(inputs=[input, target], outputs=error, updates=self.rms_prop(params, gradients),
+        params = list(weights)
+        gradients = T.grad(error_function, params)
+
+        self.train = theano.function(inputs=[input, target], outputs=error_function, updates=self.rms_prop(params, gradients),
                                      allow_input_downcast=True)
         self.predict = theano.function(inputs=[input], outputs=layers[-1], allow_input_downcast=True)
 
@@ -63,7 +71,7 @@ class ANN:
     def train_network(self, epochs=1, test_interval=None, errors=[]):
         starttime = time()
         for i in range(epochs):
-            print("epoch: ", i)
+            print('-'*30 + '\n' + "epoch: " + str(i) + '\n' + '-'*30)
             error = 0
             i = 0
             j = self.batch_size
@@ -78,7 +86,7 @@ class ANN:
                 if j % (self.batch_size * 100) == 0:
                     print("image nr: ", j)
                 error += self.train(image_group, result_group)
-            print("Avg error per image: " + str('%.5f' % (error/j)))
+            print("(average error per image: " + str('%.5f' % (error/j)) + ')')
             errors.append(error)
         print("Training time: " + str('%.2f' % (time() - starttime) + " sec"))
         return errors
@@ -102,16 +110,15 @@ class ANN:
         self.check_result(hidden_activations)
         return self.test_labels, hidden_activations
 
-    def blind_test(self, images):
-        # Raw images is a list with sublist of raw_images
-        preprocess_images(images)
-        raw_results = self.test_network(blind_test_images=images)
-        results = []
-        for i in range(len(raw_results)):
-            highest_value = int(np.where(raw_results[i] == max(raw_results[i]))[0][0])
-            results.append(highest_value)
-        # Returns a list with the classifications of the images
-        return results
+    def blind_test(self, feature_sets):
+        feature_sets = preprocess_images(feature_sets)
+        labels = []
+
+        for i in range(len(feature_sets)):
+            label = np.argmax(self.predict([feature_sets[i]]).tolist())
+            labels.append(label)
+
+        return labels
 
     def check_result(self, result):
         count = 0
@@ -121,20 +128,25 @@ class ANN:
                 count += 1
         print("Correct classification:", '%.5f' % ((count/float(len(self.test_labels))) * 100))
 
+
+
+
     def run(self):
-        preprocess_images(self.images)
-        preprocess_images(self.test_images)
+        self.images = preprocess_images(self.images)
+        self.test_images = preprocess_images(self.test_images)
 
         errors = []
 
         while True:
-            print('1: Train' + '\n' + '2: Test' + '\n' + '3: Exit')
+            print('-'*30 + '\n' + '1: Train' + '\n' + '2: Test' + '\n' + '3: Blind Test' + '\n' + '4: Exit' + '\n' + '-'*30)
             key_input = int(input("Input: "))
             if key_input == 1:
-                self.train_network(epochs=self.epochs, errors=errors)
+                errors = self.train_network(epochs=self.epochs, errors=errors)
             elif key_input == 2:
                 self.test_network()
             elif key_input == 3:
+                minor_demo(self)
+            elif key_input == 4:
                 quit()
 
 
