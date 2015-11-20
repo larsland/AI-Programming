@@ -3,7 +3,7 @@ from time import time
 import theano
 import numpy as np
 import theano.tensor as T
-from modul5.utils import preprocess_images
+from modul5.utils import scale_images
 
 nr_of_training_images = 60000
 nr_of_testing_images = 10000
@@ -68,8 +68,8 @@ class ANN:
             updates.append((p, p - self.learning_rate * g))
         return updates
 
-    def train_network(self, errors=[]):
-        starttime = time()
+    def train_network(self, errors):
+        start_time = time()
         for i in range(self.epochs):
             print('-'*30 + '\n' + "epoch: " + str(i) + '\n' + '-'*30)
             error = 0
@@ -88,14 +88,17 @@ class ANN:
                 error += self.train(image_group, result_group)
             print("(average error per image: " + str('%.5f' % (error/j)) + ')')
             errors.append(error)
-        print("Training time: " + str('%.2f' % (time() - starttime) + " sec"))
+        print("Training time: " + str('%.2f' % (time() - start_time) + " sec"))
         return errors
 
-    def test_network(self, blind_test_images=None):
-        if blind_test_images is not None:
-            self.test_images = blind_test_images
-            self.test_labels = None
+    def test_network(self):
+        labels = []
+        for i in range(len(self.test_images)):
+            label = self.predict([self.test_images[i]])
+            labels.append(label)
+        self.check_result(labels)
 
+        '''
         hidden_activations = []
         i = 0
         j = self.batch_size
@@ -108,10 +111,10 @@ class ANN:
                 hidden_activations.append(res)
 
         self.check_result(hidden_activations)
-        return self.test_labels, hidden_activations
+        '''
 
     def blind_test(self, feature_sets):
-        feature_sets = preprocess_images(feature_sets)
+        feature_sets = scale_images(feature_sets)
         labels = []
 
         for i in range(len(feature_sets)):
@@ -128,22 +131,24 @@ class ANN:
         print("Correct classification:", '%.5f' % ((count/float(len(self.test_labels))) * 100))
 
     def run(self):
-        self.images = preprocess_images(self.images)
-        self.test_images = preprocess_images(self.test_images)
+        self.images = scale_images(self.images)
+        self.test_images = scale_images(self.test_images)
 
         errors = []
 
         while True:
-            print('-'*30 + '\n' + '1: Train' + '\n' + '2: Test' + '\n' + '3: Blind Test' + '\n' + '4: Exit' + '\n' + '-'*30)
+            print('-'*30 + '\n' + '1: Train' + '\n' + '2: Test' + '\n' +
+                  '3: Blind Test' + '\n' + '4: Exit' + '\n' + '-'*30)
+
             key_input = int(input("Input: "))
             if key_input == 1:
-                errors = self.train_network(errors=errors)
+                errors = self.train_network(errors)
             elif key_input == 2:
                 self.test_network()
             elif key_input == 3:
                 minor_demo(self)
             elif key_input == 4:
-                quit()
+                quit(0)
 
 
 
