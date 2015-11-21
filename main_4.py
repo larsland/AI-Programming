@@ -23,6 +23,8 @@ if __name__ == '__main__':
         while actions:
             timer = '%.2f' % (time.time() - t1)
             app.update_view(state, score, timer)
+            thing = np.array(state).flatten().tolist()
+            print(thing)
             prev = state
             _, state = expectimax_top(g, state)
 
