@@ -1,10 +1,10 @@
 import theano.tensor as T
+import theano
+import numpy as np
 
 
-def preprocess_images(feature_sets):
-    for image in range(len(feature_sets)):
-            for value in range(len(feature_sets[image])):
-                feature_sets[image][value] = feature_sets[image][value]/float(255)
+def scale_images(feature_sets):
+    return np.asarray(feature_sets, dtype=theano.config.floatX) / 255.
 
 
 def rectify(x):
