@@ -1,5 +1,6 @@
 from modul5.ann import ANN
 import theano.tensor.nnet as Tann
+
 from modul5.utils import rectify
 
 if __name__ == '__main__':
