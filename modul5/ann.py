@@ -100,6 +100,18 @@ class ANN:
                 count += 1
         print("Correct classification:", '%.5f' % ((count/float(len(self.test_labels))) * 100))
 
+    def test_on_training_images(self):
+        labels = []
+        count = 0
+        for i in range(len(self.images)):
+            label = self.predict([self.images[i]])
+            labels.append(label)
+        for i in range(len(labels)):
+            b = int(self.test_labels[i]) == np.argmax(labels[i])
+            if b:
+                count += 1
+        print("Correct classification:", '%.5f' % ((count/float(len(self.test_labels))) * 100))
+
     def blind_test(self, feature_sets):
         feature_sets = scale_images(feature_sets)
         labels = []
@@ -115,16 +127,18 @@ class ANN:
         errors = []
 
         while True:
-            print('-'*35 + '\n' + '1: Train' + '\n' + '2: Test' + '\n' +
-                  '3: Blind Test' + '\n' + '4: Exit' + '\n' + '-'*35)
+            print('-'*35 + '\n' + '1: Train' + '\n' + '2: Test on testing images' + '\n' +
+                  '3: Test on training images' + '\n' + '4: Blind Test' + '\n' + '5: Exit' + '\n' + '-'*35)
             key_input = int(input("Input: "))
             if key_input == 1:
                 errors = self.train_network(errors)
             elif key_input == 2:
                 self.test_on_testing_images()
             elif key_input == 3:
-                minor_demo(self)
+                self.test_on_training_images()
             elif key_input == 4:
+                minor_demo(self)
+            elif key_input == 5:
                 quit(0)
 
 
