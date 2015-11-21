@@ -1,5 +1,4 @@
 from modul5.basics.mnist_basics import *
-from time import time
 import theano
 import numpy as np
 import theano.tensor as T
@@ -69,9 +68,8 @@ class ANN:
         return updates
 
     def train_network(self, errors):
-        start_time = time()
         for i in range(self.epochs):
-            print('-'*30 + '\n' + "epoch: " + str(i) + '\n' + '-'*30)
+            print('-'*35 + '\n' + "epoch: " + str(i) + '\n' + '-'*35)
             error = 0
             i = 0
             j = self.batch_size
@@ -88,7 +86,6 @@ class ANN:
                 error += self.train(image_group, result_group)
             print("(average error per image: " + str('%.5f' % (error/j)) + ')')
             errors.append(error)
-        print("Training time: " + str('%.2f' % (time() - start_time) + " sec"))
         return errors
 
     def test_on_testing_images(self):
@@ -118,8 +115,8 @@ class ANN:
         errors = []
 
         while True:
-            print('-'*30 + '\n' + '1: Train' + '\n' + '2: Test' + '\n' +
-                  '3: Blind Test' + '\n' + '4: Exit' + '\n' + '-'*30)
+            print('-'*35 + '\n' + '1: Train' + '\n' + '2: Test' + '\n' +
+                  '3: Blind Test' + '\n' + '4: Exit' + '\n' + '-'*35)
             key_input = int(input("Input: "))
             if key_input == 1:
                 errors = self.train_network(errors)
