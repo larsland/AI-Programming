@@ -10,7 +10,7 @@ input_nodes = 784
 
 
 class ANN:
-    def __init__(self, cases, test_cases, hidden_nodes, activation_functions, learning_rate, batch_size, hidden_layers, epochs, error_func):
+    def __init__(self, nn, cases, test_cases, hidden_nodes, activation_functions, learning_rate, batch_size, hidden_layers, epochs, error_func):
         self.images, self.labels = cases
         self.test_images, self.test_labels = test_cases
         self.learning_rate = learning_rate
@@ -20,6 +20,7 @@ class ANN:
         self.num_hidden_layers = hidden_layers
         self.epochs = epochs
         self.error_func = error_func
+        self.net_number = nn
 
         self.build_network()
 
@@ -70,6 +71,7 @@ class ANN:
         return updates
 
     def train_network(self, errors):
+        target = open("stats" + str(self.net_number) + '.txt', 'w')
         for i in range(self.epochs):
             print('-'*35 + '\n' + "epoch: " + str(i) + '\n' + '-'*35)
             error = 0
@@ -88,7 +90,16 @@ class ANN:
                 error += self.train(image_group, result_group)
             print("(average error per image: " + str('%.5f' % (error/j)) + ')')
             errors.append(error)
-        return errors
+            #self.write_results(target)
+
+    def write_results(self, target):
+        res_train = self.test_on_training_images()
+        res_test = self.test_on_testing_images()
+        target.write(str(res_train))
+        target.write('\n')
+        target.write(str(res_test))
+        target.write('\n')
+        target.write('\n')
 
     def test_on_testing_images(self):
         labels = []
@@ -100,7 +111,8 @@ class ANN:
             b = int(self.test_labels[i]) == np.argmax(labels[i])
             if b:
                 count += 1
-        print("Correct classification:", '%.5f' % ((count/float(len(self.test_labels))) * 100))
+        print("Correct classification on testing images:", '%.5f' % ((count/float(len(self.test_labels))) * 100))
+        return('%.5f' % ((count/float(len(self.test_labels))) * 100))
 
     def test_on_training_images(self):
         labels = []
@@ -112,7 +124,8 @@ class ANN:
             b = int(self.labels[i] == np.argmax(labels[i]))
             if b:
                 count += 1
-        print("Correct classification:", '%.5f' % ((count/float(len(self.labels))) * 100))
+        print("Correct classification on training images:", '%.5f' % ((count/float(len(self.labels))) * 100))
+        return('%.5f' % ((count/float(len(self.labels))) * 100))
 
     def blind_test(self, feature_sets):
         feature_sets = scale_images(feature_sets)
@@ -133,7 +146,7 @@ class ANN:
                   '3: Test on training images' + '\n' + '4: Blind Test' + '\n' + '5: Exit' + '\n' + '-'*35)
             key_input = int(input("Input: "))
             if key_input == 1:
-                errors = self.train_network(errors)
+                self.train_network(errors)
             elif key_input == 2:
                 self.test_on_testing_images()
             elif key_input == 3:
