@@ -41,11 +41,10 @@ def read_2048_file(file_path):
         yield block
 
 
-if __name__ == '__main__':
+def write_training_data(in_file, out_file):
     errors = 0
-    # ann2 = ANN(cases, test_cases, [535], [Tann.softplus, Tann.softplus, Tann.softmax], 0.001, 100, 1, 10, 'mean')
-    with open('modul6/training_data.txt', 'w') as testorama:
-        for block in read_2048_file('modul6/wut.txt'):
+    with open(out_file, 'w') as testorama:
+        for block in read_2048_file(in_file):
             try:
                 line = '%s, %i, %s\n' % (block['board'], block['move'], block['score'])
                 testorama.write(line)
@@ -54,3 +53,10 @@ if __name__ == '__main__':
                 pass
 
         print("experienced %s errors" % errors)
+
+if __name__ == '__main__':
+    # write_training_data('modul6/wut.txt', 'modul6/training_data.txt', )
+
+
+    # ann2 = ANN(cases, test_cases, [535], [Tann.softplus, Tann.softplus, Tann.softmax], 0.001, 100, 1, 10, 'mean')
+
