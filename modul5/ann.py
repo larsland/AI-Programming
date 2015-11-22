@@ -2,7 +2,8 @@ from modul5.basics.mnist_basics import *
 import theano
 import numpy as np
 import theano.tensor as T
-from modul5.utils import scale_images
+import math
+from modul5.utils import scale_images, rectify
 
 nr_of_training_images = 60000
 nr_of_testing_images = 10000

@@ -5,10 +5,12 @@ import numpy as np
 import time
 
 from modul6.ann import ANN
+import theano.tensor as tensor
 import theano.tensor.nnet as Tann
 from modul4 import gamelogic as game
 from modul4.gui import GameWindow
 from modul4.adversial import *
+from modul5.utils import rectify
 
 
 def read_2048_file(file_path):
@@ -64,13 +66,13 @@ def write_training_data(in_file, out_file):
 
 if __name__ == '__main__':
     states, labels, scores = [], [], []
-    with open('modul6/training_data.txt') as training_file:
+    with open('modul6/training_set.txt') as training_file:
         for line in training_file:
             data = eval(line)
             states.append(np.asarray(data[0]))
             labels.append(data[1])
             scores.append(data[2])
-    ann = ANN(states, labels, scores, [535], [Tann.softplus, Tann.softplus, Tann.softmax], 0.001, 100, 1, 5, 'sum')
+    ann = ANN(states, labels, scores, [400], [tensor.tanh, Tann.sigmoid, rectify, Tann.softmax], 0.001, 1, 1, 5, 'sum')
     ann.run()
 
     g = game._2048()
@@ -102,7 +104,8 @@ if __name__ == '__main__':
         move = ann.predict_move(np.asarray(state).flatten().tolist())
         state = g.my_move(state, sic_dic[move])
 
-        app.update_view(state, score, timer)
+        # app.update_view(state, score, timer)
+        print(state)
 
         print("MOVE: ", move)
 
@@ -112,12 +115,12 @@ if __name__ == '__main__':
                 score += 1 << i
         state = g.adv_move(state)
 
-        app.update_view(state, score, timer)
+        # app.update_view(state, score, timer)
 
         actions = list(g.actions(state))
     print(state, timer)
 
-    app.update_view(state, score, 0)
-    app.game_over_screen()
-    time.sleep(3)
+    # app.update_view(state, score, 0)
+    # app.game_over_screen()
+    # time.sleep(3)
 

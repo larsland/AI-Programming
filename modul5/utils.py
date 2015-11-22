@@ -1,6 +1,7 @@
 import theano.tensor as T
 import theano
 import numpy as np
+import math
 
 
 def scale_images(feature_sets):
