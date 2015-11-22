@@ -90,15 +90,16 @@ class ANN:
                 error += self.train(image_group, result_group)
             print("(average error per image: " + str('%.5f' % (error/j)) + ')')
             errors.append(error)
-            #self.write_results(target)
+            self.write_results(target)
+        target.close()
 
     def write_results(self, target):
-        res_train = self.test_on_training_images()
+        # res_train = self.test_on_training_images()
         res_test = self.test_on_testing_images()
-        target.write(str(res_train))
-        target.write('\n')
+        # target.write(str(res_train))
+        # target.write('\n')
         target.write(str(res_test))
-        target.write('\n')
+        # target.write('\n')
         target.write('\n')
 
     def test_on_testing_images(self):
@@ -141,6 +142,8 @@ class ANN:
         self.test_images = scale_images(self.test_images)
         errors = []
 
+        self.train_network(errors)
+        '''
         while True:
             print('-'*35 + '\n' + '1: Train' + '\n' + '2: Test on testing images' + '\n' +
                   '3: Test on training images' + '\n' + '4: Blind Test' + '\n' + '5: Exit' + '\n' + '-'*35)
@@ -155,6 +158,7 @@ class ANN:
                 minor_demo(self)
             elif key_input == 5:
                 quit(0)
+        '''
 
 
 

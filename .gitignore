@@ -4,6 +4,7 @@ modul5/mnist.pkl.gz
 
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio
 *.iml
+*.txt
 
 ## Directory-based project format:
 .idea/

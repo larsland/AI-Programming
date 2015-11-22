@@ -1,23 +1,19 @@
-from modul5.ann import ANN
-import theano.tensor.nnet as Tann
-from modul5.basics.mnist_basics import *
-
-from modul5.utils import rectify
-import copy
-from modul5.ann import *
 import math
 import numpy as np
+import json
 
 
 def read_2048_file(file_path):
     data = []
-    with open('modul6/mini.txt') as mini:
+    with open(file_path) as mini:
+        i = 0
         block = {}
         block['board'] = []
         for line in mini:
             if line.find('Move') == 0:
+                i += 1
                 if block != {'board': []}:
-                    block['board'] = np.array(block['board']).flatten()
+                    block['board'] = np.array(block['board']).flatten().tolist()
                     yield block
                     block = {}
                 block['board'] = []
@@ -41,12 +37,17 @@ def read_2048_file(file_path):
                     if item != '':
                         block['move'] = int(item)
 
-        block['board'] = np.array(block['board']).flatten()
+        block['board'] = np.array(block['board']).flatten().tolist()
         yield block
 
 
 if __name__ == '__main__':
 
-    #ann2 = ANN(cases, test_cases, [535], [Tann.softplus, Tann.softplus, Tann.softmax], 0.001, 100, 1, 10, 'mean')
-    for block in read_2048_file('modul6/mini.txt'):
-        print(block)
+    # ann2 = ANN(cases, test_cases, [535], [Tann.softplus, Tann.softplus, Tann.softmax], 0.001, 100, 1, 10, 'mean')
+    with open('modul6/training_data.txt', 'w') as testorama:
+        for block in read_2048_file('modul6/wut.txt'):
+            try:
+                line = '%s, %i, %s\n' % (block['board'], block['move'], block['score'])
+                testorama.write(line)
+            except KeyError:
+                pass
