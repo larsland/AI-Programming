@@ -30,7 +30,7 @@ class ANN:
         weights.append(theano.shared(np.random.uniform(low=-.1, high=.1, size=(input_nodes, self.hidden_nodes[0]))))
         for i in range(1, self.num_hidden_layers):
             weights.append(theano.shared(np.random.uniform(low=-.1, high=.1, size=(self.hidden_nodes[i-1], self.hidden_nodes[i]))))
-        weights.append(theano.shared(np.random.uniform(low=-.1, high=.1, size=(self.hidden_nodes[-1], 10))))
+        weights.append(theano.shared(np.random.uniform(low=-.1, high=.1, size=(self.hidden_nodes[-1], 4))))
 
         # Creating all layers with respective activation functions
         layers.append(self.act_funcs[0](T.dot(input, weights[0])))
@@ -74,7 +74,7 @@ class ANN:
             j = self.batch_size
             while j < len(self.states):
                 state_batch = self.states[i:j]
-                label_batch = [[0 for i in range(10)] for i in range(self.batch_size)]
+                label_batch = [[0 for i in range(4)] for i in range(self.batch_size)]
                 for k in range(self.batch_size):
                     label_index = self.labels[i + k]
                     label_batch[k][label_index] = 1
@@ -84,7 +84,6 @@ class ANN:
                     print("image nr: ", j)
                 error += self.train(state_batch, label_batch)
             print("(average error per image: " + str('%.5f' % (error/j)) + ')')
-
 
     def test_on_training_states(self):
         labels = []
@@ -101,6 +100,10 @@ class ANN:
 
     def predict_move(self, state):
         return np.argmax(self.predict([state]))
+
+    def predict_next_move(self, state):
+        return self.predict([state])
+
 
 
     def run(self):

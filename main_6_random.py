@@ -63,47 +63,16 @@ def write_training_data(in_file, out_file):
 
         print("experienced %s errors" % errors)
 
-La = []
-Lr = []
+tile_list = []
 
 
-def add_highest_tile(state, turn):
+def add_highest_tile(state):
     highest_tile = max(np.asarray(state).flatten().tolist())
-    if turn == 'player':
-        La.append(2**highest_tile)
-    elif turn == 'random':
-        Lr.append(2**highest_tile)
+    tile_list.append(2**highest_tile)
 
 
-'''
 def get_avarage_tile():
-    return sum(player_tile_list)/float(len(player_tile_list))
-'''
-
-def play_random():
-    g = game._2048()
-    g.initial = g.adv_move(g.initial)
-    g.initial = g.adv_move(g.initial)
-    state = g.initial
-
-    actions = list(g.actions(state))
-
-
-    for i in range(50):
-        state = g.initial
-        actions = list(g.actions(state))
-        while actions:
-            move = randint(0, 3)
-            state = g.my_move(state, move)
-            print(state)
-            state = g.adv_move(state)
-            print(state)
-            actions = list(g.actions(state))
-
-        add_highest_tile(state, "random")
-    print(welch(Lr, La))
-
-
+    return sum(tile_list)/float(len(tile_list))
 
 if __name__ == '__main__':
     states, labels, scores = [], [], []
@@ -139,49 +108,16 @@ if __name__ == '__main__':
         state = g.initial
         actions = list(g.actions(state))
         while actions:
-            timer = '%.2f' % (time.time() - t1)
-            prev = state
-
-            move = ann.predict_move(np.asarray(state).flatten().tolist())
-            next_move = ann.predict_next_move(np.asarray(state).flatten().tolist())
-
-            move_two = sorted(list(next_move[0])).index(sorted(list(next_move[0]))[-2])
-            move_three = sorted(list(next_move[0])).index(sorted(list(next_move[0]))[-3])
-            move_four = sorted(list(next_move[0])).index(sorted(list(next_move[0]))[-4])
-
-            current_state = np.copy(state)
-            next_state = g.my_move(current_state, sic_dic[move])
-            next_state_two = g.my_move(current_state, sic_dic[move_two])
-            next_state_three = g.my_move(current_state, sic_dic[move_three])
-            next_state_four = g.my_move(current_state, sic_dic[move_four])
-
-            if not np.array_equal(current_state, next_state):
-                state = g.my_move(state, sic_dic[move])
-            elif not np.array_equal(current_state, next_state_two):
-                state = g.my_move(state, sic_dic[move_two])
-            elif not np.array_equal(current_state, next_state_three):
-                state = g.my_move(state, sic_dic[move_three])
-            else:
-                state = g.my_move(state, sic_dic[move_four])
-
-            app.update_view(state, score, timer)
-
-            prev_diff = np.setdiff1d(prev.reshape(-1), state.reshape(-1))
-            if prev_diff.size:
-                for i in prev_diff:
-                    score += 1 << i
-
+            move = randint(0, 3)
+            state = g.my_move(state, sic_dic[move])
+            print(state)
             state = g.adv_move(state)
-            app.update_view(state, score, timer)
-
+            print(state)
             actions = list(g.actions(state))
 
-        add_highest_tile(state, "player")
-
-    play_random()
-
-
-
+        add_highest_tile(state)
+    print(get_avarage_tile())
+    time.sleep(3)
 
 
 

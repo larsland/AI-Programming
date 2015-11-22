@@ -98,7 +98,6 @@ class _2048:
 
     def terminal_test(self, state):
         actions = self.actions(state)
-
         return not actions
 
     def distributed_tile(self):
