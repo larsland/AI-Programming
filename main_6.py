@@ -42,7 +42,7 @@ def read_2048_file(file_path):
 
 
 if __name__ == '__main__':
-
+    errors = 0
     # ann2 = ANN(cases, test_cases, [535], [Tann.softplus, Tann.softplus, Tann.softmax], 0.001, 100, 1, 10, 'mean')
     with open('modul6/training_data.txt', 'w') as testorama:
         for block in read_2048_file('modul6/wut.txt'):
@@ -50,4 +50,7 @@ if __name__ == '__main__':
                 line = '%s, %i, %s\n' % (block['board'], block['move'], block['score'])
                 testorama.write(line)
             except KeyError:
+                errors += 1
                 pass
+
+        print("experienced %s errors" % errors)
