@@ -55,8 +55,15 @@ def write_training_data(in_file, out_file):
         print("experienced %s errors" % errors)
 
 if __name__ == '__main__':
-    # write_training_data('modul6/wut.txt', 'modul6/training_data.txt', )
+    states, labels, scores = [], [], []
+    with open('modul6/training_data.txt') as training_file:
+        for line in training_file:
+            data = eval(line)
+            states.append(data[0])
+            labels.append(data[1])
+            scores.append(data[2])
 
+        print(labels)
 
     # ann2 = ANN(cases, test_cases, [535], [Tann.softplus, Tann.softplus, Tann.softmax], 0.001, 100, 1, 10, 'mean')
 
