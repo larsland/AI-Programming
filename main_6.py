@@ -42,9 +42,6 @@ def read_2048_file(file_path):
         yield block
 
 
-
-
-
 def write_training_data(in_file, out_file):
     errors = 0
     with open(out_file, 'w') as testorama:
@@ -59,28 +56,5 @@ def write_training_data(in_file, out_file):
         print("experienced %s errors" % errors)
 
 if __name__ == '__main__':
-
-
-    data = []
-    file = open("modul6/training_data.txt", 'r')
-
-    for line in file:
-        data.append(line[0])
-
-
-    for i in data:
-        print(i)
-
-    states, labels, scores = [], [], []
-    with open('modul6/training_data.txt') as training_file:
-        for line in training_file:
-            data = eval(line)
-            states.append(data[0])
-            labels.append(data[1])
-            scores.append(data[2])
-
-        print(labels)
-
-
-    #ann = ANN([535], [Tann.softplus, Tann.softplus, Tann.softmax], 0.001, 100, 1, 10, 'mean')
+    write_training_data('modul6/wut.txt', 'modul6/training_data.txt')
 
