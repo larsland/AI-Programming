@@ -1,11 +1,15 @@
 import theano
 import numpy as np
 import theano.tensor as T
+from modul4 import *
 
 input_nodes = 16
 
 class ANN:
-    def __init__(self, hidden_nodes, activation_functions, learning_rate, batch_size, hidden_layers, epochs, error_func):
+    def __init__(self, states, labels, scores, hidden_nodes, activation_functions, learning_rate, batch_size, hidden_layers, epochs, error_func):
+        self.states = states
+        self.labels = labels
+        self.scores = scores
         self.learning_rate = learning_rate
         self.batch_size = batch_size
         self.hidden_nodes = hidden_nodes
@@ -68,21 +72,44 @@ class ANN:
             error = 0
             i = 0
             j = self.batch_size
-            while j < len(60000):
-                image_group = self.images[i:j]
-                result_group = [[0 for i in range(10)] for i in range(self.batch_size)]
+            while j < len(self.states):
+                state_batch = self.states[i:j]
+                label_batch = [[0 for i in range(10)] for i in range(self.batch_size)]
                 for k in range(self.batch_size):
                     label_index = self.labels[i + k]
-                    result_group[k][label_index] = 1
+                    label_batch[k][label_index] = 1
                 i += self.batch_size
                 j += self.batch_size
                 if j % (self.batch_size * 100) == 0:
                     print("image nr: ", j)
-                error += self.train(image_group, result_group)
+                error += self.train(state_batch, label_batch)
             print("(average error per image: " + str('%.5f' % (error/j)) + ')')
+
+
+    def test_on_training_states(self):
+        labels = []
+        count = 0
+        for i in range(len(self.states)):
+            label = self.predict([self.states[i]])
+            labels.append(label)
+        for i in range(len(labels)):
+            b = int(self.labels[i] == np.argmax(labels[i]))
+            if b:
+                count += 1
+        print("Correct classification on training images:", '%.5f' % ((count/float(len(self.labels))) * 100))
+        return('%.5f' % ((count/float(len(self.labels))) * 100))
+
+    def predict_move(self, state):
+        return np.argmax(self.predict([state]))
+
 
     def run(self):
         self.train_network()
+        self.test_on_training_states()
+
+
+
+
 
 
 
