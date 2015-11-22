@@ -10,9 +10,9 @@ input_nodes = 784
 
 
 class ANN:
-    def __init__(self, hidden_nodes, activation_functions, learning_rate, batch_size, hidden_layers, epochs, error_func):
-        self.images, self.labels = gen_flat_cases(nr_of_training_images)
-        self.test_images, self.test_labels = gen_flat_cases(nr_of_testing_images, type="testing")
+    def __init__(self, cases, test_cases, hidden_nodes, activation_functions, learning_rate, batch_size, hidden_layers, epochs, error_func):
+        self.images, self.labels = cases
+        self.test_images, self.test_labels = test_cases
         self.learning_rate = learning_rate
         self.batch_size = batch_size
         self.hidden_nodes = hidden_nodes
@@ -48,6 +48,8 @@ class ANN:
             error_function = T.mean(T.nnet.categorical_crossentropy(layers[-1], target))
         else:
             error_function = None
+
+
 
         params = list(weights)
         gradients = T.grad(error_function, params)
