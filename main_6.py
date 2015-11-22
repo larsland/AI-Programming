@@ -20,7 +20,7 @@ if __name__ == '__main__':
     test_cases = gen_flat_cases(10000, type="testing")
 
     #ann1 = ANN(cases, test_cases, [170], [Tann.softplus, Tann.softplus, Tann.softmax], 0.002, 50, 1, 50, 'sum')
-    ann2 = ANN(cases, test_cases, [535], [Tann.softplus, Tann.softplus, Tann.softmax], 0.001, 100, 1, 10, 'mean')
+    ann2 = ANN(cases, test_cases, [784], [Tann.softplus, Tann.softplus, Tann.softmax], 0.001, 100, 1, 10, 'mean')
     #ann3 = ANN(cases, test_cases, [50, 50], [rectify, rectify, rectify, Tann.softmax], 0.01, 100, 2, 5, 'sum')
     #ann4 = ANN(cases, test_cases, [200], [rectify, Tann.sigmoid, Tann.sigmoid], 0.001, 50, 1, 5, 'sum')
     #ann5 = ANN(cases, test_cases, [30, 40, 50], [Tann.softplus, Tann.softplus, Tann.softplus, Tann.softplus, Tann.softplus], 0.01, 50, 3, 10, 'sum')
