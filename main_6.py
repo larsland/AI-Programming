@@ -60,6 +60,7 @@ def write_training_data(in_file, out_file):
 
 if __name__ == '__main__':
 
+
     data = []
     file = open("modul6/training_data.txt", 'r')
 
@@ -69,6 +70,17 @@ if __name__ == '__main__':
 
     for i in data:
         print(i)
+
+    states, labels, scores = [], [], []
+    with open('modul6/training_data.txt') as training_file:
+        for line in training_file:
+            data = eval(line)
+            states.append(data[0])
+            labels.append(data[1])
+            scores.append(data[2])
+
+        print(labels)
+
 
     #ann = ANN([535], [Tann.softplus, Tann.softplus, Tann.softmax], 0.001, 100, 1, 10, 'mean')
 
