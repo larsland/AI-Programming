@@ -100,6 +100,18 @@ class ANN:
                 count += 1
         print("Correct classification:", '%.5f' % ((count/float(len(self.test_labels))) * 100))
 
+    def test_on_training_images(self):
+        labels = []
+        count = 0
+        for i in range(len(self.images)):
+            label = self.predict([self.images[i]])
+            labels.append(label)
+        for i in range(len(labels)):
+            b = int(self.labels[i] == np.argmax(labels[i]))
+            if b:
+                count += 1
+        print("Correct classification:", '%.5f' % ((count/float(len(self.labels))) * 100))
+
     def blind_test(self, feature_sets):
         feature_sets = scale_images(feature_sets)
         labels = []
