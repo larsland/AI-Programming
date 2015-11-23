@@ -11,14 +11,14 @@ input_nodes = 784
 
 
 class ANN:
-    def __init__(self, nn, cases, test_cases, hidden_nodes, activation_functions, learning_rate, batch_size, hidden_layers, epochs, error_func):
+    def __init__(self, nn, cases, test_cases, hidden_nodes, activation_functions, learning_rate, batch_size, epochs, error_func):
         self.images, self.labels = cases
         self.test_images, self.test_labels = test_cases
         self.learning_rate = learning_rate
         self.batch_size = batch_size
         self.hidden_nodes = hidden_nodes
         self.act_funcs = activation_functions
-        self.num_hidden_layers = hidden_layers
+        self.num_hidden_layers = len(activation_functions) - 2
         self.epochs = epochs
         self.error_func = error_func
         self.net_number = nn

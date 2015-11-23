@@ -179,13 +179,13 @@ if __name__ == '__main__':
 
         states = normalize_states(states)
 
-    ann = ANN(states, labels, scores, [300], [tensor.tanh, tensor.tanh, Tann.softmax], 0.0001, 50, 1, 5, 'mean')
-    #ann = ANN(states, labels, scores, [400, 400, 400], [rectify, rectify, rectify, rectify, Tann.softmax], 0.01, 20, 3, 10, 'mean')
+    ann = ANN(states, labels, scores, [300], [tensor.tanh, tensor.tanh, Tann.softmax], 0.0001, 50, 5, 'mean')
+    #ann = ANN(states, labels, scores, [400, 400, 400], [rectify, rectify, rectify, rectify, Tann.softmax], 0.01, 20, 10, 'mean')
 
 
-    #ann = ANN(states, labels, scores, [500, 500, 500], [tensor.tanh, tensor.tanh, tensor.tanh, tensor.tanh, Tann.softmax], 0.0001, 100, 3, 5, 'mean')
-    #ann = ANN(states, labels, scores, [500, 500, 500], [rectify, rectify, rectify, rectify, Tann.softmax], 0.0001, 100, 3, 5, 'mean')
-    #ann = ANN(states, labels, scores, [50], [tensor.tanh, tensor.tanh, Tann.softmax], 0.001, 50, 1, 1, 'mean')
+    #ann = ANN(states, labels, scores, [500, 500, 500], [tensor.tanh, tensor.tanh, tensor.tanh, tensor.tanh, Tann.softmax], 0.0001, 100, 5, 'mean')
+    #ann = ANN(states, labels, scores, [500, 500, 500], [rectify, rectify, rectify, rectify, Tann.softmax], 0.0001, 100, 5, 'mean')
+    #ann = ANN(states, labels, scores, [50], [tensor.tanh, tensor.tanh, Tann.softmax], 0.001, 50, 1, 'mean')
 
     ann.run()
 

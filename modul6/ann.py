@@ -6,7 +6,7 @@ input_nodes = 32
 output_nodes = 4
 
 class ANN:
-    def __init__(self, states, labels, scores, hidden_nodes, activation_functions, learning_rate, batch_size, hidden_layers, epochs, error_func):
+    def __init__(self, states, labels, scores, hidden_nodes, activation_functions, learning_rate, batch_size, epochs, error_func):
         self.scores = scores
         self.states = states
         self.labels = labels
@@ -15,7 +15,7 @@ class ANN:
         self.batch_size = batch_size
         self.hidden_nodes = hidden_nodes
         self.act_funcs = activation_functions
-        self.num_hidden_layers = hidden_layers
+        self.num_hidden_layers = len(activation_functions) - 2
         self.epochs = epochs
         self.error_func = error_func
         self.build_network()
