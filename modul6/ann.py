@@ -1,6 +1,12 @@
 import theano
 import numpy as np
 import theano.tensor as T
+import math
+from modul4 import *
+
+
+def TanH(x):
+    return math.tanh(x)
 
 input_nodes = 16
 output_nodes = 4

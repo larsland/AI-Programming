@@ -4,6 +4,7 @@ from tkinter import Tk
 import numpy as np
 import time
 from modul6.ann import ANN
+import theano.tensor as tensor
 import theano.tensor.nnet as Tann
 from modul4 import gamelogic as game
 from modul4.gui import GameWindow
@@ -55,13 +56,15 @@ def play_random():
 
 if __name__ == '__main__':
     states, labels, scores = [], [], []
-    with open('modul6/training_data.txt') as training_file:
+    with open('modul6/training_set.txt') as training_file:
         for line in training_file:
             data = eval(line)
             states.append(np.asarray(data[0]))
             labels.append(data[1])
             scores.append(data[2])
+
     ann = ANN(states, labels, scores, [15], [rectify, rectify, Tann.softmax], 0.001, 20, 1, 10, 'mean')
+
     ann.run()
 
     g = game._2048()
@@ -126,12 +129,6 @@ if __name__ == '__main__':
         add_highest_tile(state, "player")
 
     play_random()
-
-
-
-
-
-
 
 
 
