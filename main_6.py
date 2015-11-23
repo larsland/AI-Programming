@@ -56,14 +56,14 @@ def play_random():
 
 if __name__ == '__main__':
     states, labels, scores = [], [], []
-    with open('modul6/training_set.txt') as training_file:
+    with open('modul6/new_training_set.txt') as training_file:
         for line in training_file:
             data = eval(line)
             states.append(np.asarray(data[0]))
             labels.append(data[1])
             scores.append(data[2])
 
-    ann = ANN(states, labels, scores, [15], [rectify, rectify, Tann.softmax], 0.001, 20, 1, 10, 'mean')
+    ann = ANN(states, labels, scores, [200], [tensor.tanh, tensor.tanh, Tann.softmax], 0.001, 50, 1, 10, 'mean')
 
     ann.run()
 
@@ -72,8 +72,8 @@ if __name__ == '__main__':
     g.initial = g.adv_move(g.initial)
     state = g.initial
 
-    root = Tk()
-    app = GameWindow(master=root)
+    #root = Tk()
+    #app = GameWindow(master=root)
     score = 0
 
     sic_dic = {0: 2, 1: 0, 2: 3, 3: 1}
@@ -110,7 +110,6 @@ if __name__ == '__main__':
 
             #app.update_view(state, score, play)
 
-
             prev_diff = np.setdiff1d(prev.reshape(-1), state.reshape(-1))
             if prev_diff.size:
                 for i in prev_diff:
@@ -118,6 +117,7 @@ if __name__ == '__main__':
 
             state = g.adv_move(state)
             #app.update_view(state, score, play)
+
 
 
             actions = list(g.actions(state))

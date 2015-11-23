@@ -78,7 +78,7 @@ class ANN:
 
     def train_network(self):
         for i in range(self.epochs):
-            print('-'*35 + '\n' + "epoch: " + str(i) + '\n' + '-'*35)
+            print('-'*35 + '\n' + "epoch: " + str(i+1) + '\n' + '-'*35)
             error = 0
             i = 0
             j = self.batch_size
@@ -91,7 +91,7 @@ class ANN:
                 i += self.batch_size
                 j += self.batch_size
                 if j % (self.batch_size * 100) == 0:
-                    print("image nr: ", j)
+                    print("Move nr: ", j)
                 error += self.train(state_batch, label_batch)
             print("(average error per image: " + str('%.5f' % (error/j)) + ')')
 
