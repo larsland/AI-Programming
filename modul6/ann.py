@@ -1,14 +1,8 @@
 import theano
 import numpy as np
 import theano.tensor as T
-import math
-from modul4 import *
 
-
-def TanH(x):
-    return math.tanh(x)
-
-input_nodes = 16
+input_nodes = 32
 output_nodes = 4
 
 class ANN:
@@ -16,6 +10,7 @@ class ANN:
         self.scores = scores
         self.states = states
         self.labels = labels
+        self.input_nodes = len(states[0])
         self.learning_rate = learning_rate
         self.batch_size = batch_size
         self.hidden_nodes = hidden_nodes
@@ -23,7 +18,6 @@ class ANN:
         self.num_hidden_layers = hidden_layers
         self.epochs = epochs
         self.error_func = error_func
-
         self.build_network()
 
     def build_network(self):
@@ -33,7 +27,7 @@ class ANN:
         layers = []
 
         # Setting weights for each layer
-        weights.append(theano.shared(np.random.uniform(low=-.1, high=.1, size=(input_nodes, self.hidden_nodes[0]))))
+        weights.append(theano.shared(np.random.uniform(low=-.1, high=.1, size=(self.input_nodes, self.hidden_nodes[0]))))
         for i in range(1, self.num_hidden_layers):
             weights.append(theano.shared(np.random.uniform(low=-.1, high=.1, size=(self.hidden_nodes[i-1], self.hidden_nodes[i]))))
         weights.append(theano.shared(np.random.uniform(low=-.1, high=.1, size=(self.hidden_nodes[-1], output_nodes))))

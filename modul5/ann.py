@@ -51,8 +51,6 @@ class ANN:
         else:
             error_function = None
 
-
-
         params = list(weights)
         gradients = T.grad(error_function, params)
 
@@ -72,27 +70,26 @@ class ANN:
         return updates
 
     def train_network(self, errors):
-        target = open("stats/train" + str(self.net_number) + '.txt', 'w+')
-        for i in range(self.epochs):
-            print('-'*35 + '\n' + "epoch: " + str(i) + '\n' + '-'*35)
-            error = 0
-            i = 0
-            j = self.batch_size
-            while j < len(self.images):
-                image_group = self.images[i:j]
-                result_group = [[0 for i in range(10)] for i in range(self.batch_size)]
-                for k in range(self.batch_size):
-                    label_index = self.labels[i + k]
-                    result_group[k][label_index] = 1
-                i += self.batch_size
-                j += self.batch_size
-                if j % (self.batch_size * 100) == 0:
-                    print("image nr: ", j)
-                error += self.train(image_group, result_group)
-            print("(average error per image: " + str('%.5f' % (error/j)) + ')')
-            errors.append(error)
-            self.write_results(target)
-        target.close()
+        with open("modul5/stats/train" + str(self.net_number) + '.txt', 'w+') as target:
+            for i in range(self.epochs):
+                print('-'*35 + '\n' + "epoch: " + str(i) + '\n' + '-'*35)
+                error = 0
+                i = 0
+                j = self.batch_size
+                while j < len(self.images):
+                    image_group = self.images[i:j]
+                    result_group = [[0 for i in range(10)] for i in range(self.batch_size)]
+                    for k in range(self.batch_size):
+                        label_index = self.labels[i + k]
+                        result_group[k][label_index] = 1
+                    i += self.batch_size
+                    j += self.batch_size
+                    if j % (self.batch_size * 100) == 0:
+                        print("image nr: ", j)
+                    error += self.train(image_group, result_group)
+                print("(average error per image: " + str('%.5f' % (error/j)) + ')')
+                errors.append(error)
+                self.write_results(target)
 
     def write_results(self, target):
         #res_test = self.test_on_testing_images()
@@ -146,6 +143,7 @@ class ANN:
         errors = []
 
         self.train_network(errors)
+
         '''
         while True:
             print('-'*35 + '\n' + '1: Train' + '\n' + '2: Test on testing images' + '\n' +
