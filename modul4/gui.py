@@ -64,7 +64,7 @@ class GameWindow(Frame):
 
             self.grid_cells.append(grid_row)
 
-    def update_view(self, state, score, time):
+    def update_view(self, state, score, play):
         for i in range(GRID_LEN):
             for j in range(GRID_LEN):
                 digit = state[i, j]
@@ -82,7 +82,7 @@ class GameWindow(Frame):
                         fg=foreground_color)
 
         self.score_board.configure(text=score)
-        self.timer.configure(text=time)
+        self.timer.configure(text=play)
         self.update_idletasks()
 
     def game_over_screen(self):

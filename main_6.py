@@ -39,11 +39,10 @@ def play_random():
         while actions:
             move = randint(0, 3)
             state = g.my_move(state, move)
-            print(state)
             state = g.adv_move(state)
-            print(state)
             actions = list(g.actions(state))
 
+        print("RANDOM: ", 2**max(np.asarray(state).flatten().tolist()))
         add_highest_tile(state, "random")
     print(welch(Lr, La))
 
@@ -55,7 +54,7 @@ if __name__ == '__main__':
             states.append(np.asarray(data[0]))
             labels.append(data[1])
             scores.append(data[2])
-    ann = ANN(states, labels, scores, [625], [Tann.softplus, Tann.softplus, Tann.softmax], 0.005, 20, 1, 5, 'mean')
+    ann = ANN(states, labels, scores, [30], [rectify, rectify, Tann.softmax], 0.001, 20, 1, 5, 'sum')
     ann.run()
 
     g = game._2048()
@@ -67,21 +66,14 @@ if __name__ == '__main__':
     app = GameWindow(master=root)
     score = 0
 
-    t1 = time.time()
-    timer = ""
-
-    sic_dic = {0: 2,
-               1: 0,
-               2: 3,
-               3: 1}
+    sic_dic = {0: 2, 1: 0, 2: 3, 3: 1}
 
     actions = list(g.actions(state))
 
-    for i in range(50):
+    for play in range(50):
         state = g.initial
         actions = list(g.actions(state))
         while actions:
-            timer = '%.2f' % (time.time() - t1)
             prev = state
 
             move = ann.predict_move(np.asarray(state).flatten().tolist())
@@ -106,7 +98,8 @@ if __name__ == '__main__':
             else:
                 state = g.my_move(state, sic_dic[move_four])
 
-            app.update_view(state, score, timer)
+            #app.update_view(state, score, play)
+
 
             prev_diff = np.setdiff1d(prev.reshape(-1), state.reshape(-1))
             if prev_diff.size:
@@ -114,10 +107,12 @@ if __name__ == '__main__':
                     score += 1 << i
 
             state = g.adv_move(state)
-            app.update_view(state, score, timer)
+            #app.update_view(state, score, play)
+
 
             actions = list(g.actions(state))
 
+        print("PLAYER: ", 2**max(np.asarray(state).flatten().tolist()))
         add_highest_tile(state, "player")
 
     play_random()
