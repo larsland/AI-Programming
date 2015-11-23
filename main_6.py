@@ -72,7 +72,7 @@ if __name__ == '__main__':
             states.append(np.asarray(data[0]))
             labels.append(data[1])
             scores.append(data[2])
-    ann = ANN(states, labels, scores, [400], [tensor.tanh, Tann.sigmoid, rectify, Tann.softmax], 0.001, 1, 1, 5, 'sum')
+    ann = ANN(states, labels, scores, [300, 300, 300], [tensor.tanh, rectify, rectify, rectify, Tann.softmax], 0.001, 1, 1, 5, 'sum')
     ann.run()
 
     g = game._2048()
