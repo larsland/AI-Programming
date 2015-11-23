@@ -72,7 +72,7 @@ class ANN:
         return updates
 
     def train_network(self, errors):
-        target = open("stats/train" + str(self.net_number) + '.txt', 'w')
+        target = open("stats/train" + str(self.net_number) + '.txt', 'w+')
         for i in range(self.epochs):
             print('-'*35 + '\n' + "epoch: " + str(i) + '\n' + '-'*35)
             error = 0

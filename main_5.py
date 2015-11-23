@@ -1,4 +1,5 @@
 from modul5.ann import ANN
+import theano.tensor as tensor
 import theano.tensor.nnet as Tann
 from modul5.basics.mnist_basics import *
 
@@ -35,6 +36,9 @@ if __name__ == '__main__':
     ann4 = ANN(4, cases, test_cases, [200], [rectify, Tann.sigmoid, Tann.sigmoid], 0.001, 50, 1, 20, 'sum')
     ann5 = ANN(5, cases, test_cases, [60, 80, 100], [Tann.softplus, Tann.softplus, Tann.softplus, Tann.softplus, Tann.softplus], 0.01, 50, 3, 20, 'sum')
 
+    ann6 = ANN(6, cases, test_cases, [535], [tensor.tanh, tensor.tanh, Tann.softmax], 0.001, 100, 1, 20, 'mean')
+
+    ann6.run()
     ann1.run()
     ann2.run()
     ann3.run()
