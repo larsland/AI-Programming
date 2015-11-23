@@ -123,9 +123,8 @@ def normalize_state(state):
     return (np.asarray(state) / max(state)).tolist()
 
 
-def preprocess_old(state):
-    new_state = list(state)
-    new_state += normalize_state(list(state))
+def preprocess(state):
+    new_state = normalize_state(list(state))
     new_state += merge_count(list(state))
     return np.asarray(state).tolist()
 
@@ -149,7 +148,7 @@ def preprocess_old(state):
 """
 
 
-def preprocess(state, score):
+def score_tune(state, score):
     temp_score = score
     if temp_score <= 0:
         temp_score = 1
@@ -163,18 +162,22 @@ def preprocess(state, score):
 
     return result
 
+
+def normalize_states(states):
+    norms = np.apply_along_axis(np.linalg.norm, 0, np.asarray(states))
+    return (np.asarray(states) / norms).tolist()
+
 if __name__ == '__main__':
     states, labels, scores = [], [], []
     with open('modul6/wtf2.txt') as training_file:
         for line in training_file:
             state, move, score = eval(line)
 
-            states.append(np.asarray(preprocess(state, score)))
+            states.append(np.asarray(score_tune(state, score)))
             labels.append(move)
             scores.append(score)
 
-        norms = np.apply_along_axis(np.linalg.norm, 0, np.asarray(states))
-        states = (np.asarray(states) / norms).tolist()
+        states = normalize_states(states)
 
     ann = ANN(states, labels, scores, [300], [tensor.tanh, tensor.tanh, Tann.softmax], 0.0001, 50, 1, 5, 'mean')
     #ann = ANN(states, labels, scores, [400, 400, 400], [rectify, rectify, rectify, rectify, Tann.softmax], 0.01, 20, 3, 10, 'mean')
