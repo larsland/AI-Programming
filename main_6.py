@@ -1,27 +1,19 @@
 import math
 from random import randint
-from tkinter import Tk
+# from tkinter import Tk
 import numpy as np
 import time
 from modul6.ann import ANN
 import theano.tensor as tensor
 import theano.tensor.nnet as Tann
 from modul4 import gamelogic as game
-from modul4.gui import GameWindow
-from modul4.adversial import *
-from modul5.utils import rectify
+# from modul4.gui import GameWindow
+from modul5.utils import rectify, prelu
 from modul6.ai2048demo import welch
 from modul6.utils import *
 
 La = []
 Lr = []
-
-
-class bcolors:
-    ENDC = '\033[0m'
-    RED = '\x1b[31;1m'
-
-
 
 def add_highest_tile(state, turn):
     highest_tile = max(np.asarray(state).flatten().tolist())
@@ -56,12 +48,28 @@ def play_random():
 
 if __name__ == '__main__':
     states, labels, scores = [], [], []
-    with open('modul6/new_training_set.txt') as training_file:
+    with open('modul6/wtf2.txt') as training_file:
         for line in training_file:
             data = eval(line)
-            states.append(np.asarray(data[0]))
+            stuff = data[2]
+            if stuff <= 0:
+                stuff = 1
+            else:
+                stuff = math.log2(stuff/10)
+            #print('------------')
+            result = []
+            for wat in data[0]:
+                result.append(wat*stuff)
+            #print(result)
+            states.append(np.asarray(result))
             labels.append(data[1])
             scores.append(data[2])
+
+        norms = np.apply_along_axis(np.linalg.norm, 0, np.asarray(states))
+        states = (np.asarray(states) / norms).tolist()
+
+
+        print(states[100])
 
     ann = ANN(states, labels, scores, [200], [tensor.tanh, tensor.tanh, Tann.softmax], 0.001, 50, 1, 10, 'mean')
 
@@ -123,7 +131,7 @@ if __name__ == '__main__':
             actions = list(g.actions(state))
 
         if (2**max(np.asarray(state).flatten().tolist()) >= 256):
-            print("PLAYER: ", bcolors.RED + str(2**max(np.asarray(state).flatten().tolist())) + bcolors.ENDC)
+            print("PLAYER: ", str(2**max(np.asarray(state).flatten().tolist())))
         else:
             print("PLAYER: ", 2**max(np.asarray(state).flatten().tolist()))
         add_highest_tile(state, "player")
