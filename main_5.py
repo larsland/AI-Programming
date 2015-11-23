@@ -29,7 +29,7 @@ if __name__ == '__main__':
     ann5 = ANN(5, cases, test_cases, [30, 40, 50], [Tann.softplus, Tann.softplus, Tann.softplus, Tann.softplus, Tann.softplus], 0.01, 50, 3, 10, 'sum')
     '''
 
-    ann1 = ANN(1, cases, test_cases, [535], [Tann.softplus, Tann.softplus, Tann.softmax], 0.001, 100, 1, 20, 'mean')
+    ann1 = ANN(1, cases, test_cases, [50], [Tann.softplus, Tann.softplus, Tann.softmax], 0.001, 100, 1, 5, 'mean')
     ann2 = ANN(2, cases, test_cases, [535], [Tann.softplus, Tann.softplus, Tann.softmax], 0.001, 100, 1, 20, 'sum')
     ann3 = ANN(3, cases, test_cases, [100, 100], [rectify, rectify, rectify, Tann.softmax], 0.002, 100, 2, 20, 'mean')
     ann4 = ANN(4, cases, test_cases, [200], [rectify, Tann.sigmoid, Tann.sigmoid], 0.001, 50, 1, 20, 'sum')

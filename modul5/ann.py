@@ -72,7 +72,7 @@ class ANN:
         return updates
 
     def train_network(self, errors):
-        target = open("stats/train" + str(self.net_number) + '.txt', 'w')
+        target = open("modul5/stats/train" + str(self.net_number) + '.txt', 'w')
         for i in range(self.epochs):
             print('-'*35 + '\n' + "epoch: " + str(i) + '\n' + '-'*35)
             error = 0
@@ -146,6 +146,7 @@ class ANN:
         errors = []
 
         self.train_network(errors)
+
         '''
         while True:
             print('-'*35 + '\n' + '1: Train' + '\n' + '2: Test on testing images' + '\n' +
