@@ -15,6 +15,13 @@ from modul6.utils import *
 La = []
 Lr = []
 
+
+class bcolors:
+    ENDC = '\033[0m'
+    RED = '\x1b[31;1m'
+
+
+
 def add_highest_tile(state, turn):
     highest_tile = max(np.asarray(state).flatten().tolist())
     if turn == 'player':
@@ -54,7 +61,7 @@ if __name__ == '__main__':
             states.append(np.asarray(data[0]))
             labels.append(data[1])
             scores.append(data[2])
-    ann = ANN(states, labels, scores, [30], [rectify, rectify, Tann.softmax], 0.001, 20, 1, 5, 'sum')
+    ann = ANN(states, labels, scores, [15], [rectify, rectify, Tann.softmax], 0.001, 20, 1, 10, 'mean')
     ann.run()
 
     g = game._2048()
@@ -112,7 +119,10 @@ if __name__ == '__main__':
 
             actions = list(g.actions(state))
 
-        print("PLAYER: ", 2**max(np.asarray(state).flatten().tolist()))
+        if (2**max(np.asarray(state).flatten().tolist()) >= 256):
+            print("PLAYER: ", bcolors.RED + str(2**max(np.asarray(state).flatten().tolist())) + bcolors.ENDC)
+        else:
+            print("PLAYER: ", 2**max(np.asarray(state).flatten().tolist()))
         add_highest_tile(state, "player")
 
     play_random()
