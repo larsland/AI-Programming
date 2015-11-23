@@ -71,10 +71,7 @@ if __name__ == '__main__':
 
         print(states[100])
 
-
-
-    ann = ANN(states, labels, scores, [400], [tensor.tanh, tensor.tanh, Tann.softmax], 0.001, 50, 1,
-              1, 'mean')
+    ann = ANN(states, labels, scores, [200], [tensor.tanh, tensor.tanh, Tann.softmax], 0.001, 50, 1, 10, 'mean')
 
     ann.run()
 
@@ -121,7 +118,6 @@ if __name__ == '__main__':
 
             #app.update_view(state, score, play)
 
-
             prev_diff = np.setdiff1d(prev.reshape(-1), state.reshape(-1))
             if prev_diff.size:
                 for i in prev_diff:
@@ -129,6 +125,7 @@ if __name__ == '__main__':
 
             state = g.adv_move(state)
             #app.update_view(state, score, play)
+
 
 
             actions = list(g.actions(state))
