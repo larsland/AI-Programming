@@ -70,7 +70,7 @@ class ANN:
         return updates
 
     def train_network(self, errors):
-        with open("modul5/stats/train" + str(self.net_number) + '.txt', 'w+') as target:
+        with open("modul5/stats/test" + str(self.net_number) + '.txt', 'w+') as target:
             for i in range(self.epochs):
                 print('-'*35 + '\n' + "epoch: " + str(i) + '\n' + '-'*35)
                 error = 0
@@ -92,11 +92,11 @@ class ANN:
                 self.write_results(target)
 
     def write_results(self, target):
+        res_test = self.test_on_testing_images()
+        target.write(str(res_test))
+        #res_train = self.test_on_training_images()
         #res_test = self.test_on_testing_images()
-        #target.write(str(res_test))
-        res_train = self.test_on_training_images()
-        #res_test = self.test_on_testing_images()
-        target.write(str(res_train))
+        #target.write(str(res_train))
         target.write('\n')
         #target.write(str(res_test))
         # target.write('\n')

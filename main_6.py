@@ -11,6 +11,7 @@ from modul4 import gamelogic as game
 from modul5.utils import rectify, prelu
 from modul6.ai2048demo import welch
 from modul6.utils import *
+from scipy import stats
 
 La = []
 Lr = []
@@ -20,7 +21,7 @@ def add_highest_tile(state, turn):
     highest_tile = max(np.asarray(state).flatten().tolist())
     if turn == 'player':
         La.append(2 ** highest_tile)
-    elif turn == 'random':
+    elif turn == 'adversary':
         Lr.append(2 ** highest_tile)
 
 
@@ -44,44 +45,7 @@ def play_random():
             actions = list(g.actions(state))
 
         print("RANDOM: ", 2 ** max(np.asarray(state).flatten().tolist()))
-        add_highest_tile(state, "random")
-    print(welch(Lr, La))
-
-
-def stuff():
-    max_score = 0
-    min_score = float('Inf')
-    max_tile = 0
-    min_tile = 0
-    for line in training_file:
-        state, move, score = eval(line)
-
-        if score > max_score:
-            max_score = score
-        elif score < min_score:
-            min_score = score
-
-        state_max = max(state)
-        if state_max > max_tile:
-            max_tile = state_max
-
-        states.append(np.asarray(state))
-        labels.append(move)
-        scores.append(score)
-
-    new_states = []
-    new_labels = []
-    new_scores = []
-    for state, label, score in zip(states, labels, scores):
-
-        new_state = []
-
-        new_score = score / max_score
-        for i in range(len(state)):
-            new_state.append((state[i] - float(max_tile)) / float(max_tile))
-
-        new_scores.append(new_score)
-        new_states.append(new_state)
+        add_highest_tile(state, "adversary")
 
 
 def score_board(board):
@@ -124,7 +88,8 @@ def normalize_state(state):
 
 
 def preprocess(state):
-    new_state = normalize_state(list(state))
+    new_state = list(state)
+    new_state += normalize_state(list(state))
     new_state += merge_count(list(state))
     return np.asarray(state).tolist()
 
@@ -163,21 +128,25 @@ def score_tune(state, score):
     return result
 
 
-def normalize_states(states):
+def frobeus_norm(states):
     norms = np.apply_along_axis(np.linalg.norm, 0, np.asarray(states))
     return (np.asarray(states) / norms).tolist()
 
-if __name__ == '__main__':
+
+def play(pre, turn):
     states, labels, scores = [], [], []
-    with open('modul6/wtf2.txt') as training_file:
+    with open('modul6/testoramalini.txt') as training_file:
         for line in training_file:
             state, move, score = eval(line)
+            if pre == 0:
+                states.append(np.asarray(preprocess(state)))
+            else:
+                states.append(np.asarray(score_tune(state, score)))
 
-            states.append(np.asarray(score_tune(state, score)))
             labels.append(move)
             scores.append(score)
 
-        states = normalize_states(states)
+        states = np.asarray(frobeus_norm(states))
 
     ann = ANN(states, labels, scores, [300], [tensor.tanh, tensor.tanh, Tann.softmax], 0.0001, 50, 5, 'mean')
     #ann = ANN(states, labels, scores, [400, 400, 400], [rectify, rectify, rectify, rectify, Tann.softmax], 0.01, 20, 10, 'mean')
@@ -194,15 +163,9 @@ if __name__ == '__main__':
     g.initial = g.adv_move(g.initial)
     state = g.initial
 
-    # root = Tk()
-    # app = GameWindow(master=root)
-    score = 0
-
-    sic_dic = {0: 2, 1: 0, 2: 3, 3: 1}
-
-    actions = list(g.actions(state))
-
+    move_dict = {0: 2, 1: 0, 2: 3, 3: 1}
     for play in range(50):
+        score = 0
         state = g.initial
         actions = list(g.actions(state))
         while actions:
@@ -210,27 +173,31 @@ if __name__ == '__main__':
 
             temp = np.asarray(state).flatten().tolist()
 
-            move = ann.predict_move(temp)
-            next_move = ann.predict_next_move(temp)
+            if pre == 0:
+                move = ann.predict_move(preprocess(temp))
+                next_move = ann.predict_next_move(preprocess(temp))
+            else:
+                move = ann.predict_move(temp)
+                next_move = ann.predict_next_move(temp)
 
             move_two = sorted(list(next_move[0])).index(sorted(list(next_move[0]))[-2])
             move_three = sorted(list(next_move[0])).index(sorted(list(next_move[0]))[-3])
             move_four = sorted(list(next_move[0])).index(sorted(list(next_move[0]))[-4])
 
             current_state = np.copy(state)
-            next_state = g.my_move(current_state, sic_dic[move])
-            next_state_two = g.my_move(current_state, sic_dic[move_two])
-            next_state_three = g.my_move(current_state, sic_dic[move_three])
-            next_state_four = g.my_move(current_state, sic_dic[move_four])
+            next_state = g.my_move(current_state, move_dict[move])
+            next_state_two = g.my_move(current_state, move_dict[move_two])
+            next_state_three = g.my_move(current_state, move_dict[move_three])
+            next_state_four = g.my_move(current_state, move_dict[move_four])
 
             if not np.array_equal(current_state, next_state):
-                state = g.my_move(state, sic_dic[move])
+                state = g.my_move(state, move_dict[move])
             elif not np.array_equal(current_state, next_state_two):
-                state = g.my_move(state, sic_dic[move_two])
+                state = g.my_move(state, move_dict[move_two])
             elif not np.array_equal(current_state, next_state_three):
-                state = g.my_move(state, sic_dic[move_three])
+                state = g.my_move(state, move_dict[move_three])
             else:
-                state = g.my_move(state, sic_dic[move_four])
+                state = g.my_move(state, move_dict[move_four])
 
             # app.update_view(state, score, play)
 
@@ -247,9 +214,20 @@ if __name__ == '__main__':
             actions = list(g.actions(state))
 
         if (2 ** max(np.asarray(state).flatten().tolist()) >= 256):
-            print("PLAYER: ", str(2 ** max(np.asarray(state).flatten().tolist())))
+            print(turn, str(2 ** max(np.asarray(state).flatten().tolist())))
         else:
-            print("PLAYER: ", 2 ** max(np.asarray(state).flatten().tolist()))
-        add_highest_tile(state, "player")
+            print(turn, 2 ** max(np.asarray(state).flatten().tolist()))
+
+        add_highest_tile(state, turn)
+
+
+if __name__ == '__main__':
+    # root = Tk()
+    # app = GameWindow(master=root)
+    play(1, 'player')
+    #play(0, 'adversary')
 
     play_random()
+
+    print(stats.ttest_ind(Lr, La, axis=0, equal_var=False))
+    print(welch(Lr, La))

@@ -5,6 +5,7 @@ import theano.tensor as T
 input_nodes = 32
 output_nodes = 4
 
+
 class ANN:
     def __init__(self, states, labels, scores, hidden_nodes, activation_functions, learning_rate, batch_size, epochs, error_func):
         self.scores = scores

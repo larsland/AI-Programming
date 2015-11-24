@@ -30,16 +30,19 @@ if __name__ == '__main__':
     ann5 = ANN(5, cases, test_cases, [30, 40, 50], [Tann.softplus, Tann.softplus, Tann.softplus, Tann.softplus, Tann.softplus], 0.01, 50, 3, 10, 'sum')
     '''
 
-    ann1 = ANN(1, cases, test_cases, [50], [Tann.softplus, Tann.softplus, Tann.softmax], 0.001, 100, 20, 'mean')
-    #ann2 = ANN(2, cases, test_cases, [535], [Tann.softplus, Tann.softplus, Tann.softmax], 0.001, 100, 20, 'sum')
+    #ann1 = ANN(1, cases, test_cases, [535], [Tann.softplus, Tann.softplus, Tann.softmax], 0.001, 100, 20, 'mean')
+    ann2 = ANN(2, cases, test_cases, [535], [Tann.softplus, Tann.softplus, Tann.softmax], 0.001, 100, 20, 'sum')
     #ann3 = ANN(3, cases, test_cases, [100, 100], [rectify, rectify, rectify, Tann.softmax], 0.002, 100, 20, 'mean')
     #ann4 = ANN(4, cases, test_cases, [200], [rectify, Tann.sigmoid, Tann.sigmoid], 0.001, 50, 20, 'sum')
     #ann5 = ANN(5, cases, test_cases, [60, 80, 100], [Tann.softplus, Tann.softplus, Tann.softplus, Tann.softplus, Tann.softplus], 0.01, 50, 20, 'sum')
+
+
+
     #ann6 = ANN(6, cases, test_cases, [535], [tensor.tanh, tensor.tanh, Tann.softmax], 0.001, 100, 20, 'mean')
 
     #ann6.run()
-    ann1.run()
-    #ann2.run()
+    #ann1.run()
+    ann2.run()
     #ann3.run()
     #ann4.run()
     #ann5.run()
